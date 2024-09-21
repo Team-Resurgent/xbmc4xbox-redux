@@ -301,6 +301,9 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
 
     DatabaseSettings m_databaseMusic; // advanced music database setup
     DatabaseSettings m_databaseVideo; // advanced video database setup
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    DatabaseSettings m_databaseProgram; // advanced program database setup
+#endif
 
     bool m_jsonOutputCompact;
 
