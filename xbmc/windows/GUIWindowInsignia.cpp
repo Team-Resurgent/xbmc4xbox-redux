@@ -33,7 +33,7 @@
 #include "utils/Variant.h"
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 
 CGUIWindowInsignia::CGUIWindowInsignia(void)
     : CGUIWindow(WINDOW_INSIGNIA, "Insignia.xml"),
@@ -77,7 +77,7 @@ bool CGUIWindowInsignia::OnAction(const CAction &action)
     if (sscanf(game->GetProperty("code").asString().c_str(), "%x", (uint32_t*)&xbeID) == 0)
       return false;
 
-    CProgramDatabase database;
+    LEGACY_PROGRAMS::CProgramDatabase database;
     database.Open();
 
     std::string gamePath;

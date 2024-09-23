@@ -21,7 +21,7 @@
  */
 
 #include "windows/GUIMediaWindow.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "ThumbLoader.h"
 
@@ -48,7 +48,7 @@ protected:
 
   CGUIDialogProgress* m_dlgProgress;
 
-  CProgramDatabase m_database;
+  LEGACY_PROGRAMS::CProgramDatabase m_database;
 
   int m_iRegionSet; // for cd stuff
 

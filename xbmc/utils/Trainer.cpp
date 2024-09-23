@@ -26,7 +26,7 @@
 #include "filesystem/Directory.h"
 #include "filesystem/RarManager.h"
 #include "dialogs/GUIDialogProgress.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 #include "guilib/LocalizeStrings.h"
 #include "guilib/GUIWindowManager.h"
 #include "settings/Settings.h"
@@ -698,7 +698,7 @@ bool CTrainer::ScanTrainers()
   if (!progress)
     return false;
 
-  CProgramDatabase database;
+  LEGACY_PROGRAMS::CProgramDatabase database;
   if (!database.Open())
     return false;
 

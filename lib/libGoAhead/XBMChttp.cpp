@@ -30,7 +30,7 @@
 #include "filesystem/CDDADirectory.h"
 #include "filesystem/SpecialProtocol.h"
 #include "video/VideoDatabase.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 #include "GUIButtonControl.h"
 #include "music/tags/MusicInfoTagLoaderFactory.h"
 #include "music/infoscanner/MusicInfoScraper.h"
@@ -1022,7 +1022,7 @@ int CXbmcHttp::xbmcQueryProgramDataBase(int numParas, CStdString paras[])
     return SetResponse(openTag+"Error:Missing Parameter");
   else
   {
-    CProgramDatabase programdatabase;
+    LEGACY_PROGRAMS::CProgramDatabase programdatabase;
     if (programdatabase.Open())
     {
       CStdString result;

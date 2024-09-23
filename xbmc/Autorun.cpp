@@ -44,7 +44,7 @@
 #include "interfaces/builtins/Builtins.h"
 #include "utils/Trainer.h"
 #include "xbox/xbeheader.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 #endif
 
 #include "defs_from_settings.h"
@@ -105,7 +105,7 @@ void CAutorun::ExecuteXBE(const CStdString &xbeFile)
   else
     iRegion = 0;
 
-  CProgramDatabase database;
+  LEGACY_PROGRAMS::CProgramDatabase database;
   database.Open();
 
   // Load active trainer

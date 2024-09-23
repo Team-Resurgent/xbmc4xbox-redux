@@ -23,7 +23,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "FileItem.h"
-#include "ProgramDatabase.h"
+#include "programs/ProgramDatabase2.h"
 #include "settings/lib/Setting.h"
 #include "settings/windows/GUIControlSettings.h"
 #include "utils/Variant.h"
@@ -187,7 +187,7 @@ void CGUIDialogTrainerSettings::OnSettingAction(const CSetting *setting)
 
 void CGUIDialogTrainerSettings::Save()
 {
-  CProgramDatabase database;
+  LEGACY_PROGRAMS::CProgramDatabase database;
   if (database.Open())
   {
     database.SetTrainer(m_iTitleId, m_trainer);
@@ -216,7 +216,7 @@ void CGUIDialogTrainerSettings::InitializeSettings()
   if (!m_iTitleId)
     m_iTitleId = CUtil::GetXbeID(m_strExecutable);
 
-  CProgramDatabase database;
+  LEGACY_PROGRAMS::CProgramDatabase database;
   if (database.Open())
   {
     // Load trainer settings
