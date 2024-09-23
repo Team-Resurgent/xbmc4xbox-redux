@@ -24,6 +24,9 @@
 #include "GUIDialogFileBrowser.h"
 #include "video/windows/GUIWindowVideoBase.h"
 #include "music/windows/GUIWindowMusicBase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/windows/GUIWindowProgramBase.h"
+#endif
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
 #include "Util.h"
@@ -411,6 +414,10 @@ void CGUIDialogMediaSource::OnOK()
         CGUIWindowVideoBase::OnAssignContent(share.strPath);
       else if (m_type == "music")
         CGUIWindowMusicBase::OnAssignContent(share.strPath);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (m_type == "program")
+        CGUIWindowProgramBase::OnAssignContent(share.strPath);
+#endif
     }
   }
 

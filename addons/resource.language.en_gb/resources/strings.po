@@ -13849,6 +13849,10 @@ msgctxt "#38791"
 msgid "Apply flicker filter setting to games"
 msgstr ""
 
+msgctxt "#38801"
+msgid "Games information"
+msgstr ""
+
 msgctxt "#38901"
 msgid "Play on Insignia"
 msgstr ""

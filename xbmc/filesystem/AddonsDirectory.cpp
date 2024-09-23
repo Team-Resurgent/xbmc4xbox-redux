@@ -72,6 +72,9 @@ std::set<TYPE> createInfoProviderTypes() {
   types.insert(ADDON_SCRAPER_MOVIES);
   types.insert(ADDON_SCRAPER_MUSICVIDEOS);
   types.insert(ADDON_SCRAPER_TVSHOWS);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  types.insert(ADDON_SCRAPER_GAMES);
+#endif
   return types;
 }
 const std::set<TYPE> infoProviderTypes = createInfoProviderTypes();

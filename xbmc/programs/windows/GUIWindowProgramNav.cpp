@@ -21,6 +21,7 @@
 #include "GUIWindowProgramNav.h"
 #include "dialogs/GUIDialogMediaSource.h"
 #include "FileItem.h"
+#include "profiles/ProfilesManager.h"
 #include "utils/StringUtils.h"
 
 CGUIWindowProgramNav::CGUIWindowProgramNav(void)
@@ -72,6 +73,24 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
   {
     // get the usual shares
     CGUIDialogContextMenu::GetContextButtons("program", item, buttons);
+    if (!item->IsDVD() && item->GetPath() != "add" && !item->IsParentFolder() &&
+        (CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser))
+    {
+      CProgramDatabase database;
+      database.Open();
+      ADDON::ScraperPtr info = database.GetScraperForPath(item->GetPath());
+
+      if (!item->IsPlugin() && !item->IsAddonsPath())
+      {
+        if (info && info->Content() != CONTENT_NONE)
+        {
+          buttons.Add(CONTEXT_BUTTON_SET_CONTENT, 20442);
+          buttons.Add(CONTEXT_BUTTON_SCAN, 13349);
+        }
+        else
+          buttons.Add(CONTEXT_BUTTON_SET_CONTENT, 20333);
+      }
+    }
   }
 }
 
@@ -82,6 +101,13 @@ bool CGUIWindowProgramNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button
     item = m_vecItems->Get(itemNumber);
   if (CGUIDialogContextMenu::OnContextButton("program", item, button))
   {
+    //! @todo should we search DB for entries from plugins?
+    if (button == CONTEXT_BUTTON_REMOVE_SOURCE && !item->IsPlugin())
+    {
+      // if the source has been properly removed, remove the cached source list because the list has changed
+      if (OnUnAssignContent(item->GetPath(), 20375, 20340))
+        m_vecItems->RemoveDiscCache(GetID());
+    }
     Refresh();
     return true;
   }

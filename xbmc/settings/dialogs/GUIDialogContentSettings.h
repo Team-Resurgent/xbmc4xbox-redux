@@ -30,6 +30,12 @@ namespace VIDEO
 {
   struct SScanSettings;
 }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+namespace PROGRAM
+{
+  struct SScanSettings;
+}
+#endif
 class CFileItemList;
 
 class CGUIDialogContentSettings : public CGUIDialogSettingsManualBase
@@ -48,6 +54,9 @@ public:
   void SetScraper(ADDON::ScraperPtr scraper) { m_scraper = scraper; }
 
   void SetScanSettings(const VIDEO::SScanSettings &scanSettings);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  void SetScanSettings(const PROGRAM::SScanSettings &scanSettings);
+#endif
   bool GetScanRecursive() const { return m_scanRecursive; }
   bool GetUseDirectoryNames() const { return m_useDirectoryNames; }
   bool GetContainsSingleItem() const { return m_containsSingleItem; }
@@ -56,6 +65,9 @@ public:
 
   static bool Show(ADDON::ScraperPtr& scraper, CONTENT_TYPE content = CONTENT_NONE);
   static bool Show(ADDON::ScraperPtr& scraper, VIDEO::SScanSettings& settings, CONTENT_TYPE content = CONTENT_NONE);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  static bool Show(ADDON::ScraperPtr& scraper, PROGRAM::SScanSettings& settings, CONTENT_TYPE content = CONTENT_NONE);
+#endif
 
 protected:
   // specializations of CGUIWindow

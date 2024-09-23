@@ -21,6 +21,7 @@
  */
 
 #include "windows/GUIMediaWindow.h"
+#include "programs/ProgramDatabase.h"
 
 class CGUIWindowProgramBase : public CGUIMediaWindow
 {
@@ -30,6 +31,17 @@ public:
   virtual bool OnMessage(CGUIMessage& message);
   virtual bool OnAction(const CAction &action);
 
+  /*! \brief Prompt the user for assigning content to a path.
+   Based on changes, we then call OnUnassignContent, update or refresh scraper information in the database
+   and optionally start a scan
+   \param path the path to assign content for
+   */
+  static void OnAssignContent(const std::string &path);
+
 protected:
   virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
+
+  virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
+
+  static bool OnUnAssignContent(const std::string &path, int header, int text);
 };

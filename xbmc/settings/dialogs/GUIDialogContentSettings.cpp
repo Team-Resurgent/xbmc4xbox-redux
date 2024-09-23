@@ -42,6 +42,9 @@
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "video/VideoInfoScanner.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramInfoScanner.h"
+#endif
 
 #define SETTING_CONTENT_TYPE          "contenttype"
 #define SETTING_SCRAPER_LIST          "scraperlist"
@@ -87,8 +90,27 @@ void CGUIDialogContentSettings::SetScanSettings(const VIDEO::SScanSettings &scan
   m_noUpdating          = scanSettings.noupdate;
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+void CGUIDialogContentSettings::SetScanSettings(const PROGRAM::SScanSettings &scanSettings)
+{
+  m_scanRecursive       = (scanSettings.recurse > 0 && !scanSettings.parent_name) ||
+                          (scanSettings.recurse > 1 && scanSettings.parent_name);
+  m_useDirectoryNames   = scanSettings.parent_name;
+  m_exclude             = scanSettings.exclude;
+  m_containsSingleItem  = scanSettings.parent_name_root;
+  m_noUpdating          = scanSettings.noupdate;
+}
+#endif
+
 bool CGUIDialogContentSettings::Show(ADDON::ScraperPtr& scraper, CONTENT_TYPE content /* = CONTENT_NONE */)
 {
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (content == CONTENT_GAMES)
+  {
+    PROGRAM::SScanSettings dummy;
+    return Show(scraper, dummy, content);
+  } 
+#endif
   VIDEO::SScanSettings dummy;
   return Show(scraper, dummy, content);
 }
@@ -160,6 +182,70 @@ bool CGUIDialogContentSettings::Show(ADDON::ScraperPtr& scraper, VIDEO::SScanSet
   return confirmed;
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CGUIDialogContentSettings::Show(ADDON::ScraperPtr& scraper, PROGRAM::SScanSettings& settings, CONTENT_TYPE content /* = CONTENT_NONE */)
+{
+  CGUIDialogContentSettings *dialog = (CGUIDialogContentSettings *)g_windowManager.GetWindow(WINDOW_DIALOG_CONTENT_SETTINGS);
+  if (dialog == NULL)
+    return false;
+
+  if (scraper != NULL)
+  {
+    dialog->SetContent(content != CONTENT_NONE ? content : scraper->Content());
+    dialog->SetScraper(scraper);
+    // toast selected but disabled scrapers
+    if (CServiceBroker::GetAddonMgr().IsAddonDisabled(scraper->ID()))
+      CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, g_localizeStrings.Get(24024), scraper->Name(), 2000, true);
+  }
+
+  dialog->SetScanSettings(settings);
+  dialog->Open();
+
+  bool confirmed = dialog->IsConfirmed();
+  if (confirmed)
+  {
+    scraper = dialog->GetScraper();
+    content = dialog->GetContent();
+
+    if (scraper == NULL || content == CONTENT_NONE)
+      settings.exclude = dialog->GetExclude();
+    else
+    {
+      settings.exclude = false;
+      settings.noupdate = dialog->GetNoUpdating();
+      scraper->SetPathSettings(content, "");
+
+      if (content == CONTENT_GAMES)
+      {
+        if (dialog->GetUseDirectoryNames())
+        {
+          settings.parent_name = true;
+          settings.parent_name_root = false;
+          settings.recurse = dialog->GetScanRecursive() ? INT_MAX : 1;
+
+          if (dialog->GetContainsSingleItem())
+          {
+            settings.parent_name_root = true;
+            settings.recurse = 0;
+          }
+        }
+        else
+        {
+          settings.parent_name = false;
+          settings.parent_name_root = false;
+          settings.recurse = dialog->GetScanRecursive() ? INT_MAX : 0;
+        }
+      }
+    }
+  }
+
+  // now that we have evaluated all settings we need to reset the content
+  dialog->ResetContent();
+
+  return confirmed;
+}
+#endif
+
 void CGUIDialogContentSettings::OnInitWindow()
 {
   CGUIDialogSettingsManualBase::OnInitWindow();
@@ -210,6 +296,9 @@ void CGUIDialogContentSettings::OnSettingAction(const CSetting *setting)
       labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_MOVIES, true), CONTENT_MOVIES));
       labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_TVSHOWS, true), CONTENT_TVSHOWS));
       labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_MUSICVIDEOS, true), CONTENT_MUSICVIDEOS));
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_GAMES, true), CONTENT_GAMES));
+#endif
     }
     std::sort(labels.begin(), labels.end());
 
@@ -359,6 +448,9 @@ void CGUIDialogContentSettings::InitializeSettings()
 
     case CONTENT_MOVIES:
     case CONTENT_MUSICVIDEOS:
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    case CONTENT_GAMES:
+#endif
     {
       AddToggle(groupDetails, SETTING_USE_DIRECTORY_NAMES, m_content == CONTENT_MOVIES ? 20329 : 20330, 0, m_useDirectoryNames, false, m_showScanSettings);
       CSettingBool *settingScanRecursive = AddToggle(groupDetails, SETTING_SCAN_RECURSIVE, 20346, 0, m_scanRecursive, false, m_showScanSettings);

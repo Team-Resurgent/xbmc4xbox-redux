@@ -2610,6 +2610,8 @@ std::string CFileItemList::GetDiscFileCache(int windowID) const
   if (IsVideoDb())
     return StringUtils::Format("special://temp/archive_cache/vdb-%08x.fi", crc);
 
+  // TODO: remove program cache
+
   if (IsSmartPlayList())
     return StringUtils::Format("special://temp/archive_cache/sp-%08x.fi", crc);
 

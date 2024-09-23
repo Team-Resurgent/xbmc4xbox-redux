@@ -41,6 +41,9 @@ std::map<ADDON::TYPE, std::string> CreateActiveSettings() {
   settings[ADDON::ADDON_SCRAPER_MOVIES] = "scrapers.moviesdefault";
   settings[ADDON::ADDON_SCRAPER_MUSICVIDEOS] = "scrapers.musicvideosdefault";
   settings[ADDON::ADDON_SCRAPER_TVSHOWS] = "scrapers.tvshowsdefault";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  settings[ADDON::ADDON_SCRAPER_GAMES] = "scrapers.gamesdefault";
+#endif
   settings[ADDON::ADDON_WEB_INTERFACE] = "services.webskin";
   settings[ADDON::ADDON_RESOURCE_LANGUAGE] = "locale.language";
   settings[ADDON::ADDON_SCRIPT_WEATHER] = "weather.addon";

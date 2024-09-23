@@ -22,6 +22,7 @@
 #include "utils/log.h"
 #include "addons/AddonDatabase.h"
 #include "view/ViewDatabase.h"
+#include "programs/ProgramDatabase.h"
 #include "programs/ProgramDatabase2.h"
 #include "TextureDatabase.h"
 #include "music/MusicDatabase.h"
@@ -54,6 +55,9 @@ void CDatabaseManager::Initialize(bool addonsOnly)
   //       before CVideoDatabase.
   { CViewDatabase db; UpdateDatabase(db); }
   { CTextureDatabase db; UpdateDatabase(db); }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  { CProgramDatabase db; UpdateDatabase(db); }
+#endif
   { LEGACY_PROGRAMS::CProgramDatabase db; UpdateDatabase(db); }
   { CMusicDatabase db; UpdateDatabase(db, &g_advancedSettings.m_databaseMusic); }
   { CVideoDatabase db; UpdateDatabase(db, &g_advancedSettings.m_databaseVideo); }

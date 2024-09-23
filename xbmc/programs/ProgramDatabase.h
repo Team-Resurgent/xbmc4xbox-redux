@@ -21,8 +21,11 @@
 
 #include <vector>
 
+#include "addons/Scraper.h"
 #include "dbwrappers/Database.h"
 #include "ProgramInfoTag.h"
+
+class CGUIDialogProgress;
 
 namespace dbiplus
 {
@@ -31,6 +34,11 @@ namespace dbiplus
 }
 
 typedef std::vector<CProgramInfoTag> VECGAMES;
+
+namespace PROGRAM
+{
+  struct SScanSettings;
+}
 
 typedef enum
 {
@@ -46,6 +54,50 @@ public:
   virtual bool Open();
   virtual bool CommitTransaction();
 
+  int GetPathId(const std::string& strPath);
+
+  void RemoveContentForPath(const std::string& strPath,CGUIDialogProgress *progress = NULL);
+
+  // scraper settings
+  void SetScraperForPath(const std::string& filePath, const ADDON::ScraperPtr& info, const PROGRAM::SScanSettings& settings);
+  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath);
+  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath, PROGRAM::SScanSettings& settings);
+
+  /*! \brief Retrieve the scraper and settings we should use for the specified path
+   If the scraper is not set on this particular path, we'll recursively check parent folders.
+   \param strPath path to start searching in.
+   \param settings [out] scan settings for this folder.
+   \param foundDirectly [out] true if a scraper was found directly for strPath, false if it was in a parent path.
+   \return A ScraperPtr containing the scraper information. Returns NULL if a trivial (Content == CONTENT_NONE)
+           scraper or no scraper is found.
+   */
+  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath, PROGRAM::SScanSettings& settings, bool& foundDirectly);
+
+  /*! \brief retrieve subpaths of a given path.  Assumes a heirarchical folder structure
+   \param basepath the root path to retrieve subpaths for
+   \param subpaths the returned subpaths
+   \return true if we successfully retrieve subpaths (may be zero), false on error
+   */
+  bool GetSubPaths(const std::string& basepath, std::vector< std::pair<int, std::string> >& subpaths);
+
   bool HasContent();
   bool HasContent(PROGRAMDB_CONTENT_TYPE type);
+
+  /*! \brief Add a path to the database, if necessary
+   If the path is already in the database, we simply return its id.
+   \param strPath the path to add
+   \param parentPath the parent path of the path to add. If empty, URIUtils::GetParentPath() will determine the path.
+   \param dateAdded datetime when the path was added to the filesystem/database
+   \return id of the file, -1 if it could not be added.
+   */
+  int AddPath(const std::string& strPath, const std::string &parentPath = "", const CDateTime& dateAdded = CDateTime());
+
+private:
+  virtual void CreateTables();
+  virtual void CreateAnalytics();
+
+  virtual int GetSchemaVersion() const;
+  const char *GetBaseDBName() const { return "MyPrograms"; };
+
+  void ConstructPath(std::string& strDest, const std::string& strPath, const std::string& strFileName);
 };
