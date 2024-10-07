@@ -73,6 +73,9 @@
 #include "windows/GUIWindowStartup.h"
 #include "video/windows/GUIWindowFullScreen.h"
 #include "video/dialogs/GUIDialogVideoOSD.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/windows/GUIWindowProgramNav.h"
+#endif
 
 // Dialog includes
 #include "music/dialogs/GUIDialogMusicOSD.h"
@@ -247,6 +250,10 @@ void CGUIWindowManager::CreateWindows()
 #endif
   Add(new CGUIWindowStartup);
   Add(new CGUIWindowSplash);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  Add(new CGUIWindowProgramNav);
+#endif
 }
 
 bool CGUIWindowManager::DestroyWindows()
@@ -330,6 +337,10 @@ bool CGUIWindowManager::DestroyWindows()
 
     Remove(WINDOW_DIALOG_SEEK_BAR);
     Remove(WINDOW_DIALOG_VOLUME_BAR);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    Remove(WINDOW_PROGRAM_NAV);
+#endif
   }
   catch (...)
   {

@@ -337,6 +337,10 @@
 
 #define WINDOW_ADDON_BROWSER              10040
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#define WINDOW_PROGRAM_NAV                10061
+#endif
+
 #define WINDOW_DIALOG_POINTER             10099
 #define WINDOW_DIALOG_YES_NO              10100
 #define WINDOW_DIALOG_PROGRESS            10101

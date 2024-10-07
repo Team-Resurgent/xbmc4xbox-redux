@@ -67,6 +67,7 @@
 #define HAS_EVENT_SERVER
 #define HAVE_LIBMP3LAME
 #define HAVE_LIBVORBISENC
+#define HAS_ADVANCED_PROGRAMS_LIBRARY
 #undef SPYCE_SUPPORT
 #undef HAS_NEW_KARAOKE
 #else
@@ -101,6 +102,7 @@
 #define HAS_PYTHON
 #define HAS_AUDIO
 #undef HAS_NEW_KARAOKE
+#undef HAS_ADVANCED_PROGRAMS_LIBRARY
 
 // additional includes and defines
 #if !(defined(_WINSOCKAPI_) || defined(_WINSOCK_H))
