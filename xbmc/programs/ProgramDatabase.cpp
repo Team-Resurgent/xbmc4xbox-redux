@@ -927,7 +927,17 @@ void CProgramDatabase::RemoveContentForPath(const std::string& strPath, CGUIDial
         progress->Progress();
       }
 
-      // TODO: delete all games assoicated with this path if user asked
+      std::string strSQL = PrepareSQL("select files.strFilename from files join game on game.idFile=files.idFile where files.idPath=%i", i.first);
+      m_pDS2->query(strSQL);
+      while (!m_pDS2->eof())
+      {
+        std::string strGamePath;
+        std::string strFileName = m_pDS2->fv("files.strFilename").get_asString();
+        ConstructPath(strGamePath, i.second, strFileName);
+        if (HasGameInfo(strGamePath))
+          DeleteGame(strGamePath);
+        m_pDS2->next();
+      }
       m_pDS2->close();
       m_pDS2->exec(PrepareSQL("update path set strContent='', strScraper='', strHash='',strSettings='',useFolderNames=0,scanRecursive=0 where idPath=%i", i.first));
     }
