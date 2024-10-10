@@ -21,6 +21,10 @@
 #include "ThumbLoader.h"
 #include "filesystem/File.h"
 #include "FileItem.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "filesystem/DirectoryCache.h"
+#include "settings/AdvancedSettings.h"
+#endif
 #include "settings/Settings.h"
 #include "TextureCache.h"
 #include "Shortcut.h"
@@ -177,3 +181,65 @@ std::string CProgramThumbLoader::GetLocalThumb(const CFileItem &item)
   }
   return "";
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+std::vector<std::string> CProgramThumbLoader::GetArtTypes(const std::string &type)
+{
+  std::vector<std::string> ret;
+  if (type == MediaTypeGame || type.empty())
+  {
+    ret.push_back("alt_synopsis");
+    ret.push_back("banner");
+    ret.push_back("cd");
+    ret.push_back("cd_small");
+    ret.push_back("cdposter");
+    ret.push_back("dual3d");
+    ret.push_back("fanart_blur");
+    ret.push_back("fanart");
+    ret.push_back("fanart_thumb");
+    ret.push_back("fog");
+    ret.push_back("icon");
+    ret.push_back("opencase");
+    ret.push_back("poster");
+    ret.push_back("poster_small");
+    ret.push_back("poster_small_blurred");
+    ret.push_back("synopsis");
+    ret.push_back("thumb");
+  }
+  return ret;
+}
+
+std::string CProgramThumbLoader::GetLocalArt(const CFileItem &item, const std::string &type, bool checkFolder)
+{
+  if (item.SkipLocalArt())
+    return "";
+
+  /* Cache directory for (sub) folders on streamed filesystems. We need to do this
+     else entering (new) directories from the app thread becomes much slower. This
+     is caused by the fact that Curl Stat/Exist() is really slow and that the
+     thumbloader thread accesses the streamed filesystem at the same time as the
+     App thread and the latter has to wait for it.
+   */
+  if (item.m_bIsFolder && (item.IsInternetStream(true) || g_advancedSettings.m_cacheBufferMode == CACHE_BUFFER_MODE_ALL))
+  {
+    CFileItemList items; // Dummy list
+    CDirectory::GetDirectory(item.GetPath(), items, "", DIR_FLAG_NO_FILE_DIRS | DIR_FLAG_READ_CACHE | DIR_FLAG_NO_FILE_INFO);
+  }
+
+  std::string art;
+  if (!type.empty())
+  {
+    // Look for XBMC4Gamers artwork
+    art = item.FindLocalArt("_resources\\artwork\\" + type + ".jpg", checkFolder);
+    if (art.empty())
+      art = item.FindLocalArt("_resources\\artwork\\" + type + ".png", checkFolder);
+    if (!art.empty())
+      return art;
+
+    art = item.FindLocalArt(type + ".jpg", checkFolder);
+    if (art.empty())
+      art = item.FindLocalArt(type + ".png", checkFolder);
+  }
+  return art;
+}
+#endif

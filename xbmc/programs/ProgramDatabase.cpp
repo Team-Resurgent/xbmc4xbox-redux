@@ -99,6 +99,9 @@ void CProgramDatabase::CreateTables()
   CLog::Log(LOGINFO, "create files table");
   m_pDS->exec("CREATE TABLE files ( idFile integer primary key, idPath integer, strFilename text, titleId integer, playCount integer, lastPlayed text, dateAdded text)");
 
+  CLog::Log(LOGINFO, "create art table");
+  m_pDS->exec("CREATE TABLE art(art_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, type TEXT, url TEXT)");
+
   CLog::Log(LOGINFO, "create rating table");
   m_pDS->exec("CREATE TABLE rating (rating_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, rating_type TEXT, rating FLOAT, votes INTEGER)");
 }
@@ -130,6 +133,8 @@ void CProgramDatabase::CreateAnalytics()
 
   m_pDS->exec("CREATE INDEX ixGameBasePath ON game ( c23(12) )");
 
+  m_pDS->exec("CREATE INDEX ix_art ON art(media_id, media_type(20), type(20))");
+
   m_pDS->exec("CREATE INDEX ix_rating ON rating(media_id, media_type(20))");
 
   CreateLinkIndex("developer");
@@ -149,6 +154,7 @@ void CProgramDatabase::CreateAnalytics()
               "DELETE FROM generalfeature_link WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM onlinefeature_link WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM platform_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM art WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM rating WHERE media_id=old.idGame AND media_type='game'; "
               "END");
 
@@ -759,7 +765,7 @@ int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, C
 
     // TODO: add support for unique IDs
 
-    // TODO: set art for item
+    SetArtForItem(idGame, MediaTypeGame, artwork);
 
     // update our game table (we know it was added already above)
     // and insert the new row
@@ -838,6 +844,49 @@ int CProgramDatabase::GetDbId(const std::string &query)
       return idDb;
   }
   return -1;
+}
+
+void CProgramDatabase::SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art)
+{
+  for (std::map<std::string, std::string>::const_iterator i = art.begin(); i != art.end(); ++i)
+    SetArtForItem(mediaId, mediaType, i->first, i->second);
+}
+
+void CProgramDatabase::SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return;
+    if (NULL == m_pDS.get()) return;
+
+    // don't set <foo>.<bar> art types - these are derivative types from parent items
+    if (artType.find('.') != std::string::npos)
+      return;
+
+    std::string sql = PrepareSQL("SELECT art_id,url FROM art WHERE media_id=%i AND media_type='%s' AND type='%s'", mediaId, mediaType.c_str(), artType.c_str());
+    m_pDS->query(sql);
+    if (!m_pDS->eof())
+    { // update
+      int artId = m_pDS->fv(0).get_asInt();
+      std::string oldUrl = m_pDS->fv(1).get_asString();
+      m_pDS->close();
+      if (oldUrl != url)
+      {
+        sql = PrepareSQL("UPDATE art SET url='%s' where art_id=%d", url.c_str(), artId);
+        m_pDS->exec(sql);
+      }
+    }
+    else
+    { // insert
+      m_pDS->close();
+      sql = PrepareSQL("INSERT INTO art(media_id, media_type, type, url) VALUES (%d, '%s', '%s', '%s')", mediaId, mediaType.c_str(), artType.c_str(), url.c_str());
+      m_pDS->exec(sql);
+    }
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s(%d, '%s', '%s', '%s') failed", __FUNCTION__, mediaId, mediaType.c_str(), artType.c_str(), url.c_str());
+  }
 }
 
 void CProgramDatabase::RemoveContentForPath(const std::string& strPath, CGUIDialogProgress *progress /* = NULL */)

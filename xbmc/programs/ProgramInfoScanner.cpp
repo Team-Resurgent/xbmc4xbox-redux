@@ -30,12 +30,14 @@
 #include "GUIUserMessages.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
+#include "TextureCache.h"
 #include "URL.h"
 #include "Util.h"
 #include "utils/log.h"
 #include "utils/md5.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "ThumbLoader.h"
 
 using namespace XFILE;
 using namespace ADDON;
@@ -332,6 +334,17 @@ namespace PROGRAM
     return !m_bStop;
   }
 
+  void CProgramInfoScanner::ApplyThumbToFolder(const std::string &folder, const std::string &strThumb)
+  {
+    // copy icon to folder also;
+    if (!strThumb.empty())
+    {
+      CFileItem folderItem(folder, true);
+      CThumbLoader loader;
+      loader.SetCachedImage(folderItem, "thumb", strThumb);
+    }
+  }
+
   int CProgramInfoScanner::GetPathHash(const CFileItemList &items, std::string &hash)
   {
     // Create a hash based on the filenames, filesize and filedate.  Also count the number of files
@@ -468,7 +481,8 @@ namespace PROGRAM
     if (!m_database.Open())
       return -1;
 
-    // TODO: implement fetching of program artwork
+    if (!libraryImport)
+      GetArtwork(pItem, content, programFolder, useLocal);
 
     // ensure the art map isn't completely empty by specifying an empty thumb
     std::map<std::string, std::string> art = pItem->GetArt();
@@ -507,6 +521,40 @@ namespace PROGRAM
     // Do we need to announce here?
 
     return lResult;
+  }
+
+  void CProgramInfoScanner::GetArtwork(CFileItem *pItem, const CONTENT_TYPE &content, bool bApplyToDir, bool useLocal)
+  {
+    CGUIListItem::ArtMap art = pItem->GetArt();
+
+    // get and cache thumb images
+    std::vector<std::string> artTypes = CProgramThumbLoader::GetArtTypes(MediaTypeGame);
+
+    // find local art
+    if (useLocal)
+    {
+      for (std::vector<std::string>::const_iterator i = artTypes.begin(); i != artTypes.end(); ++i)
+      {
+        if (art.find(*i) == art.end())
+        {
+          std::string image = CProgramThumbLoader::GetLocalArt(*pItem, *i, bApplyToDir);
+          if (!image.empty())
+            art.insert(std::make_pair(*i, image));
+        }
+      }
+    }
+
+    // TODO: look for online art
+
+    for (CGUIListItem::ArtMap::const_iterator i = art.begin(); i != art.end(); ++i)
+      CTextureCache::Get().BackgroundCacheImage(i->second);
+
+    pItem->SetArt(art);
+
+    // parent folder to apply the thumb to
+    std::string parentDir = URIUtils::GetBasePath(pItem->GetPath());
+    if (bApplyToDir)
+      ApplyThumbToFolder(parentDir, art["thumb"]);
   }
 
   std::string CProgramInfoScanner::GetnfoFile(CFileItem *item, bool bGrabAny) const

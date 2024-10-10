@@ -192,6 +192,9 @@ public:
    */
   void UpdateFileDateAdded(int idFile, const std::string& strFileNameAndPathh, const CDateTime& dateAdded = CDateTime());
 
+  void SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url);
+  void SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art);
+
 protected:
   int GetGameId(const std::string& strFilenameAndPath);
 

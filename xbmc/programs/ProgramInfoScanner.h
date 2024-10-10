@@ -75,7 +75,16 @@ namespace PROGRAM
      */
     bool RetrieveProgramInfo(CFileItemList& items, bool bDirNames, CONTENT_TYPE content, bool useLocal = true, CScraperUrl *pURL = NULL, CGUIDialogProgress* pDlgProgress = NULL);
 
+    static void ApplyThumbToFolder(const std::string &folder, const std::string &imdbThumb);
     CNfoFile::NFOResult CheckForNFOFile(CFileItem* pItem, bool bGrabAny, ADDON::ScraperPtr& scraper, CScraperUrl& scrUrl);
+
+    /*! \brief Retrieve any artwork associated with an item
+     \param pItem item to find artwork for.
+     \param content content type of the item.
+     \param bApplyToDir whether we should apply any thumbs to a folder.  Defaults to false.
+     \param useLocal whether we should use local thumbs. Defaults to true.
+     */
+    void GetArtwork(CFileItem *pItem, const CONTENT_TYPE &content, bool bApplyToDir=false, bool useLocal=true);
 
   protected:
     virtual void Process();
