@@ -355,6 +355,9 @@ protected:
 
   int m_libraryHasMusic;
   int m_libraryHasMovies;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  int m_libraryHasGames;
+#endif
   int m_libraryHasTVShows;
   int m_libraryHasMusicVideos;
   int m_libraryHasMovieSets;

@@ -83,6 +83,9 @@
 #include "video/VideoThumbLoader.h"
 #include "music/MusicThumbLoader.h"
 #include "video/VideoDatabase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramDatabase.h"
+#endif
 #include "cores/IPlayer.h"
 #include "interfaces/info/InfoExpression.h"
 
@@ -5569,6 +5572,9 @@ int CGUIInfoManager::TranslateSingleString(const std::string &strCondition, bool
         if (cat == "music") return LIBRARY_HAS_MUSIC;
         else if (cat == "video") return LIBRARY_HAS_VIDEO;
         else if (cat == "movies") return LIBRARY_HAS_MOVIES;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+        else if (cat == "games") return LIBRARY_HAS_GAMES;
+#endif
         else if (cat == "tvshows") return LIBRARY_HAS_TVSHOWS;
         else if (cat == "musicvideos") return LIBRARY_HAS_MUSICVIDEOS;
         else if (cat == "moviesets") return LIBRARY_HAS_MOVIE_SETS;
@@ -7197,6 +7203,10 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
     bReturn = (g_application.IsMuted() || g_application.GetVolume(false) <= VOLUME_MINIMUM);
   else if (condition >= LIBRARY_HAS_MUSIC && condition <= LIBRARY_HAS_COMPILATIONS)
     bReturn = GetLibraryBool(condition);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (condition >= LIBRARY_HAS_PROGRAM && condition <= LIBRARY_HAS_GAMES)
+    bReturn = GetLibraryBool(condition);
+#endif
   else if (condition == LIBRARY_IS_SCANNING)
   {
     if (g_application.IsMusicScanning() || g_application.IsVideoScanning())
@@ -11575,6 +11585,11 @@ void CGUIInfoManager::SetLibraryBool(int condition, bool value)
     case LIBRARY_HAS_MOVIES:
       m_libraryHasMovies = value ? 1 : 0;
       break;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    case LIBRARY_HAS_GAMES:
+      m_libraryHasGames = value ? 1 : 0;
+      break;
+#endif
     case LIBRARY_HAS_MOVIE_SETS:
       m_libraryHasMovieSets = value ? 1 : 0;
       break;
@@ -11599,6 +11614,9 @@ void CGUIInfoManager::ResetLibraryBools()
 {
   m_libraryHasMusic = -1;
   m_libraryHasMovies = -1;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_libraryHasGames = -1;
+#endif
   m_libraryHasTVShows = -1;
   m_libraryHasMusicVideos = -1;
   m_libraryHasMovieSets = -1;
@@ -11635,6 +11653,21 @@ bool CGUIInfoManager::GetLibraryBool(int condition)
     }
     return m_libraryHasMovies > 0;
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (condition == LIBRARY_HAS_GAMES)
+  {
+    if (m_libraryHasGames < 0)
+    {
+      CProgramDatabase db;
+      if (db.Open())
+      {
+        m_libraryHasGames = db.HasContent(PROGRAMDB_CONTENT_GAMES) ? 1 : 0;
+        db.Close();
+      }
+    }
+    return m_libraryHasGames > 0;
+  }
+#endif
   else if (condition == LIBRARY_HAS_MOVIE_SETS)
   {
     if (m_libraryHasMovieSets < 0)
