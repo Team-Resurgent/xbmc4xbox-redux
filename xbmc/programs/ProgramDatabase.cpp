@@ -846,6 +846,120 @@ int CProgramDatabase::GetDbId(const std::string &query)
   return -1;
 }
 
+void CProgramDatabase::GetDetailsFromDB(boost::movelib::unique_ptr<Dataset> &pDS, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset)
+{
+  GetDetailsFromDB(pDS->get_sql_record(), min, max, offsets, details, idxOffset);
+}
+
+void CProgramDatabase::GetDetailsFromDB(const dbiplus::sql_record* const record, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset)
+{
+  for (int i = min + 1; i < max; i++)
+  {
+    switch (offsets[i].type)
+    {
+    case PROGRAMDB_TYPE_STRING:
+      *(std::string*)(((char*)&details)+offsets[i].offset) = record->at(i+idxOffset).get_asString();
+      break;
+    case PROGRAMDB_TYPE_INT:
+    case PROGRAMDB_TYPE_COUNT:
+      *(int*)(((char*)&details)+offsets[i].offset) = record->at(i+idxOffset).get_asInt();
+      break;
+    case PROGRAMDB_TYPE_BOOL:
+      *(bool*)(((char*)&details)+offsets[i].offset) = record->at(i+idxOffset).get_asBool();
+      break;
+    case PROGRAMDB_TYPE_FLOAT:
+      *(float*)(((char*)&details)+offsets[i].offset) = record->at(i+idxOffset).get_asFloat();
+      break;
+    case PROGRAMDB_TYPE_STRINGARRAY:
+    {
+      std::string value = record->at(i+idxOffset).get_asString();
+      if (!value.empty())
+        *(std::vector<std::string>*)(((char*)&details)+offsets[i].offset) = StringUtils::Split(value, g_advancedSettings.m_programItemSeparator);
+      break;
+    }
+    case PROGRAMDB_TYPE_DATE:
+      ((CDateTime*)(((char*)&details)+offsets[i].offset))->SetFromDBDate(record->at(i+idxOffset).get_asString());
+      break;
+    case PROGRAMDB_TYPE_DATETIME:
+      ((CDateTime*)(((char*)&details)+offsets[i].offset))->SetFromDBDateTime(record->at(i+idxOffset).get_asString());
+      break;
+    case PROGRAMDB_TYPE_UNUSED: // Skip the unused field to avoid populating unused data
+      continue;
+    }
+  }
+}
+
+CProgramInfoTag CProgramDatabase::GetDetailsForGame(boost::movelib::unique_ptr<Dataset> &pDS, int getDetails /* = ProgramDbDetailsNone */)
+{
+  return GetDetailsForGame(pDS->get_sql_record(), getDetails);
+}
+
+DWORD gameTime = 0;
+
+CProgramInfoTag CProgramDatabase::GetDetailsForGame(const dbiplus::sql_record* const record, int getDetails /* = ProgramDbDetailsNone */)
+{
+  CProgramInfoTag details;
+
+  if (record == NULL)
+    return details;
+
+  DWORD time = XbmcThreads::SystemClockMillis();
+  int idGame = record->at(0).get_asInt();
+
+  GetDetailsFromDB(record, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbGameOffsets, details);
+
+  details.m_iDbId = idGame;
+  details.m_type = MediaTypeGame;
+
+  details.m_iFileId = record->at(PROGRAMDB_DETAILS_FILEID).get_asInt();
+  details.m_strPath = record->at(PROGRAMDB_DETAILS_GAME_PATH).get_asString();
+  std::string strFileName = record->at(PROGRAMDB_DETAILS_GAME_FILE).get_asString();
+  ConstructPath(details.m_strFileNameAndPath,details.m_strPath,strFileName);
+  details.m_playCount = record->at(PROGRAMDB_DETAILS_GAME_PLAYCOUNT).get_asInt();
+  details.m_lastPlayed.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_GAME_LASTPLAYED).get_asString());
+  details.m_dateAdded.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_GAME_DATEADDED).get_asString());
+  details.SetRating(record->at(PROGRAMDB_DETAILS_GAME_RATING).get_asFloat(),
+                    record->at(PROGRAMDB_DETAILS_GAME_VOTES).get_asInt(),
+                    record->at(PROGRAMDB_DETAILS_GAME_RATING_TYPE).get_asString(), true);
+  std::string releaseDateString = record->at(PROGRAMDB_DETAILS_GAME_RELEASEDATE).get_asString();
+  if (releaseDateString.size() == 4)
+    details.SetYear(record->at(PROGRAMDB_DETAILS_GAME_RELEASEDATE).get_asInt());
+  else
+    details.SetReleaseDateFromDBDate(releaseDateString);
+  gameTime += XbmcThreads::SystemClockMillis() - time; time = XbmcThreads::SystemClockMillis();
+
+  if (getDetails)
+  {
+    if (getDetails & ProgramDbDetailsRating)
+      GetRatings(details.m_iDbId, MediaTypeGame, details.m_ratings);
+
+    details.m_strPictureURL.Parse();
+  }
+  return details;
+}
+
+void CProgramDatabase::GetRatings(int media_id, const std::string &media_type, RatingMap &ratings)
+{
+  try
+  {
+    if (!m_pDB.get()) return;
+    if (!m_pDS2.get()) return;
+
+    std::string sql = PrepareSQL("SELECT rating.rating_type, rating.rating, rating.votes FROM rating WHERE rating.media_id = %i AND rating.media_type = '%s'", media_id, media_type.c_str());
+    m_pDS2->query(sql);
+    while (!m_pDS2->eof())
+    {
+      ratings[m_pDS2->fv(0).get_asString()] = CRating(m_pDS2->fv(1).get_asFloat(), m_pDS2->fv(2).get_asInt());
+      m_pDS2->next();
+    }
+    m_pDS2->close();
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s(%i,%s) failed", __FUNCTION__, media_id, media_type.c_str());
+  }
+}
+
 void CProgramDatabase::SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art)
 {
   for (std::map<std::string, std::string>::const_iterator i = art.begin(); i != art.end(); ++i)

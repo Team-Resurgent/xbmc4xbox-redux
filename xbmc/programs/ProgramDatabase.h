@@ -43,9 +43,27 @@ namespace PROGRAM
   struct SScanSettings;
 }
 
+enum ProgramDbDetails
+{
+  ProgramDbDetailsNone     = 0x00,
+  ProgramDbDetailsRating   = 0x01,
+  ProgramDbDetailsAll      = 0xFF
+};
+
 // these defines are based on how many columns we have and which column certain data is going to be in
 // when we do GetDetailsForGame()
 #define PROGRAMDB_MAX_COLUMNS 24
+#define PROGRAMDB_DETAILS_FILEID      1
+
+#define PROGRAMDB_DETAILS_GAME_RELEASEDATE         PROGRAMDB_MAX_COLUMNS + 2
+#define PROGRAMDB_DETAILS_GAME_FILE              PROGRAMDB_MAX_COLUMNS + 3
+#define PROGRAMDB_DETAILS_GAME_PATH              PROGRAMDB_MAX_COLUMNS + 4
+#define PROGRAMDB_DETAILS_GAME_PLAYCOUNT         PROGRAMDB_MAX_COLUMNS + 5
+#define PROGRAMDB_DETAILS_GAME_LASTPLAYED        PROGRAMDB_MAX_COLUMNS + 6
+#define PROGRAMDB_DETAILS_GAME_DATEADDED         PROGRAMDB_MAX_COLUMNS + 7
+#define PROGRAMDB_DETAILS_GAME_RATING            PROGRAMDB_MAX_COLUMNS + 8
+#define PROGRAMDB_DETAILS_GAME_VOTES             PROGRAMDB_MAX_COLUMNS + 9
+#define PROGRAMDB_DETAILS_GAME_RATING_TYPE       PROGRAMDB_MAX_COLUMNS + 10
 
 #define PROGRAMDB_TYPE_UNUSED 0
 #define PROGRAMDB_TYPE_STRING 1
@@ -219,6 +237,12 @@ protected:
 
   void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
 
+  CProgramInfoTag GetDetailsForGame(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int getDetails = ProgramDbDetailsNone);
+  CProgramInfoTag GetDetailsForGame(const dbiplus::sql_record* const record, int getDetails = ProgramDbDetailsNone);
+  void GetRatings(int media_id, const std::string &media_type, RatingMap &ratings);
+
+  void GetDetailsFromDB(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset = 2);
+  void GetDetailsFromDB(const dbiplus::sql_record* const record, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset = 2);
   std::string GetValueString(const CProgramInfoTag &details, int min, int max, const SDbTableOffsets *offsets) const;
 
 private:
