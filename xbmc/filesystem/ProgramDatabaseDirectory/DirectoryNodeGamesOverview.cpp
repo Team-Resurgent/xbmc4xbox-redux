@@ -28,6 +28,7 @@
 using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 
 Node GameChildren[] = {
+                        { NODE_TYPE_GENRE,       "genres",     135 },
                         { NODE_TYPE_TITLE_GAMES, "titles",     369 }
                        };
 

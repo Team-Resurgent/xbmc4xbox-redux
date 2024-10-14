@@ -149,6 +149,8 @@ public:
 
   bool HasGameInfo(const std::string& strFilenameAndPath);
 
+  std::string GetGenreById(int id);
+
   int GetPathId(const std::string& strPath);
 
   int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
@@ -185,6 +187,8 @@ public:
   bool GetSubPaths(const std::string& basepath, std::vector< std::pair<int, std::string> >& subpaths);
 
   // general browsing
+  bool GetGenresNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+
   bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 
   bool HasContent();
@@ -252,6 +256,7 @@ protected:
 
   CProgramInfoTag GetDetailsForGame(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int getDetails = ProgramDbDetailsNone);
   CProgramInfoTag GetDetailsForGame(const dbiplus::sql_record* const record, int getDetails = ProgramDbDetailsNone);
+  bool GetNavCommon(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   void GetRatings(int media_id, const std::string &media_type, RatingMap &ratings);
 
   void GetDetailsFromDB(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset = 2);

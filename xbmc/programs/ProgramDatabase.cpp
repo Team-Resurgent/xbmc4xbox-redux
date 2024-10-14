@@ -1132,6 +1132,171 @@ int CProgramDatabase::GetSchemaVersion() const
   return 1;
 }
 
+bool CProgramDatabase::GetGenresNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "genre", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    std::string strSQL;
+    Filter extFilter = filter;
+    if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
+    {
+      std::string view, view_id, media_type, extraField, extraJoin;
+      if (idContent == PROGRAMDB_CONTENT_GAMES)
+      {
+        view       = MediaTypeGame;
+        view_id    = "idGame";
+        media_type = MediaTypeGame;
+        extraField = "files.playCount";
+      }
+      else
+        return false;
+
+      strSQL = "SELECT %s " + PrepareSQL("FROM %s ", type);
+      extFilter.fields = PrepareSQL("%s.%s_id, %s.name, path.strPath", type, type, type);
+      extFilter.AppendField(extraField);
+      extFilter.AppendJoin(PrepareSQL("JOIN %s_link ON %s.%s_id = %s_link.%s_id", type, type, type, type, type));
+      extFilter.AppendJoin(PrepareSQL("JOIN %s_view ON %s_link.media_id = %s_view.%s AND %s_link.media_type='%s'", view.c_str(), type, view.c_str(), view_id.c_str(), type, media_type.c_str()));
+      extFilter.AppendJoin(PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str()));
+      extFilter.AppendJoin("JOIN path ON path.idPath = files.idPath");
+      extFilter.AppendJoin(extraJoin);
+    }
+    else
+    {
+      std::string view, view_id, media_type, extraField, extraJoin;
+      if (idContent == PROGRAMDB_CONTENT_GAMES)
+      {
+        view       = MediaTypeGame;
+        view_id    = "idGame";
+        media_type = MediaTypeGame;
+        extraField = "count(1), count(files.playCount)";
+        extraJoin  = PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str());
+      }
+      else
+        return false;
+
+      strSQL = "SELECT %s " + PrepareSQL("FROM %s ", type);
+      extFilter.fields = PrepareSQL("%s.%s_id, %s.name", type, type, type);
+      extFilter.AppendField(extraField);
+      extFilter.AppendJoin(PrepareSQL("JOIN %s_link ON %s.%s_id = %s_link.%s_id", type, type, type, type, type));
+      extFilter.AppendJoin(PrepareSQL("JOIN %s_view ON %s_link.media_id = %s_view.%s AND %s_link.media_type='%s'",
+                                      view.c_str(), type, view.c_str(), view_id.c_str(), type, media_type.c_str()));
+      extFilter.AppendJoin(extraJoin);
+      extFilter.AppendGroup(PrepareSQL("%s.%s_id", type, type));
+    }
+
+    if (countOnly)
+    {
+      extFilter.fields = PrepareSQL("COUNT(DISTINCT %s.%s_id)", type, type);
+      extFilter.group.clear();
+      extFilter.order.clear();
+    }
+    strSQL = StringUtils::Format(strSQL.c_str(), !extFilter.fields.empty() ? extFilter.fields.c_str() : "*");
+
+    CProgramDbUrl programUrl;
+    if (!BuildSQL(strBaseDir, strSQL, extFilter, strSQL, programUrl))
+      return false;
+
+    int iRowsFound = RunQuery(strSQL);
+    if (iRowsFound <= 0)
+      return iRowsFound == 0;
+
+    if (countOnly)
+    {
+      CFileItemPtr pItem(new CFileItem());
+      pItem->SetProperty("total", iRowsFound == 1 ? m_pDS->fv(0).get_asInt() : iRowsFound);
+      items.Add(pItem);
+
+      m_pDS->close();
+      return true;
+    }
+
+    if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
+    {
+      std::map<int, std::pair<std::string,int> > mapItems;
+      while (!m_pDS->eof())
+      {
+        int id = m_pDS->fv(0).get_asInt();
+        std::string str = m_pDS->fv(1).get_asString();
+
+        // was this already found?
+        std::map<int, std::pair<std::string,int> >::iterator it = mapItems.find(id);
+        if (it == mapItems.end())
+        {
+          // check path
+          if (g_passwordManager.IsDatabasePathUnlocked(std::string(m_pDS->fv(2).get_asString()),*CMediaSourceSettings::Get().GetSources("program")))
+          {
+            if (idContent == PROGRAMDB_CONTENT_GAMES)
+              mapItems.insert(std::pair<int, std::pair<std::string,int> >(id, std::pair<std::string, int>(str,m_pDS->fv(3).get_asInt()))); //fv(3) is file.playCount
+          }
+        }
+        m_pDS->next();
+      }
+      m_pDS->close();
+
+      for (std::map<int, std::pair<std::string,int> >::const_iterator it = mapItems.begin(); it != mapItems.end(); ++it)
+      {
+        const std::pair<const int, std::pair<std::string,int> > &i = *it;
+        CFileItemPtr pItem(new CFileItem(i.second.first));
+        pItem->GetProgramInfoTag()->m_iDbId = i.first;
+        pItem->GetProgramInfoTag()->m_type = type;
+
+        CProgramDbUrl itemUrl = programUrl;
+        std::string path = StringUtils::Format("%i/", i.first);
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->m_bIsFolder = true;
+        if (idContent == PROGRAMDB_CONTENT_GAMES)
+          pItem->GetProgramInfoTag()->m_playCount = i.second.second;
+        if (!items.Contains(pItem->GetPath()))
+        {
+          pItem->SetLabelPreformated(true);
+          items.Add(pItem);
+        }
+      }
+    }
+    else
+    {
+      while (!m_pDS->eof())
+      {
+        CFileItemPtr pItem(new CFileItem(m_pDS->fv(1).get_asString()));
+        pItem->GetProgramInfoTag()->m_iDbId = m_pDS->fv(0).get_asInt();
+        pItem->GetProgramInfoTag()->m_type = type;
+
+        CProgramDbUrl itemUrl = programUrl;
+        std::string path = StringUtils::Format("%i/", m_pDS->fv(0).get_asInt());
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->m_bIsFolder = true;
+        pItem->SetLabelPreformated(true);
+        if (idContent == PROGRAMDB_CONTENT_GAMES)
+        { // fv(3) is the number of programs watched, fv(2) is the total number.  We set the playcount
+          // only if the number of programs watched is equal to the total number (i.e. every program watched)
+          pItem->GetProgramInfoTag()->m_playCount = (m_pDS->fv(3).get_asInt() == m_pDS->fv(2).get_asInt()) ? 1 : 0;
+        }
+        items.Add(pItem);
+        m_pDS->next();
+      }
+      m_pDS->close();
+    }
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+  return false;
+}
+
 bool CProgramDatabase::GetItems(const std::string &strBaseDir, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
 {
   CProgramDbUrl programUrl;
@@ -1156,8 +1321,18 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
 {
   if (StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES)
     return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
+  else if (StringUtils::EqualsNoCase(itemType, "genres"))
+    return GetGenresNav(strBaseDir, items, mediaType, filter);
 
   return false;
+}
+
+std::string CProgramDatabase::GetItemById(const std::string &itemType, int id)
+{
+  if (StringUtils::EqualsNoCase(itemType, "genres"))
+    return GetGenreById(id);
+
+  return "";
 }
 
 bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList& items,
@@ -1253,6 +1428,11 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
     CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
   }
   return false;
+}
+
+std::string CProgramDatabase::GetGenreById(int id)
+{
+  return GetSingleValue("genre", "name", PrepareSQL("genre_id=%i", id));
 }
 
 bool CProgramDatabase::HasContent()
