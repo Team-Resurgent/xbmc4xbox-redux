@@ -181,6 +181,9 @@ void CURL::Parse(const std::string& strURL1)
      IsProtocol("image") ||
      IsProtocol("videodb") ||
      IsProtocol("musicdb") ||
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+     IsProtocol("programdb") ||
+#endif
      IsProtocol("androidapp") ||
      IsProtocol("pvr"))
     sep = "?";
@@ -294,6 +297,9 @@ void CURL::Parse(const std::string& strURL1)
   if (IsProtocol("iso9660")
    || IsProtocol("musicdb")
    || IsProtocol("videodb")
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+   || IsProtocol("programdb")
+#endif
    || IsProtocol("sources")
    || IsProtocol("pvr")
    || IsProtocol("mem"))

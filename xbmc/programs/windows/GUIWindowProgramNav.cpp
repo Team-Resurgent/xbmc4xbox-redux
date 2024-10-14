@@ -19,10 +19,14 @@
  */
 
 #include "GUIWindowProgramNav.h"
+#include "filesystem/ProgramDatabaseDirectory.h"
 #include "dialogs/GUIDialogMediaSource.h"
 #include "FileItem.h"
 #include "profiles/ProfilesManager.h"
 #include "utils/StringUtils.h"
+
+using namespace XFILE;
+using namespace PROGRAMDATABASEDIRECTORY;
 
 CGUIWindowProgramNav::CGUIWindowProgramNav(void)
     : CGUIWindowProgramBase(WINDOW_PROGRAM_NAV, "MyProgramNav.xml")
@@ -52,7 +56,12 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
   bool bResult = CGUIWindowProgramBase::GetDirectory(strDirectory, items);
   if (bResult)
   {
-    // TODO: list nodes, get node items, list playlists, etc.
+    if (items.IsProgramDb())
+    {
+      XFILE::CProgramDatabaseDirectory dir;
+      PROGRAMDATABASEDIRECTORY::NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
+      items.SetContent("");
+    }
   }
   return bResult;
 }
