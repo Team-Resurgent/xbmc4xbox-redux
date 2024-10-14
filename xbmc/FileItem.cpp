@@ -114,6 +114,14 @@ CFileItem::CFileItem(const CVideoInfoTag& movie)
   SetFromVideoInfoTag(movie);
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+CFileItem::CFileItem(const CProgramInfoTag& program)
+{
+  Initialize();
+  SetFromProgramInfoTag(program);
+}
+#endif
+
 CFileItem::CFileItem(const CArtist& artist)
 {
   Initialize();
@@ -1475,6 +1483,29 @@ void CFileItem::SetFromVideoInfoTag(const CVideoInfoTag &video)
   FillInDefaultIcon();
   FillInMimeType(false);
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+void CFileItem::SetFromProgramInfoTag(const CProgramInfoTag &program)
+{
+  if (!program.m_strTitle.empty())
+    SetLabel(program.m_strTitle);
+  if (program.m_strFileNameAndPath.empty())
+  {
+    m_strPath = program.m_strPath;
+    URIUtils::AddSlashAtEnd(m_strPath);
+    m_bIsFolder = true;
+  }
+  else
+  {
+    m_strPath = program.m_strFileNameAndPath;
+    m_bIsFolder = false;
+  }
+
+  *GetProgramInfoTag() = program;
+  FillInDefaultIcon();
+  FillInMimeType(false);
+}
+#endif
 
 void CFileItem::SetFromMusicInfoTag(const MUSIC_INFO::CMusicInfoTag &music)
 {

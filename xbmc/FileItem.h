@@ -101,6 +101,9 @@ public:
   CFileItem(const CGenre& genre);
   CFileItem(const MUSIC_INFO::CMusicInfoTag& music);
   CFileItem(const CVideoInfoTag& movie);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  CFileItem(const CProgramInfoTag& program);
+#endif
   CFileItem(const CMediaSource& share);
   CFileItem(boost::shared_ptr<const ADDON::IAddon> addonInfo);
 
@@ -475,6 +478,14 @@ public:
    \param video video details to use and set
    */
   void SetFromVideoInfoTag(const CVideoInfoTag &video);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  /*! \brief Sets details using the information from the CProgramInfoTag object
+   Sets the programinfotag and uses its information to set the label and path.
+   \param program program details to use and set
+   */
+  void SetFromProgramInfoTag(const CProgramInfoTag &program);
+#endif
 
   /*! \brief Sets details using the information from the CMusicInfoTag object
   Sets the musicinfotag and uses its information to set the label and path.
