@@ -188,6 +188,7 @@ public:
 
   // general browsing
   bool GetGenresNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter());
 
   bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 

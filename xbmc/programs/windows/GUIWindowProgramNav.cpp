@@ -64,6 +64,8 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
         items.SetContent("games");
       else if (node == NODE_TYPE_GENRE)
         items.SetContent("genres");
+      else if (node == NODE_TYPE_YEAR)
+        items.SetContent("years");
       else
         items.SetContent("");
     }

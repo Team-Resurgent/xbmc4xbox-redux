@@ -1297,6 +1297,149 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
   return false;
 }
 
+bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    std::string strSQL;
+    Filter extFilter = filter;
+    if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
+    {
+      if (idContent == PROGRAMDB_CONTENT_GAMES)
+      {
+        strSQL = "select game_view.released, path.strPath, files.playCount from game_view ";
+        extFilter.AppendJoin("join files on files.idFile = game_view.idFile join path on files.idPath = path.idPath");
+      }
+      else
+        return false;
+    }
+    else
+    {
+      std::string group;
+      if (idContent == PROGRAMDB_CONTENT_GAMES)
+      {
+        strSQL = "select game_view.released, count(1), count(files.playCount) from game_view ";
+        extFilter.AppendJoin("join files on files.idFile = game_view.idFile");
+        extFilter.AppendGroup("game_view.released");
+      }
+      else
+        return false;
+    }
+
+    CProgramDbUrl programUrl;
+    if (!BuildSQL(strBaseDir, strSQL, extFilter, strSQL, programUrl))
+      return false;
+
+    int iRowsFound = RunQuery(strSQL);
+    if (iRowsFound <= 0)
+      return iRowsFound == 0;
+
+    if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
+    {
+      std::map<int, std::pair<std::string,int> > mapYears;
+      while (!m_pDS->eof())
+      {
+        int lYear = 0;
+        std::string dateString = m_pDS->fv(0).get_asString();
+        if (dateString.size() == 4)
+          lYear = m_pDS->fv(0).get_asInt();
+        else
+        {
+          CDateTime time;
+          time.SetFromDateString(dateString);
+          lYear = time.GetYear();
+        }
+        std::map<int, std::pair<std::string,int> >::iterator it = mapYears.find(lYear);
+        if (it == mapYears.end())
+        {
+          // check path
+          if (g_passwordManager.IsDatabasePathUnlocked(std::string(m_pDS->fv("path.strPath").get_asString()),*CMediaSourceSettings::Get().GetSources("program")))
+          {
+            std::string year = StringUtils::Format("%d", lYear);
+            if (idContent == PROGRAMDB_CONTENT_GAMES)
+              mapYears.insert(std::pair<int, std::pair<std::string,int> >(lYear, std::pair<std::string,int>(year,m_pDS->fv(2).get_asInt())));
+            else
+              mapYears.insert(std::pair<int, std::pair<std::string,int> >(lYear, std::pair<std::string,int>(year,0)));
+          }
+        }
+        m_pDS->next();
+      }
+      m_pDS->close();
+
+      for (std::map<int, std::pair<std::string,int> >::const_iterator it = mapYears.begin(); it != mapYears.end(); ++it)
+      {
+        const std::pair<const int, std::pair<std::string,int> > &i = *it;
+        if (i.first == 0)
+          continue;
+        CFileItemPtr pItem(new CFileItem(i.second.first));
+
+        CProgramDbUrl itemUrl = programUrl;
+        std::string path = StringUtils::Format("%i/", i.first);
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->m_bIsFolder=true;
+        if (idContent == PROGRAMDB_CONTENT_GAMES)
+          pItem->GetProgramInfoTag()->m_playCount = i.second.second;
+        items.Add(pItem);
+      }
+    }
+    else
+    {
+      while (!m_pDS->eof())
+      {
+        int lYear = 0;
+        std::string strLabel = m_pDS->fv(0).get_asString();
+        if (strLabel.size() == 4)
+          lYear = m_pDS->fv(0).get_asInt();
+        else
+        {
+          CDateTime time;
+          time.SetFromDateString(strLabel);
+          lYear = time.GetYear();
+          strLabel = StringUtils::Format("%i", lYear);
+        }
+        if (lYear == 0)
+        {
+          m_pDS->next();
+          continue;
+        }
+        CFileItemPtr pItem(new CFileItem(strLabel));
+
+        CProgramDbUrl itemUrl = programUrl;
+        std::string path = StringUtils::Format("%i/", lYear);
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->m_bIsFolder=true;
+        if (idContent == PROGRAMDB_CONTENT_GAMES)
+        {
+          // fv(2) is the number of programs watched, fv(1) is the total number.  We set the playcount
+          // only if the number of programs watched is equal to the total number (i.e. every program watched)
+          pItem->GetProgramInfoTag()->m_playCount = (m_pDS->fv(2).get_asInt() == m_pDS->fv(1).get_asInt()) ? 1 : 0;
+        }
+
+        // take care of dupes ..
+        if (!items.Contains(pItem->GetPath()))
+          items.Add(pItem);
+
+        m_pDS->next();
+      }
+      m_pDS->close();
+    }
+
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+  return false;
+}
+
 bool CProgramDatabase::GetItems(const std::string &strBaseDir, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
 {
   CProgramDbUrl programUrl;
@@ -1323,6 +1466,8 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
     return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
   else if (StringUtils::EqualsNoCase(itemType, "genres"))
     return GetGenresNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "years"))
+    return GetYearsNav(strBaseDir, items, mediaType, filter);
 
   return false;
 }
@@ -1331,6 +1476,8 @@ std::string CProgramDatabase::GetItemById(const std::string &itemType, int id)
 {
   if (StringUtils::EqualsNoCase(itemType, "genres"))
     return GetGenreById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "years"))
+    return StringUtils::Format("%d", id);
 
   return "";
 }
