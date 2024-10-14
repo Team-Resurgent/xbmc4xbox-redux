@@ -1875,3 +1875,45 @@ bool CProgramDatabase::CommitTransaction()
   }
   return false;
 }
+
+void CProgramDatabase::AppendIdLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter)
+{
+  CVariant::const_iterator_map option = options.find((std::string)field + "id");
+  if (option == options.end())
+    return;
+
+  filter.AppendJoin(PrepareSQL("JOIN %s_link ON %s_link.media_id=%s_view.%s AND %s_link.media_type='%s'", field, field, view, viewKey, field, mediaType.c_str()));
+  filter.AppendWhere(PrepareSQL("%s_link.%s_id = %i", field, table, (int)option->second.asInteger()));
+}
+
+void CProgramDatabase::AppendLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter)
+{
+  CVariant::const_iterator_map option = options.find(field);
+  if (option == options.end())
+    return;
+
+  filter.AppendJoin(PrepareSQL("JOIN %s_link ON %s_link.media_id=%s_view.%s AND %s_link.media_type='%s'", field, field, view, viewKey, field, mediaType.c_str()));
+  filter.AppendJoin(PrepareSQL("JOIN %s ON %s.%s_id=%s_link.%s_id", table, table, field, table, field));
+  filter.AppendWhere(PrepareSQL("%s.name like '%s'", table, option->second.asString().c_str()));
+}
+
+bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting)
+{
+  if (!programUrl.IsValid())
+    return false;
+
+  std::string type = programUrl.GetType();
+  std::string itemType = ((const CProgramDbUrl &)programUrl).GetItemType();
+  const CUrlOptions::UrlOptions& options = programUrl.GetOptions();
+
+  if (type == "games")
+  {
+    // TODO: apply filtering for passed query params like genreid, year etc.
+  }
+  else
+    return false;
+
+  // TODO: add support for smartplaylists
+
+  return true;
+}

@@ -244,6 +244,8 @@ public:
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url);
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art);
 
+  virtual bool GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting);
+
 protected:
   int GetGameId(const std::string& strFilenameAndPath);
 
@@ -301,6 +303,9 @@ private:
    \return the number of rows, -1 for an error.
    */
   int RunQuery(const std::string &sql);
+
+  void AppendIdLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter);
+  void AppendLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter);
 
   virtual int GetSchemaVersion() const;
   const char *GetBaseDBName() const { return "MyPrograms"; };
