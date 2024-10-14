@@ -2460,6 +2460,12 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNode.h">
 					</File>
 					<File
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeGamesOverview.cpp">
+					</File>
+					<File
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeGamesOverview.h">
+					</File>
+					<File
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeOverview.cpp">
 						<FileConfiguration
 							Name="Debug|Xbox">
@@ -4771,6 +4777,12 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				</File>
 				<File
 					RelativePath=".\xbmc\programs\ProgramDatabase2.h">
+				</File>
+				<File
+					RelativePath=".\xbmc\programs\ProgramDbUrl.cpp">
+				</File>
+				<File
+					RelativePath=".\xbmc\programs\ProgramDbUrl.h">
 				</File>
 				<File
 					RelativePath=".\xbmc\programs\ProgramInfoScanner.cpp">

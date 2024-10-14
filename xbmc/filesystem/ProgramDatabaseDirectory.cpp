@@ -86,6 +86,14 @@ std::string CProgramDatabaseDirectory::GetIcon(const std::string &strDirectory)
   std::string path = strDirectory;
   switch (GetDirectoryChildType(path))
   {
+  case NODE_TYPE_TITLE_GAMES:
+    if (URIUtils::PathEquals(path, "programdb://games/titles/"))
+    {
+      if (CSettings::GetInstance().GetBool("myprograms.flatten"))
+        return "DefaultGames.png";
+      return "DefaultMovieTitle.png";
+    }
+    return "";
   case NODE_TYPE_GAMES_OVERVIEW: // Games
     return "DefaultGames.png";
   default:

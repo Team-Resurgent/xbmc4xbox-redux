@@ -34,6 +34,7 @@ namespace XFILE
       NODE_TYPE_GAMES_OVERVIEW,
       NODE_TYPE_ROOT,
       NODE_TYPE_OVERVIEW,
+      NODE_TYPE_TITLE_GAMES,
     } NODE_TYPE;
 
     typedef struct {
