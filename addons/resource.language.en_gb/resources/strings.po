@@ -13915,4 +13915,28 @@ msgstr ""
 
 #empty string from id 38942 to 38950 - reserved for info scanner labels
 
+msgctxt "#38951"
+msgid "Publishers"
+msgstr ""
+
+msgctxt "#38952"
+msgid "Developers"
+msgstr ""
+
+msgctxt "#38953"
+msgid "Descriptors"
+msgstr ""
+
+msgctxt "#38954"
+msgid "General features"
+msgstr ""
+
+msgctxt "#38955"
+msgid "Online features"
+msgstr ""
+
+msgctxt "#38956"
+msgid "Platforms"
+msgstr ""
+
 #empty strings from id 38791 to 38999

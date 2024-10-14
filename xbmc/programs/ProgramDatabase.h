@@ -149,7 +149,13 @@ public:
 
   bool HasGameInfo(const std::string& strFilenameAndPath);
 
+  std::string GetDeveloperById(int id);
+  std::string GetPublisherById(int id);
   std::string GetGenreById(int id);
+  std::string GetDescriptorById(int id);
+  std::string GetGeneralFeatureById(int id);
+  std::string GetOnlineFeatureById(int id);
+  std::string GetPlatformById(int id);
 
   int GetPathId(const std::string& strPath);
 
@@ -187,7 +193,14 @@ public:
   bool GetSubPaths(const std::string& basepath, std::vector< std::pair<int, std::string> >& subpaths);
 
   // general browsing
+  bool GetDevelopersNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetPublishersNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   bool GetGenresNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetDescriptorsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetGeneralFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetOnlineFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+  bool GetPlatformsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
+
   bool GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter());
 
   bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);

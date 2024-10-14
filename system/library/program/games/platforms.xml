@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<node order="6" type="filter">
+  <label>38956</label>
+  <icon>DefaultGenre.png</icon>
+  <content>games</content>
+  <group>platforms</group>
+</node>

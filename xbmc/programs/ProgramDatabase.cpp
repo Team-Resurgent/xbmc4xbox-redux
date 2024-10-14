@@ -1132,9 +1132,39 @@ int CProgramDatabase::GetSchemaVersion() const
   return 1;
 }
 
+bool CProgramDatabase::GetDevelopersNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "developer", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetPublishersNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "publisher", idContent, filter, countOnly);
+}
+
 bool CProgramDatabase::GetGenresNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
 {
   return GetNavCommon(strBaseDir, items, "genre", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetDescriptorsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "descriptor", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetGeneralFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "generalfeature", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetOnlineFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "onlinefeature", idContent, filter, countOnly);
+}
+
+bool CProgramDatabase::GetPlatformsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "platform", idContent, filter, countOnly);
 }
 
 bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
@@ -1464,8 +1494,20 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
 {
   if (StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES)
     return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
+  else if (StringUtils::EqualsNoCase(itemType, "developers"))
+    return GetDevelopersNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "publishers"))
+    return GetPublishersNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "genres"))
     return GetGenresNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "descriptors"))
+    return GetDescriptorsNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "generalfeatures"))
+    return GetGeneralFeaturesNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "onlinefeatures"))
+    return GetOnlineFeaturesNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "platforms"))
+    return GetPlatformsNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "years"))
     return GetYearsNav(strBaseDir, items, mediaType, filter);
 
@@ -1474,8 +1516,20 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
 
 std::string CProgramDatabase::GetItemById(const std::string &itemType, int id)
 {
-  if (StringUtils::EqualsNoCase(itemType, "genres"))
+  if (StringUtils::EqualsNoCase(itemType, "developers"))
+    return GetDeveloperById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "publishers"))
+    return GetPublisherById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "genres"))
     return GetGenreById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "descriptors"))
+    return GetDescriptorById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "generalfeatures"))
+    return GetGeneralFeatureById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "onlinefeatures"))
+    return GetOnlineFeatureById(id);
+  else if (StringUtils::EqualsNoCase(itemType, "platforms"))
+    return GetPlatformById(id);
   else if (StringUtils::EqualsNoCase(itemType, "years"))
     return StringUtils::Format("%d", id);
 
@@ -1577,9 +1631,39 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
   return false;
 }
 
+std::string CProgramDatabase::GetDeveloperById(int id)
+{
+  return GetSingleValue("developer", "name", PrepareSQL("developer_id=%i", id));
+}
+
+std::string CProgramDatabase::GetPublisherById(int id)
+{
+  return GetSingleValue("publisher", "name", PrepareSQL("publisher_id=%i", id));
+}
+
 std::string CProgramDatabase::GetGenreById(int id)
 {
   return GetSingleValue("genre", "name", PrepareSQL("genre_id=%i", id));
+}
+
+std::string CProgramDatabase::GetDescriptorById(int id)
+{
+  return GetSingleValue("descriptor", "name", PrepareSQL("descriptor_id=%i", id));
+}
+
+std::string CProgramDatabase::GetGeneralFeatureById(int id)
+{
+  return GetSingleValue("generalfeature", "name", PrepareSQL("generalfeature_id=%i", id));
+}
+
+std::string CProgramDatabase::GetOnlineFeatureById(int id)
+{
+  return GetSingleValue("onlinefeature", "name", PrepareSQL("onlinefeature_id=%i", id));
+}
+
+std::string CProgramDatabase::GetPlatformById(int id)
+{
+  return GetSingleValue("platform", "name", PrepareSQL("platform_id=%i", id));
 }
 
 bool CProgramDatabase::HasContent()

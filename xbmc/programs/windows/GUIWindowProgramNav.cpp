@@ -66,6 +66,13 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
         items.SetContent("genres");
       else if (node == NODE_TYPE_YEAR)
         items.SetContent("years");
+      else if (node == NODE_TYPE_DEVELOPER  ||
+               node == NODE_TYPE_PUBLISHER  ||
+               node == NODE_TYPE_DESCRIPTOR ||
+               node == NODE_TYPE_GENERALFEATURE ||
+               node == NODE_TYPE_ONLINEFEATURE ||
+               node == NODE_TYPE_PLATFORM)
+        items.SetContent("unknown");
       else
         items.SetContent("");
     }

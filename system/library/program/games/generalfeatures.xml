@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<node order="8" type="filter">
+  <label>38954</label>
+  <icon>DefaultGenre.png</icon>
+  <content>games</content>
+  <group>generalfeatures</group>
+</node>
