@@ -28,6 +28,8 @@ namespace XFILE
 {
   namespace PROGRAMDATABASEDIRECTORY
   {
+    class CQueryParams;
+
     typedef enum _NODE_TYPE
     {
       NODE_TYPE_NONE=0,
@@ -47,6 +49,7 @@ namespace XFILE
     {
     public:
       static CDirectoryNode* ParseURL(const std::string& strPath);
+      static void GetDatabaseInfo(const std::string& strPath, CQueryParams& params);
       virtual ~CDirectoryNode();
 
       NODE_TYPE GetType() const;
@@ -63,6 +66,9 @@ namespace XFILE
     protected:
       CDirectoryNode(NODE_TYPE Type, const std::string& strName, CDirectoryNode* pParent);
       static CDirectoryNode* CreateNode(NODE_TYPE Type, const std::string& strName, CDirectoryNode* pParent);
+
+      void AddOptions(const std::string &options);
+      void CollectQueryParams(CQueryParams& params) const;
 
       const std::string& GetName() const;
       int GetID() const;

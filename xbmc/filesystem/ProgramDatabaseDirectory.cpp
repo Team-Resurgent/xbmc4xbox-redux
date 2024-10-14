@@ -81,6 +81,17 @@ NODE_TYPE CProgramDatabaseDirectory::GetDirectoryType(const std::string& strPath
   return pNode->GetType();
 }
 
+bool CProgramDatabaseDirectory::GetQueryParams(const std::string& strPath, CQueryParams& params)
+{
+  boost::movelib::unique_ptr<CDirectoryNode> pNode(CDirectoryNode::ParseURL(strPath));
+
+  if (!pNode.get())
+    return false;
+
+  CDirectoryNode::GetDatabaseInfo(strPath,params);
+  return true;
+}
+
 std::string CProgramDatabaseDirectory::GetIcon(const std::string &strDirectory)
 {
   std::string path = strDirectory;

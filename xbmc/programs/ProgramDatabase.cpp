@@ -1180,8 +1180,12 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
     if (NULL == m_pDB.get()) return false;
     if (NULL == m_pDS.get()) return false;
 
-    // TODO: add query params to Filter
+    // parse the base path to get additional filters
+    CProgramDbUrl programUrl;
     Filter extFilter = filter;
+    SortDescription sorting = sortDescription;
+    if (!programUrl.FromString(strBaseDir) || !GetFilter(programUrl, extFilter, sorting))
+      return false;
 
     int total = -1;
 
@@ -1230,8 +1234,7 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
       {
         CFileItemPtr pItem(new CFileItem(game));
 
-        CProgramDbUrl itemUrl;
-        itemUrl.FromString(strBaseDir);
+        CProgramDbUrl itemUrl = programUrl;
         std::string path = StringUtils::Format("%i", game.m_iDbId);
         itemUrl.AppendPath(path);
         pItem->SetPath(itemUrl.ToString());

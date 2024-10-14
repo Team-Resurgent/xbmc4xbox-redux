@@ -178,7 +178,23 @@ namespace XFILE
           URIUtils::AddSlashAtEnd(baseDir);
         }
 
-        // TODO: parse URL query params and store SmartPlaylist as query param
+        CProgramDbUrl programUrl;
+        if (!programUrl.FromString(baseDir))
+          return false;
+
+        // store the smartplaylist as JSON in the URL as well
+        std::string xsp;
+        if (!playlist.IsEmpty(filter))
+        {
+          if (!playlist.SaveAsJson(xsp, !filter))
+            return false;
+        }
+
+        if (!xsp.empty())
+          programUrl.AddOption(option, xsp);
+        else
+          programUrl.RemoveOption(option);
+
         CDatabase::Filter dbfilter;
         success = db.GetItems(baseDir, items, dbfilter, sorting);
         db.Close();

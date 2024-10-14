@@ -24,6 +24,7 @@
 #include "video/VideoDatabase.h" // SDbTableOffsets, my_offsetof
 #include "addons/Scraper.h"
 #include "dbwrappers/Database.h"
+#include "programs/ProgramDbUrl.h"
 #include "ProgramInfoTag.h"
 
 class CGUIDialogProgress;

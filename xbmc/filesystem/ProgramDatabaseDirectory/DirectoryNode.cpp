@@ -20,6 +20,7 @@
 
 #include "DirectoryNode.h"
 #include "utils/URIUtils.h"
+#include "QueryParams.h"
 #include "DirectoryNodeRoot.h"
 #include "DirectoryNodeOverview.h"
 #include "DirectoryNodeTitleGames.h"
@@ -67,9 +68,22 @@ CDirectoryNode* CDirectoryNode::ParseURL(const std::string& strPath)
     pParent = pNode;
   }
 
-  // TODO: add URL options used for filtering, grouping etc.
+  // Add all the additional URL options to the last node
+  if (pNode)
+    pNode->AddOptions(url.GetOptions());
 
   return pNode;
+}
+
+//  returns the database ids of the path,
+void CDirectoryNode::GetDatabaseInfo(const std::string& strPath, CQueryParams& params)
+{
+  boost::movelib::unique_ptr<CDirectoryNode> pNode(CDirectoryNode::ParseURL(strPath));
+
+  if (!pNode.get())
+    return;
+
+  pNode->CollectQueryParams(params);
 }
 
 //  Create a node object
@@ -162,6 +176,28 @@ std::string CDirectoryNode::BuildPath() const
   return strPath;
 }
 
+void CDirectoryNode::AddOptions(const std::string &options)
+{
+  if (options.empty())
+    return;
+
+  m_options.AddOptions(options);
+}
+
+//  Collects Query params from this and all parent nodes. If a NODE_TYPE can
+//  be used as a database parameter, it will be added to the
+//  params object.
+void CDirectoryNode::CollectQueryParams(CQueryParams& params) const
+{
+  params.SetQueryParam(m_Type, m_strName);
+
+  CDirectoryNode* pParent=m_pParent;
+  while (pParent != nullptr)
+  {
+    params.SetQueryParam(pParent->GetType(), pParent->GetName());
+    pParent = pParent->GetParent();
+  }
+}
 
 //  Should be overloaded by a derived class.
 //  Returns the NODE_TYPE of the child nodes.

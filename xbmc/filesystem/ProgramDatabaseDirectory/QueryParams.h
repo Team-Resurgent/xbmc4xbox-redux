@@ -19,22 +19,26 @@
  *
  */
 
-#include "IDirectory.h"
-#include "ProgramDatabaseDirectory/DirectoryNode.h"
-#include "ProgramDatabaseDirectory/QueryParams.h"
+#include "DirectoryNode.h"
 
 namespace XFILE
 {
-  class CProgramDatabaseDirectory : public IDirectory
+  namespace PROGRAMDATABASEDIRECTORY
   {
-  public:
-    CProgramDatabaseDirectory(void);
-    virtual ~CProgramDatabaseDirectory(void);
-    virtual bool GetDirectory(const CURL& url, CFileItemList &items);
-    virtual bool AllowAll() const { return true; }
-    static PROGRAMDATABASEDIRECTORY::NODE_TYPE GetDirectoryChildType(const std::string& strPath);
-    static PROGRAMDATABASEDIRECTORY::NODE_TYPE GetDirectoryType(const std::string& strPath);
-    static bool GetQueryParams(const std::string& strPath, PROGRAMDATABASEDIRECTORY::CQueryParams& params);
-    static std::string GetIcon(const std::string& strDirectory);
-  };
+    class CQueryParams
+    {
+    public:
+      CQueryParams();
+      long GetContentType() const { return m_idContent; }
+      long GetGameId() const { return m_idGame; }
+
+    protected:
+      void SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName);
+
+      friend class CDirectoryNode;
+    private:
+      long m_idContent;
+      long m_idGame;
+    };
+  }
 }

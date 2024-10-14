@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://xbmc.org
+ *      Copyright (C) 2016 Team Kodi
+ *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,35 +13,35 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
 
-#include "DirectoryNodeTitleGames.h"
 #include "QueryParams.h"
 #include "programs/ProgramDatabase.h"
 
 using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 
-CDirectoryNodeTitleGames::CDirectoryNodeTitleGames(const std::string& strName, CDirectoryNode* pParent)
-  : CDirectoryNode(NODE_TYPE_TITLE_GAMES, strName, pParent)
+CQueryParams::CQueryParams()
 {
-
+  m_idGame = -1;
+  m_idContent = -1;
 }
 
-bool CDirectoryNodeTitleGames::GetContent(CFileItemList& items) const
+void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName)
 {
-  CProgramDatabase programdatabase;
-  if (!programdatabase.Open())
-    return false;
+  long idDb=atol(strNodeName.c_str());
 
-  CQueryParams params;
-  CollectQueryParams(params);
-
-  bool bSuccess=programdatabase.GetGamesNav(BuildPath(), items);
-
-  programdatabase.Close();
-
-  return bSuccess;
+  switch (NodeType)
+  {
+  case NODE_TYPE_OVERVIEW:
+    m_idContent = PROGRAMDB_CONTENT_GAMES;
+    break;
+  case NODE_TYPE_TITLE_GAMES:
+    m_idGame = idDb;
+    break;
+  default:
+    break;
+  }
 }

@@ -71,7 +71,15 @@ bool CProgramDbUrl::parse()
   if (m_type.empty() || m_itemType.empty())
     return false;
 
-  // TODO: add support for query params in URLs
+  // parse query params
+  PROGRAMDATABASEDIRECTORY::CQueryParams queryParams;
+  if (!CProgramDatabaseDirectory::GetQueryParams(path, queryParams))
+    return false;
+
+  // retrieve and parse all options
+  AddOptions(m_url.GetOptions());
+
+  // TODO: add options based on the QueryParams
 
   return true;
 }
