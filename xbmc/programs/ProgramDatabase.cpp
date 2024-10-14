@@ -1908,7 +1908,8 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
 
   if (type == "games")
   {
-    // TODO: apply filtering for passed query params like genreid, year etc.
+    AppendIdLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
   }
   else
     return false;

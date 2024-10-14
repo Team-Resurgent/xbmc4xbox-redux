@@ -31,6 +31,7 @@ namespace XFILE
       CQueryParams();
       long GetContentType() const { return m_idContent; }
       long GetGameId() const { return m_idGame; }
+      long GetGenreId() const { return m_idGenre; }
 
     protected:
       void SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName);
@@ -39,6 +40,7 @@ namespace XFILE
     private:
       long m_idContent;
       long m_idGame;
+      long m_idGenre;
     };
   }
 }

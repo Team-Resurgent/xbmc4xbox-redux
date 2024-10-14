@@ -111,7 +111,8 @@ bool CProgramDbUrl::parse()
   // retrieve and parse all options
   AddOptions(m_url.GetOptions());
 
-  // TODO: add options based on the QueryParams
+  if (queryParams.GetGenreId() != -1)
+    AddOption("genreid", (int)queryParams.GetGenreId());
 
   return true;
 }

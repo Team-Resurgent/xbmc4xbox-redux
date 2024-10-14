@@ -23,6 +23,7 @@
 #include "QueryParams.h"
 #include "DirectoryNodeRoot.h"
 #include "DirectoryNodeOverview.h"
+#include "DirectoryNodeGrouped.h"
 #include "DirectoryNodeTitleGames.h"
 #include "DirectoryNodeGamesOverview.h"
 #include "URL.h"
@@ -95,6 +96,8 @@ CDirectoryNode* CDirectoryNode::CreateNode(NODE_TYPE Type, const std::string& st
     return new CDirectoryNodeRoot(strName, pParent);
   case NODE_TYPE_OVERVIEW:
     return new CDirectoryNodeOverview(strName, pParent);
+  case NODE_TYPE_GENRE:
+    return new CDirectoryNodeGrouped(Type, strName, pParent);
   case NODE_TYPE_TITLE_GAMES:
     return new CDirectoryNodeTitleGames(strName, pParent);
   case NODE_TYPE_GAMES_OVERVIEW:

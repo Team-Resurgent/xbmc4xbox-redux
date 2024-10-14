@@ -26,6 +26,7 @@ using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 CQueryParams::CQueryParams()
 {
   m_idGame = -1;
+  m_idGenre = -1;
   m_idContent = -1;
 }
 
@@ -37,6 +38,9 @@ void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeN
   {
   case NODE_TYPE_OVERVIEW:
     m_idContent = PROGRAMDB_CONTENT_GAMES;
+    break;
+  case NODE_TYPE_GENRE:
+    m_idGenre = idDb;
     break;
   case NODE_TYPE_TITLE_GAMES:
     m_idGame = idDb;
