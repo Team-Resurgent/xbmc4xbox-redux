@@ -1908,8 +1908,26 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
 
   if (type == "games")
   {
+    AppendIdLinkFilter("developer", "developer", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("developer", "developer", "game", "game", "idGame", options, filter);
+
+    AppendIdLinkFilter("publisher", "publisher", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("publisher", "publisher", "game", "game", "idGame", options, filter);
+
     AppendIdLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
     AppendLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
+
+    AppendIdLinkFilter("descriptor", "descriptor", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("descriptor", "descriptor", "game", "game", "idGame", options, filter);
+
+    AppendIdLinkFilter("generalfeature", "generalfeature", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("generalfeature", "generalfeature", "game", "game", "idGame", options, filter);
+
+    AppendIdLinkFilter("onlinefeature", "onlinefeature", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("onlinefeature", "onlinefeature", "game", "game", "idGame", options, filter);
+
+    AppendIdLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
   }
   else
     return false;

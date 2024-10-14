@@ -111,8 +111,20 @@ bool CProgramDbUrl::parse()
   // retrieve and parse all options
   AddOptions(m_url.GetOptions());
 
+  if (queryParams.GetDeveloperId() != -1)
+    AddOption("developerid", (int)queryParams.GetDeveloperId());
+  if (queryParams.GetPublisherId() != -1)
+    AddOption("publisherid", (int)queryParams.GetPublisherId());
   if (queryParams.GetGenreId() != -1)
     AddOption("genreid", (int)queryParams.GetGenreId());
+  if (queryParams.GetDescriptorId() != -1)
+    AddOption("descriptorid", (int)queryParams.GetDescriptorId());
+  if (queryParams.GetGeneralFeatureId() != -1)
+    AddOption("generalfeatureid", (int)queryParams.GetGeneralFeatureId());
+  if (queryParams.GetOnlineFeatureId() != -1)
+    AddOption("onlinefeatureid", (int)queryParams.GetOnlineFeatureId());
+  if (queryParams.GetPlatformId() != -1)
+    AddOption("platformid", (int)queryParams.GetPlatformId());
 
   return true;
 }

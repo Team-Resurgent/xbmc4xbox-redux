@@ -31,7 +31,13 @@ namespace XFILE
       CQueryParams();
       long GetContentType() const { return m_idContent; }
       long GetGameId() const { return m_idGame; }
+      long GetDeveloperId() const { return m_idDeveloper; }
+      long GetPublisherId() const { return m_idPublisher; }
       long GetGenreId() const { return m_idGenre; }
+      long GetDescriptorId() const { return m_idDescriptor; }
+      long GetGeneralFeatureId() const { return m_idGeneralFeature; }
+      long GetOnlineFeatureId() const { return m_idOnlineFeature; }
+      long GetPlatformId() const { return m_idPlatform; }
 
     protected:
       void SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName);
@@ -40,7 +46,13 @@ namespace XFILE
     private:
       long m_idContent;
       long m_idGame;
+      long m_idDeveloper;
+      long m_idPublisher;
       long m_idGenre;
+      long m_idDescriptor;
+      long m_idGeneralFeature;
+      long m_idOnlineFeature;
+      long m_idPlatform;
     };
   }
 }
