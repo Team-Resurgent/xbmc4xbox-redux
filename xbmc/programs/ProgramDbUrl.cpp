@@ -46,6 +46,7 @@ bool CProgramDbUrl::parse()
   switch (dirType)
   {
     case PROGRAMDATABASEDIRECTORY::NODE_TYPE_GAMES_OVERVIEW:
+    case PROGRAMDATABASEDIRECTORY::NODE_TYPE_TITLE_GAMES:
       m_type = "games";
       break;
 
@@ -56,6 +57,7 @@ bool CProgramDbUrl::parse()
   switch (childType)
   {
     case PROGRAMDATABASEDIRECTORY::NODE_TYPE_GAMES_OVERVIEW:
+    case PROGRAMDATABASEDIRECTORY::NODE_TYPE_TITLE_GAMES:
       m_type = "games";
       m_itemType = "games";
       break;

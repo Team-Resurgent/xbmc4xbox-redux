@@ -183,6 +183,9 @@ public:
    */
   bool GetSubPaths(const std::string& basepath, std::vector< std::pair<int, std::string> >& subpaths);
 
+  // general browsing
+  bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
+
   bool HasContent();
   bool HasContent(PROGRAMDB_CONTENT_TYPE type);
 
@@ -209,6 +212,15 @@ public:
    \param dateAdded datetime when the file was added to the filesystem/database
    */
   void UpdateFileDateAdded(int idFile, const std::string& strFileNameAndPathh, const CDateTime& dateAdded = CDateTime());
+
+  // smart playlists and main retrieval work in these functions
+  bool GetGamesByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
+
+  // retrieve a list of items
+  bool GetItems(const std::string &strBaseDir, CFileItemList &items, const Filter &filter = Filter(), const SortDescription &sortDescription = SortDescription());
+  bool GetItems(const std::string &strBaseDir, const std::string &mediaType, const std::string &itemType, CFileItemList &items, const Filter &filter = Filter(), const SortDescription &sortDescription = SortDescription());
+  bool GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT_TYPE mediaType, const std::string &itemType, CFileItemList &items, const Filter &filter = Filter(), const SortDescription &sortDescription = SortDescription());
+  std::string GetItemById(const std::string &itemType, int id);
 
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url);
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art);
@@ -262,6 +274,13 @@ private:
    \return -1 if not found, else a valid database id (i.e. > 0)
    */
   int GetDbId(const std::string &query);
+
+  /*! \brief Run a query on the main dataset and return the number of rows
+   If no rows are found we close the dataset and return 0.
+   \param sql the sql query to run
+   \return the number of rows, -1 for an error.
+   */
+  int RunQuery(const std::string &sql);
 
   virtual int GetSchemaVersion() const;
   const char *GetBaseDBName() const { return "MyPrograms"; };

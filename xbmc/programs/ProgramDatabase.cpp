@@ -28,12 +28,15 @@
 #include "filesystem/MultiPathDirectory.h"
 #include "guiinfo/GUIInfoLabels.h"
 #include "GUIInfoManager.h"
+#include "profiles/ProfilesManager.h"
 #include "settings/AdvancedSettings.h"
+#include "settings/MediaSourceSettings.h"
 #include "URL.h"
 #include "utils/FileUtils.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "programs/ProgramDbUrl.h"
 #include "ProgramInfoScanner.h"
 #include "XBDateTime.h"
 
@@ -243,6 +246,20 @@ bool CProgramDatabase::GetPaths(std::set<std::string> &paths)
     CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
   }
   return false;
+}
+
+int CProgramDatabase::RunQuery(const std::string &sql)
+{
+  unsigned int time = XbmcThreads::SystemClockMillis();
+  int rows = -1;
+  if (m_pDS->query(sql))
+  {
+    rows = m_pDS->num_rows();
+    if (rows == 0)
+      m_pDS->close();
+  }
+  CLog::Log(LOGDEBUG, "%s took %d ms for %d items query: %s", __FUNCTION__, XbmcThreads::SystemClockMillis() - time, rows, sql.c_str());
+  return rows;
 }
 
 bool CProgramDatabase::GetSubPaths(const std::string &basepath, std::vector<std::pair<int, std::string> >& subpaths)
@@ -1113,6 +1130,126 @@ void CProgramDatabase::SetScraperForPath(const std::string& filePath, const Scra
 int CProgramDatabase::GetSchemaVersion() const
 {
   return 1;
+}
+
+bool CProgramDatabase::GetItems(const std::string &strBaseDir, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
+{
+  CProgramDbUrl programUrl;
+  if (!programUrl.FromString(strBaseDir))
+    return false;
+
+  return GetItems(strBaseDir, programUrl.GetType(), programUrl.GetItemType(), items, filter, sortDescription);
+}
+
+bool CProgramDatabase::GetItems(const std::string &strBaseDir, const std::string &mediaType, const std::string &itemType, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
+{
+  PROGRAMDB_CONTENT_TYPE contentType;
+  if (StringUtils::EqualsNoCase(mediaType, "games"))
+    contentType = PROGRAMDB_CONTENT_GAMES;
+  else
+    return false;
+
+  return GetItems(strBaseDir, contentType, itemType, items, filter, sortDescription);
+}
+
+bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT_TYPE mediaType, const std::string &itemType, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
+{
+  if (StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES)
+    return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
+
+  return false;
+}
+
+bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList& items,
+                                  const SortDescription &sortDescription /* = SortDescription() */, int getDetails /* = ProgramDbDetailsNone */)
+{
+  CProgramDbUrl programUrl;
+  if (!programUrl.FromString(strBaseDir))
+    return false;
+
+  Filter filter;
+  return GetGamesByWhere(programUrl.ToString(), filter, items, sortDescription, getDetails);
+}
+
+bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription /* = SortDescription() */, int getDetails /* = ProgramDbDetailsNone */)
+{
+  try
+  {
+    gameTime = 0;
+
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    // TODO: add query params to Filter
+    Filter extFilter = filter;
+
+    int total = -1;
+
+    std::string strSQL = "select %s from game_view ";
+    std::string strSQLExtra;
+    if (!CDatabase::BuildSQL(strSQLExtra, extFilter, strSQLExtra))
+      return false;
+
+    strSQL = PrepareSQL(strSQL, !extFilter.fields.empty() ? extFilter.fields.c_str() : "*") + strSQLExtra;
+
+    int iRowsFound = RunQuery(strSQL);
+    if (iRowsFound <= 0)
+      return iRowsFound == 0;
+
+    // store the total value of items as a property
+    if (total < iRowsFound)
+      total = iRowsFound;
+    items.SetProperty("total", total);
+
+    DatabaseResults results;
+    results.reserve(iRowsFound);
+
+    // TODO: add support for sorting queried games
+    const dbiplus::result_set &resultSet = m_pDS->get_result_set();
+    unsigned int offset = results.size();
+    DatabaseResult result;
+    for (unsigned int index = 0; index < resultSet.records.size(); index++)
+    {
+      result[FieldRow] = index + offset;
+      results.push_back(result);
+    }
+
+    // get data from returned rows
+    items.Reserve(results.size());
+    const query_data &data = m_pDS->get_result_set().records;
+    for (DatabaseResults::const_iterator it = results.begin(); it != results.end(); ++it)
+    {
+      const DatabaseResult &i = *it;
+      unsigned int targetRow = (unsigned int)i.find(FieldRow)->second.asInteger();
+      const dbiplus::sql_record* const record = data.at(targetRow);
+
+      CProgramInfoTag game = GetDetailsForGame(record, getDetails);
+      if (CProfilesManager::Get().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE ||
+          g_passwordManager.bMasterUser                                   ||
+          g_passwordManager.IsDatabasePathUnlocked(game.m_strPath, *CMediaSourceSettings::Get().GetSources("program")))
+      {
+        CFileItemPtr pItem(new CFileItem(game));
+
+        CProgramDbUrl itemUrl;
+        itemUrl.FromString(strBaseDir);
+        std::string path = StringUtils::Format("%i", game.m_iDbId);
+        itemUrl.AppendPath(path);
+        pItem->SetPath(itemUrl.ToString());
+
+        pItem->SetOverlayImage(CGUIListItem::ICON_OVERLAY_UNWATCHED,game.m_playCount > 0);
+        items.Add(pItem);
+      }
+    }
+
+    // cleanup
+    m_pDS->close();
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+  return false;
 }
 
 bool CProgramDatabase::HasContent()

@@ -22,6 +22,7 @@
 #include "utils/URIUtils.h"
 #include "DirectoryNodeRoot.h"
 #include "DirectoryNodeOverview.h"
+#include "DirectoryNodeTitleGames.h"
 #include "DirectoryNodeGamesOverview.h"
 #include "URL.h"
 #include "FileItem.h"
@@ -80,6 +81,8 @@ CDirectoryNode* CDirectoryNode::CreateNode(NODE_TYPE Type, const std::string& st
     return new CDirectoryNodeRoot(strName, pParent);
   case NODE_TYPE_OVERVIEW:
     return new CDirectoryNodeOverview(strName, pParent);
+  case NODE_TYPE_TITLE_GAMES:
+    return new CDirectoryNodeTitleGames(strName, pParent);
   case NODE_TYPE_GAMES_OVERVIEW:
     return new CDirectoryNodeGamesOverview(strName, pParent);
   default:

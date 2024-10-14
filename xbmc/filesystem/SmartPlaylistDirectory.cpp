@@ -32,6 +32,9 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "video/VideoDatabase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramDatabase.h"
+#endif
 
 #define PROPERTY_PATH_DB            "path.db"
 #define PROPERTY_SORT_ORDER         "sort.order"
@@ -152,6 +155,37 @@ namespace XFILE
         items.SetProperty(PROPERTY_PATH_DB, videoUrl.ToString());
       }
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (playlist.GetType() == "games")
+    {
+      CProgramDatabase db;
+      if (db.Open())
+      {
+        MediaType mediaType = CMediaTypes::FromString(playlist.GetType());
+
+        std::string baseDir = strBaseDir;
+        if (baseDir.empty())
+        {
+          if (mediaType == MediaTypeGame)
+            baseDir = "programdb://games/";
+          else
+            return false;
+
+          if (!isGrouped)
+            baseDir += "titles";
+          else
+            baseDir += group;
+          URIUtils::AddSlashAtEnd(baseDir);
+        }
+
+        // TODO: parse URL query params and store SmartPlaylist as query param
+        CDatabase::Filter dbfilter;
+        success = db.GetItems(baseDir, items, dbfilter, sorting);
+        db.Close();
+        items.SetProperty(PROPERTY_PATH_DB, baseDir);
+      }
+    }
+#endif
     else if (playlist.IsMusicType() || playlist.GetType().empty())
     {
       CMusicDatabase db;
