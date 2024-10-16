@@ -125,6 +125,8 @@ bool CProgramDbUrl::parse()
     AddOption("onlinefeatureid", (int)queryParams.GetOnlineFeatureId());
   if (queryParams.GetPlatformId() != -1)
     AddOption("platformid", (int)queryParams.GetPlatformId());
+  if (queryParams.GetYear() != -1)
+    AddOption("year", (int)queryParams.GetYear());
 
   return true;
 }

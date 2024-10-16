@@ -1928,6 +1928,10 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
 
     AppendIdLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
     AppendLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
+
+    CVariant::const_iterator_map option = options.find("year");
+    if (option != options.end())
+      filter.AppendWhere(PrepareSQL("game_view.released like '%i%%'", (int)option->second.asInteger()));
   }
   else
     return false;

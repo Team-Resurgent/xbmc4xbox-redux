@@ -96,6 +96,8 @@ std::string CDirectoryNodeGrouped::GetContentType(const CQueryParams &params) co
       return "onlinefeatures";
     case NODE_TYPE_PLATFORM:
       return "platforms";
+    case NODE_TYPE_YEAR:
+      return "years";
 
     case NODE_TYPE_GAMES_OVERVIEW:
     case NODE_TYPE_NONE:

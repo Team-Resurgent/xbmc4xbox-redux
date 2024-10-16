@@ -31,6 +31,7 @@ namespace XFILE
       CQueryParams();
       long GetContentType() const { return m_idContent; }
       long GetGameId() const { return m_idGame; }
+      long GetYear() const { return m_idYear; }
       long GetDeveloperId() const { return m_idDeveloper; }
       long GetPublisherId() const { return m_idPublisher; }
       long GetGenreId() const { return m_idGenre; }
@@ -53,6 +54,7 @@ namespace XFILE
       long m_idGeneralFeature;
       long m_idOnlineFeature;
       long m_idPlatform;
+      long m_idYear;
     };
   }
 }
