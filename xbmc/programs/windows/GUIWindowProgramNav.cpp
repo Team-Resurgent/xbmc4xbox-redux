@@ -62,17 +62,16 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
       PROGRAMDATABASEDIRECTORY::NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
       if (node == NODE_TYPE_TITLE_GAMES)
         items.SetContent("games");
-      else if (node == NODE_TYPE_GENRE)
-        items.SetContent("genres");
-      else if (node == NODE_TYPE_YEAR)
-        items.SetContent("years");
-      else if (node == NODE_TYPE_DEVELOPER  ||
+      else if (node == NODE_TYPE_GENRE ||
+               node == NODE_TYPE_DEVELOPER  ||
                node == NODE_TYPE_PUBLISHER  ||
                node == NODE_TYPE_DESCRIPTOR ||
                node == NODE_TYPE_GENERALFEATURE ||
                node == NODE_TYPE_ONLINEFEATURE ||
                node == NODE_TYPE_PLATFORM)
-        items.SetContent("unknown");
+        items.SetContent("genres");
+      else if (node == NODE_TYPE_YEAR)
+        items.SetContent("years");
       else
         items.SetContent("");
     }
