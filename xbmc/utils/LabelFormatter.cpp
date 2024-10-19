@@ -28,6 +28,9 @@
 #include "video/VideoInfoTag.h"
 #include "music/tags/MusicInfoTag.h"
 #include "pictures/PictureInfoTag.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramInfoTag.h"
+#endif
 #include "FileItem.h"
 #include "StringUtils.h"
 #include "URIUtils.h"
@@ -161,6 +164,9 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
   const CMusicInfoTag *music = item->GetMusicInfoTag();
   const CVideoInfoTag *movie = item->GetVideoInfoTag();
   const CPictureInfoTag *pic = item->GetPictureInfoTag();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  const CProgramInfoTag *program = item->GetProgramInfoTag();
+#endif
   std::string value;
   switch (mask.m_content)
   {
@@ -185,6 +191,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = music->GetTitle();
     if (movie && movie->m_strTitle.size())
       value = movie->m_strTitle;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program && program->m_strTitle.size())
+      value = program->m_strTitle;
+#endif
     break;
   case 'Z':
     if (movie && !movie->m_strShowTitle.empty())
@@ -201,6 +211,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = StringUtils::Join(music->GetGenre(), g_advancedSettings.m_musicItemSeparator);
     if (movie && movie->m_genre.size())
       value = StringUtils::Join(movie->m_genre, g_advancedSettings.m_videoItemSeparator);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program && program->m_genre.size())
+      value = StringUtils::Join(program->m_genre, g_advancedSettings.m_programItemSeparator);
+#endif
     break;
   case 'Y':
     if (music)
@@ -212,6 +226,13 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       else if (movie->HasYear())
         value = StringUtils::Format("%i", movie->GetYear());
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program)
+    {
+      if (program->HasYear())
+        value = StringUtils::Format("%i", program->GetYear());
+    }
+#endif
     break;
   case 'F': // filename
     value = CUtil::GetTitleFromPath(item->GetPath(), item->m_bIsFolder && !item->IsFileFolder());
@@ -254,6 +275,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = StringUtils::Format("%.1f", music->GetRating());
     else if (movie && movie->GetRating().rating != 0.f)
       value = StringUtils::Format("%.1f", movie->GetRating().rating);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (program && program->GetRating().rating != 0.f)
+      value = StringUtils::Format("%.1f", program->GetRating().rating);
+#endif
     break;
   case 'C': // programs count
     value = StringUtils::Format("%i", item->m_iprogramCount);
@@ -297,6 +322,12 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
     {// MPAA Rating
       value = movie->m_strMPAARating;
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program)
+    {// ESRB Rating
+      value = program->m_strESRB;
+    }
+#endif
     break;
   case 'U':
     if (movie && !movie->m_studio.empty())
@@ -309,6 +340,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = StringUtils::Format("%i", music->GetPlayCount());
     if (movie)
       value = StringUtils::Format("%i", movie->m_playCount);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program)
+      value = StringUtils::Format("%i", program->m_playCount);
+#endif
     break;
   case 'X': // Bitrate
     if( !item->m_bIsFolder && item->m_dwSize != 0 )
@@ -325,6 +360,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = movie->m_dateAdded.GetAsLocalizedDate();
     if (music && music->GetDateAdded().IsValid())
       value = music->GetDateAdded().GetAsLocalizedDate();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program && program->m_dateAdded.IsValid())
+      value = program->m_dateAdded.GetAsLocalizedDate();
+#endif
     break;
   case 'd': // date and time
     if (item->m_dateTime.IsValid())
@@ -335,6 +374,10 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
       value = movie->m_lastPlayed.GetAsLocalizedDate();
     if (music && music->GetLastPlayed().IsValid())
       value = music->GetLastPlayed().GetAsLocalizedDate();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (program && program->m_lastPlayed.IsValid())
+      value = program->m_lastPlayed.GetAsLocalizedDate();
+#endif
     break;
   case 'r': // userrating
     if (movie && movie->m_iUserRating != 0)
