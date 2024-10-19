@@ -19,13 +19,16 @@
  */
 
 #include "GUIViewStateProgram.h"
+#include "filesystem/ProgramDatabaseDirectory.h"
 #include "filesystem/Directory.h"
+#include "ProgramDatabase.h"
 #include "settings/Settings.h"
 #include "FileItem.h"
 #include "guilib/Key.h"
 #include "view/ViewStateSettings.h"
 
 using namespace XFILE;
+using namespace PROGRAMDATABASEDIRECTORY;
 
 CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList& items) : CGUIViewStateWindowProgram(items)
 {
@@ -42,7 +45,60 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
 
     SetSortOrder(SortOrderNone);
   }
-  // TODO: add sort methods, sort order, views, etc. for each node
+  else if (items.IsProgramDb())
+  {
+    NODE_TYPE NodeType=CProgramDatabaseDirectory::GetDirectoryChildType(items.GetPath());
+    CQueryParams params;
+    CProgramDatabaseDirectory::GetQueryParams(items.GetPath(),params);
+
+    switch (NodeType)
+    {
+    case NODE_TYPE_YEAR:
+      {
+        AddSortMethod(SortByLabel, 562, LABEL_MASKS("%T", "%R", "%L", ""));  // Title, Rating | Label, empty
+        SetSortMethod(SortByLabel);
+
+        const CViewState *viewState = CViewStateSettings::Get().Get("programnavyears");
+        SetViewAsControl(viewState->m_viewMode);
+        SetSortOrder(viewState->m_sortDescription.sortOrder);
+      }
+      break;
+    case NODE_TYPE_DEVELOPER:
+    case NODE_TYPE_PUBLISHER:
+    case NODE_TYPE_GENRE:
+    case NODE_TYPE_DESCRIPTOR:
+    case NODE_TYPE_GENERALFEATURE:
+    case NODE_TYPE_ONLINEFEATURE:
+    case NODE_TYPE_PLATFORM:
+      {
+        AddSortMethod(SortByLabel, 551, LABEL_MASKS("%T", "%R", "%L", ""));  // Title, Rating | Label, empty
+        SetSortMethod(SortByLabel);
+
+        const CViewState *viewState = CViewStateSettings::Get().Get("programnavgenres");
+        SetViewAsControl(viewState->m_viewMode);
+        SetSortOrder(viewState->m_sortDescription.sortOrder);
+      }
+      break;
+    case NODE_TYPE_TITLE_GAMES:
+      {
+        AddSortMethod(SortBySortTitle, sortAttributes, 556, LABEL_MASKS("%T", "%R", "%T", "%R"));  // Title, Rating | Title, Rating
+        AddSortMethod(SortByYear, 562, LABEL_MASKS("%T", "%Y", "%T", "%Y"));  // Title, Year | Title, Year
+        AddSortMethod(SortByRating, 563, LABEL_MASKS("%T", "%R", "%T", "%R"));  // Title, Rating | Title, Rating
+        AddSortMethod(SortByDateAdded, 570, LABEL_MASKS("%T", "%a", "%T", "%a"));  // Title, DateAdded | Title, DateAdded
+
+        AddSortMethod(SortByPlaycount, 567, LABEL_MASKS("%T", "%V", "%T", "%V"));  // Title, Playcount | Title, Playcount
+
+        const CViewState *viewState = CViewStateSettings::Get().Get("programnavtitles");
+        SetSortMethod(viewState->m_sortDescription);
+        SetSortOrder(viewState->m_sortDescription.sortOrder);
+
+        SetViewAsControl(viewState->m_viewMode);
+      }
+      break;
+    default:
+      break;
+    }
+  }
   else
   {
     AddSortMethod(SortByLabel, sortAttributes, 551, LABEL_MASKS("%L", "%I", "%L", ""));  // Label, Size | Label, empty
@@ -60,7 +116,28 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
 
 void CGUIViewStateWindowProgramNav::SaveViewState()
 {
-  // TODO: save view states for program nodes (genres, year, title, etc.)
+  if (m_items.IsProgramDb())
+  {
+    NODE_TYPE NodeType = CProgramDatabaseDirectory::GetDirectoryChildType(m_items.GetPath());
+    CQueryParams params;
+    CProgramDatabaseDirectory::GetQueryParams(m_items.GetPath(),params);
+    switch (NodeType)
+    {
+    case NODE_TYPE_YEAR:
+      SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavyears"));
+      break;
+    case NODE_TYPE_GENRE:
+      SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavgenres"));
+      break;
+    case NODE_TYPE_TITLE_GAMES:
+      SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavtitles"));
+      break;
+    default:
+      SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV);
+      break;
+    }
+  }
+  else
   {
     SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programfiles"));
   }
@@ -86,4 +163,33 @@ VECSOURCES& CGUIViewStateWindowProgramNav::GetSources()
     m_sources.push_back(share);
   }
   return CGUIViewStateWindowProgram::GetSources();
+}
+
+CGUIViewStateProgramGames::CGUIViewStateProgramGames(const CFileItemList& items) : CGUIViewStateWindowProgram(items)
+{
+  AddSortMethod(SortBySortTitle, 556, LABEL_MASKS("%T", "%R", "%T", "%R"),  // Title, Rating | Title, Rating
+    CSettings::GetInstance().GetBool("filelists.ignorethewhensorting") ? SortAttributeIgnoreArticle : SortAttributeNone);
+  AddSortMethod(SortByYear, 562, LABEL_MASKS("%T", "%Y", "%T", "%Y"));  // Title, Year | Title, Year
+  AddSortMethod(SortByRating, 563, LABEL_MASKS("%T", "%R", "%T", "%R"));  // Title, Rating | Title, Rating
+  AddSortMethod(SortByDateAdded, 570, LABEL_MASKS("%T", "%a", "%T", "%a"));  // Title, DateAdded | Title, DateAdded
+
+  AddSortMethod(SortByPlaycount, 567, LABEL_MASKS("%T", "%V", "%T", "%V"));  // Title, Playcount | Title, Playcount
+
+  const CViewState *viewState = CViewStateSettings::Get().Get("programnavtitles");
+  if (items.IsSmartPlayList() || items.IsLibraryFolder())
+    AddPlaylistOrder(items, LABEL_MASKS("%T", "%R", "%T", "%R"));  // Title, Rating | Title, Rating
+  else
+  {
+    SetSortMethod(viewState->m_sortDescription);
+    SetSortOrder(viewState->m_sortDescription.sortOrder);
+  }
+
+  SetViewAsControl(viewState->m_viewMode);
+
+  LoadViewState(items.GetPath(), WINDOW_PROGRAM_NAV);
+}
+
+void CGUIViewStateProgramGames::SaveViewState()
+{
+  SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavtitles"));
 }

@@ -51,6 +51,11 @@ CViewStateSettings::CViewStateSettings()
   AddViewState("videonavtvshows");
   AddViewState("videonavseasons");
   AddViewState("videonavmusicvideos");
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  AddViewState("programnavyears");
+  AddViewState("programnavgenres");
+  AddViewState("programnavtitles");
+#endif
 
   AddViewState("programs", DEFAULT_VIEW_AUTO);
   AddViewState("pictures", DEFAULT_VIEW_AUTO);

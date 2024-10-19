@@ -580,6 +580,11 @@ void CFileItem::ToSortable(SortItem &sortable, Field field) const
   if (HasPictureInfoTag())
     GetPictureInfoTag()->ToSortable(sortable, field);
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (HasProgramInfoTag())
+    GetProgramInfoTag()->ToSortable(sortable, field);
+#endif
+
   if (HasAddonInfo())
   {
     switch (field)

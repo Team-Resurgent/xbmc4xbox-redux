@@ -37,3 +37,11 @@ protected:
   virtual void SaveViewState();
   virtual VECSOURCES& GetSources();
 };
+
+class CGUIViewStateProgramGames : public CGUIViewStateWindowProgram
+{
+public:
+  CGUIViewStateProgramGames(const CFileItemList& items);
+protected:
+  virtual void SaveViewState();
+};

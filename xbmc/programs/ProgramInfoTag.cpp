@@ -304,7 +304,22 @@ void CProgramInfoTag::Serialize(CVariant& value) const
 
 void CProgramInfoTag::ToSortable(SortItem& sortable, Field field) const
 {
-  // TODO: implement to support smartplaylists and sorting
+  switch (field)
+  {
+  case FieldTitle:
+  {
+    // make sure not to overwrite an existing title with an empty one
+    std::string title = m_strTitle;
+    if (!title.empty() || sortable.find(FieldTitle) == sortable.end())
+      sortable[FieldTitle] = title;
+    break;
+  }
+  case FieldPlaycount:                sortable[FieldPlaycount] = m_playCount; break;
+  case FieldYear:                     sortable[FieldYear] = m_releaseDate.GetYear(); break;
+  case FieldRating:                   sortable[FieldRating] = GetRating().rating; break;
+  case FieldDateAdded:                sortable[FieldDateAdded] = m_dateAdded.IsValid() ? m_dateAdded.GetAsDBDateTime() : StringUtils::Empty; break;
+  default: break;
+  }
 }
 
 const CRating CProgramInfoTag::GetRating(std::string type) const

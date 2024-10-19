@@ -94,6 +94,10 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
       return new CGUIViewStateVideoEpisodes(items);
     else if (items.GetContent() == "movies")
       return new CGUIViewStateVideoMovies(items);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (items.GetContent() == "games")
+      return new CGUIViewStateProgramGames(items);
+#endif
   }
 
   if (url.IsProtocol("library"))
@@ -122,6 +126,11 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
 
   if (windowId == WINDOW_VIDEO_PLAYLIST)
     return new CGUIViewStateWindowVideoPlaylist(items);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (windowId == WINDOW_PROGRAM_NAV)
+    return new CGUIViewStateWindowProgramNav(items);
+#endif
 
   if (windowId == WINDOW_PICTURES)
     return new CGUIViewStateWindowPictures(items);
