@@ -24,6 +24,7 @@
 #include "filesystem/DirectoryCache.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
+#include "TextureCache.h"
 #include "programs/ProgramDatabase.h"
 #include "programs/ProgramInfoTag.h"
 
@@ -93,7 +94,41 @@ bool CProgramThumbLoader::LoadItemCached(CFileItem *pItem)
 
 bool CProgramThumbLoader::LoadItemLookup(CFileItem *pItem)
 {
-  return false;
+  if (pItem->m_bIsShareOrDrive || pItem->IsParentFolder() || pItem->GetPath() == "add")
+    return false;
+
+  if (pItem->HasProgramInfoTag()                          &&
+     !pItem->GetProgramInfoTag()->m_type.empty()          &&
+      pItem->GetProgramInfoTag()->m_type != MediaTypeGame)
+    return false; // Nothing to do here
+
+  m_programDatabase->Open();
+
+  std::map<std::string, std::string> artwork = pItem->GetArt();
+  std::vector<std::string> artTypes = GetArtTypes(pItem->HasProgramInfoTag() ? pItem->GetProgramInfoTag()->m_type : "");
+  if (find(artTypes.begin(), artTypes.end(), "thumb") == artTypes.end())
+    artTypes.push_back("thumb"); // always look for "thumb" art for files
+  for (std::vector<std::string>::const_iterator i = artTypes.begin(); i != artTypes.end(); ++i)
+  {
+    std::string type = *i;
+    if (!pItem->HasArt(type))
+    {
+      std::string art = GetLocalArt(*pItem, type, type=="fanart");
+      if (!art.empty()) // cache it
+      {
+        SetCachedImage(*pItem, type, art);
+        CTextureCache::Get().BackgroundCacheImage(art);
+        artwork.insert(std::make_pair(type, art));
+      }
+    }
+  }
+  SetArt(*pItem, artwork);
+
+  // TODO: if no thumb, try extracting it from XBE
+  // TODO: look for missing data like Title ID, region etc. and pull it from XBE
+
+  m_programDatabase->Close();
+  return true;
 }
 
 void CProgramThumbLoader::SetArt(CFileItem &item, const std::map<std::string, std::string> &artwork)
