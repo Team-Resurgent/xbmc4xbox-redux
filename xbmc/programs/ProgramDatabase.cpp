@@ -690,6 +690,28 @@ bool CProgramDatabase::HasGameInfo(const std::string& strFilenameAndPath)
   return false;
 }
 
+//********************************************************************************************************************************
+bool CProgramDatabase::GetGameInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idGame /* = -1 */, int getDetails /* = ProgramDbDetailsAll */)
+{
+  try
+  {
+    if (idGame < 0)
+      idGame = GetGameId(strFilenameAndPath);
+    if (idGame < 0) return false;
+
+    std::string sql = PrepareSQL("select * from game_view where idGame=%i", idGame);
+    if (!m_pDS->query(sql))
+      return false;
+    details = GetDetailsForGame(m_pDS, getDetails);
+    return !details.IsEmpty();
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  return false;
+}
+
 std::string CProgramDatabase::GetValueString(const CProgramInfoTag &details, int min, int max, const SDbTableOffsets *offsets) const
 {
   std::vector<std::string> conditions;

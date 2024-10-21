@@ -157,6 +157,8 @@ public:
   std::string GetOnlineFeatureById(int id);
   std::string GetPlatformById(int id);
 
+  bool GetGameInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idGame = -1, int getDetails = ProgramDbDetailsAll);
+
   int GetPathId(const std::string& strPath);
 
   int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
