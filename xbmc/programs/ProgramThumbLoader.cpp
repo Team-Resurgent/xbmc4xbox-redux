@@ -21,28 +21,28 @@
 #include "ProgramThumbLoader.h"
 
 #include "FileItem.h"
-#include "filesystem/File.h"
 #include "filesystem/DirectoryCache.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
-#include "TextureCache.h"
-#include "Util.h"
-#include "utils/URIUtils.h"
+#include "programs/ProgramDatabase.h"
 #include "programs/ProgramInfoTag.h"
-#include "Shortcut.h"
 
 using namespace XFILE;
 
 CProgramThumbLoader::CProgramThumbLoader()
 {
+  m_programDatabase = new CProgramDatabase();
 }
 
 CProgramThumbLoader::~CProgramThumbLoader()
 {
+  StopThread();
+  delete m_programDatabase;
 }
 
 bool CProgramThumbLoader::LoadItem(CFileItem *pItem)
 {
+  // TODO: check and re-add FillThumb and GetLocalThumb if needed
   bool result  = LoadItemCached(pItem);
        result |= LoadItemLookup(pItem);
 
@@ -54,7 +54,41 @@ bool CProgramThumbLoader::LoadItemCached(CFileItem *pItem)
   if (pItem->IsParentFolder())
     return false;
 
-  return FillThumb(*pItem);
+  m_programDatabase->Open();
+
+  // program db items normally have info in the database
+  if (pItem->HasProgramInfoTag() && !pItem->HasArt("thumb"))
+  {
+    FillLibraryArt(*pItem);
+
+    if (!pItem->GetProgramInfoTag()->m_type.empty()          &&
+         pItem->GetProgramInfoTag()->m_type != MediaTypeGame)
+    {
+      m_programDatabase->Close();
+      return true; // nothing else to be done
+    }
+  }
+
+  // if we have no art, look for it all
+  std::map<std::string, std::string> artwork = pItem->GetArt();
+  if (artwork.empty())
+  {
+    std::vector<std::string> artTypes = GetArtTypes(pItem->HasProgramInfoTag() ? pItem->GetProgramInfoTag()->m_type : "");
+    if (find(artTypes.begin(), artTypes.end(), "thumb") == artTypes.end())
+      artTypes.push_back("thumb"); // always look for "thumb" art for files
+    for (std::vector<std::string>::const_iterator i = artTypes.begin(); i != artTypes.end(); ++i)
+    {
+      std::string type = *i;
+      std::string art = GetCachedImage(*pItem, type);
+      if (!art.empty())
+        artwork.insert(std::make_pair(type, art));
+    }
+    SetArt(*pItem, artwork);
+  }
+
+  m_programDatabase->Close();
+
+  return true;
 }
 
 bool CProgramThumbLoader::LoadItemLookup(CFileItem *pItem)
@@ -62,83 +96,31 @@ bool CProgramThumbLoader::LoadItemLookup(CFileItem *pItem)
   return false;
 }
 
-bool CProgramThumbLoader::FillThumb(CFileItem &item)
+void CProgramThumbLoader::SetArt(CFileItem &item, const std::map<std::string, std::string> &artwork)
 {
-  // no need to do anything if we already have a thumb set
-  std::string thumb = item.GetArt("thumb");
-
-  if (thumb.empty())
-  { // see whether we have a cached image for this item
-    thumb = GetCachedImage(item, "thumb");
-    if (thumb.empty())
-    {
-      thumb = GetLocalThumb(item);
-      if (!thumb.empty())
-        SetCachedImage(item, "thumb", thumb);
-    }
+  item.SetArt(artwork);
+  if (artwork.find("thumb") == artwork.end())
+  { // set fallback for "thumb"
+    if (artwork.find("poster") != artwork.end())
+      item.SetArtFallback("thumb", "poster");
+    else if (artwork.find("banner") != artwork.end())
+      item.SetArtFallback("thumb", "banner");
   }
-
-  if (!thumb.empty())
-  {
-    CTextureCache::Get().BackgroundCacheImage(thumb);
-    item.SetArt("thumb", thumb);
-  }
-  return true;
 }
 
-std::string CProgramThumbLoader::GetLocalThumb(const CFileItem &item)
+bool CProgramThumbLoader::FillLibraryArt(CFileItem &item)
 {
-  if (item.IsAddonsPath())
-    return "";
+  CProgramInfoTag &tag = *item.GetProgramInfoTag();
+  if (tag.m_iDbId > -1 && !tag.m_type.empty())
+  {
+    std::map<std::string, std::string> artwork;
+    m_programDatabase->Open();
+    if (m_programDatabase->GetArtForItem(tag.m_iDbId, tag.m_type, artwork))
+      SetArt(item, artwork);
 
-  // look for the thumb
-  if (item.m_bIsFolder)
-  {
-    std::string folderThumb = item.GetFolderThumb();
-    if (CFile::Exists(folderThumb))
-      return folderThumb;
+    m_programDatabase->Close();
   }
-#ifdef _XBOX
-  // look for the thumb
-  else if (item.IsShortCut())
-  {
-    CShortcut shortcut;
-    if (shortcut.Create(item.GetPath()))
-    {
-      // use the shortcut's thumb
-      if (!shortcut.m_strThumb.empty())
-        return shortcut.m_strThumb;
-      else
-      {
-        CFileItem cut(shortcut.m_strPath,false);
-        CProgramThumbLoader loader;
-        if (loader.LoadItem(&cut))
-          return cut.GetArt("thumb");
-      }
-    }
-  }
-  else if (item.IsXBE())
-  {
-    std::string directory = URIUtils::GetDirectory(item.GetPath());
-    std::string icon = URIUtils::AddFileToFolder(directory, "avalaunch_icon.jpg");
-
-    // first check for avalaunch_icon.jpg
-    if (CFile::Exists(icon) || CUtil::CacheXBEIcon(item.GetPath(), icon))
-    {
-      CFileItem item(icon,false);
-      CProgramThumbLoader loader;
-      if (loader.LoadItem(&item))
-        return item.GetArt("thumb");
-    }
-  }
-#endif
-  else
-  {
-    std::string fileThumb(item.GetTBNFile());
-    if (CFile::Exists(fileThumb))
-      return fileThumb;
-  }
-  return "";
+  return !item.GetArt().empty();
 }
 
 std::vector<std::string> CProgramThumbLoader::GetArtTypes(const std::string &type)

@@ -21,31 +21,17 @@
 
 #include "ThumbLoader.h"
 
+class CProgramDatabase;
+
 class CProgramThumbLoader : public CThumbLoader
 {
 public:
   CProgramThumbLoader();
   virtual ~CProgramThumbLoader();
+
   virtual bool LoadItem(CFileItem* pItem);
   virtual bool LoadItemCached(CFileItem* pItem);
   virtual bool LoadItemLookup(CFileItem* pItem);
-
-  /*! \brief Fill the thumb of a programs item
-   First uses a cached thumb from a previous run, then checks for a local thumb
-   and caches it for the next run
-   \param item the CFileItem object to fill
-   \return true if we fill the thumb, false otherwise
-   \sa GetLocalThumb
-   */
-  virtual bool FillThumb(CFileItem &item);
-
-  /*! \brief Get a local thumb for a programs item
-   Shortcuts are checked, then we check for a file or folder thumb
-   \param item the CFileItem object to check
-   \return the local thumb (if it exists)
-   \sa FillThumb
-   */
-  static std::string GetLocalThumb(const CFileItem &item);
 
   /*! \brief Find a particular art type for a given item, optionally checking at the folder level
    \param item the CFileItem to search.
@@ -61,4 +47,20 @@ public:
    \sa GetLocalArt
    */
   static std::vector<std::string> GetArtTypes(const std::string &type);
+
+  /*! \brief helper function to fill the art for a program library item
+   \param item a program CFileItem
+   \return true if we fill art, false otherwise
+   */
+  virtual bool FillLibraryArt(CFileItem &item);
+
+  /*! \brief set the artwork map for an item
+   In addition, sets the standard fallbacks.
+   \param item the item on which to set art.
+   \param artwork the artwork map.
+   */
+  static void SetArt(CFileItem &item, const std::map<std::string, std::string> &artwork);
+
+protected:
+  CProgramDatabase *m_programDatabase;
 };
