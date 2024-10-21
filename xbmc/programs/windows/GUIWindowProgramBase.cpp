@@ -33,7 +33,7 @@ using namespace PROGRAM;
 CGUIWindowProgramBase::CGUIWindowProgramBase(int id, const std::string &xmlFile)
     : CGUIMediaWindow(id, xmlFile.c_str())
 {
-
+  m_thumbLoader.SetObserver(this);
 }
 
 CGUIWindowProgramBase::~CGUIWindowProgramBase()
@@ -50,6 +50,8 @@ bool CGUIWindowProgramBase::OnMessage(CGUIMessage& message)
   switch ( message.GetMessage() )
   {
   case GUI_MSG_WINDOW_DEINIT:
+    if (m_thumbLoader.IsLoading())
+      m_thumbLoader.StopThread();
     m_database.Close();
     break;
 
@@ -105,6 +107,21 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
     break;
   }
   return CGUIMediaWindow::OnContextButton(itemNumber, button);
+}
+
+bool CGUIWindowProgramBase::Update(const std::string &strDirectory, bool updateFilterPath /* = true */)
+{
+  if (m_thumbLoader.IsLoading())
+    m_thumbLoader.StopThread();
+
+  if (!CGUIMediaWindow::Update(strDirectory, updateFilterPath))
+    return false;
+
+  // might already be running from GetGroupedItems
+  if (!m_thumbLoader.IsLoading())
+    m_thumbLoader.Load(*m_vecItems);
+
+  return true;
 }
 
 bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileItemList &items)

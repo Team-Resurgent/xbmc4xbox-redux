@@ -22,8 +22,9 @@
 
 #include "windows/GUIMediaWindow.h"
 #include "programs/ProgramDatabase.h"
+#include "programs/ProgramThumbLoader.h"
 
-class CGUIWindowProgramBase : public CGUIMediaWindow
+class CGUIWindowProgramBase : public CGUIMediaWindow, public IBackgroundLoaderObserver
 {
 public:
   CGUIWindowProgramBase(int id, const std::string &xmlFile);
@@ -40,7 +41,9 @@ public:
 
 protected:
   void OnScan(const std::string& strPath, bool scanAll = false);
+  virtual bool Update(const std::string &strDirectory, bool updateFilterPath = true);
   virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
+  virtual void OnItemLoaded(CFileItem* pItem) {};
 
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
 
@@ -49,4 +52,6 @@ protected:
   static bool OnUnAssignContent(const std::string &path, int header, int text);
 
   CProgramDatabase m_database;
+
+  CProgramThumbLoader m_thumbLoader;
 };

@@ -37,4 +37,7 @@ public:
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
   bool OnAddMediaSource();
   virtual std::string GetStartFolder(const std::string &dir);
+
+protected:
+  virtual void OnItemLoaded(CFileItem* pItem) {};
 };

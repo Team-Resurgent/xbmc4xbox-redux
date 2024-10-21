@@ -31,7 +31,7 @@ using namespace PROGRAMDATABASEDIRECTORY;
 CGUIWindowProgramNav::CGUIWindowProgramNav(void)
     : CGUIWindowProgramBase(WINDOW_PROGRAM_NAV, "MyProgramNav.xml")
 {
-
+  m_thumbLoader.SetObserver(this);
 }
 
 CGUIWindowProgramNav::~CGUIWindowProgramNav(void)
@@ -45,11 +45,21 @@ bool CGUIWindowProgramNav::OnAction(const CAction &action)
 
 bool CGUIWindowProgramNav::OnMessage(CGUIMessage& message)
 {
+  switch (message.GetMessage())
+  {
+  case GUI_MSG_WINDOW_DEINIT:
+    if (m_thumbLoader.IsLoading())
+      m_thumbLoader.StopThread();
+    break;
+  }
   return CGUIWindowProgramBase::OnMessage(message);
 }
 
 bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileItemList &items)
 {
+  if (m_thumbLoader.IsLoading())
+    m_thumbLoader.StopThread();
+
   items.ClearArt();
   items.ClearProperties();
 
