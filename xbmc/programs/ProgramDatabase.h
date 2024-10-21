@@ -243,6 +243,8 @@ public:
 
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType, const std::string &url);
   void SetArtForItem(int mediaId, const MediaType &mediaType, const std::map<std::string, std::string> &art);
+  bool GetArtForItem(int mediaId, const MediaType &mediaType, std::map<std::string, std::string> &art);
+  std::string GetArtForItem(int mediaId, const MediaType &mediaType, const std::string &artType);
 
   virtual bool GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting);
 

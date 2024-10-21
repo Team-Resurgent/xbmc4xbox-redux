@@ -25,7 +25,7 @@
 #include "Addon.h"
 #include "AddonEvents.h"
 #include "RepositoryUpdater.h"
-#include "ThumbLoader.h"
+#include "programs/ProgramThumbLoader.h"
 #include "windows/GUIMediaWindow.h"
 
 

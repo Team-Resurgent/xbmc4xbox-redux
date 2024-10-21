@@ -44,6 +44,9 @@
 #include "video/VideoThumbLoader.h"
 #include "video/dialogs/GUIDialogVideoInfo.h"
 #include "video/windows/GUIWindowVideoBase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramThumbLoader.h"
+#endif
 
 using namespace XFILE;
 using namespace ANNOUNCEMENT;

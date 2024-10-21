@@ -37,7 +37,7 @@
 #include "utils/md5.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
-#include "ThumbLoader.h"
+#include "ProgramThumbLoader.h"
 
 using namespace XFILE;
 using namespace ADDON;
