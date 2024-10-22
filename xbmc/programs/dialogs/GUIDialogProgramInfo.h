@@ -34,5 +34,9 @@ public:
   static void ShowFor(const CFileItem& item);
 
 protected:
+  void OnInitWindow();
+  void Update();
+  void SetLabel(int iControl, const std::string& strLabel);
+
   CFileItemPtr m_programItem;
 };

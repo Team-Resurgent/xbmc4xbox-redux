@@ -19,9 +19,14 @@
  */
 
 #include "GUIDialogProgramInfo.h"
+#include "Util.h"
+#include "guilib/GUIImage.h"
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
+
+#define CONTROL_IMAGE                3
+#define CONTROL_TEXTAREA             4
 
 CGUIDialogProgramInfo::CGUIDialogProgramInfo(void)
     : CGUIDialog(WINDOW_DIALOG_PROGRAM_INFO, "DialogProgramInfo.xml")
@@ -34,9 +39,56 @@ CGUIDialogProgramInfo::~CGUIDialogProgramInfo(void)
 {
 }
 
+void CGUIDialogProgramInfo::OnInitWindow()
+{
+  Update();
+
+  CGUIDialog::OnInitWindow();
+}
+
 void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
 {
-  // TODO: implement this
+  *m_programItem = *item;
+
+  // TODO: add support for screenshots (look how cast is implemented for videos)
+
+  // When the scraper throws an error, the program tag can be null here
+  if (!item->HasProgramInfoTag())
+    return;
+
+  // TODO: check for local trailers and override remote ones (http://)
+
+  CProgramThumbLoader loader;
+  loader.LoadItem(m_programItem.get());
+}
+
+void CGUIDialogProgramInfo::Update()
+{
+  // setup plot text area
+  std::string strTmp = m_programItem->GetProgramInfoTag()->m_strPlot;
+  StringUtils::Trim(strTmp);
+  SetLabel(CONTROL_TEXTAREA, strTmp);
+
+  // update the thumbnail
+  const CGUIControl* pControl = GetControl(CONTROL_IMAGE);
+  if (pControl)
+  {
+    CGUIImage* pImageControl = (CGUIImage*)pControl;
+    pImageControl->FreeResources();
+    pImageControl->SetFileName(m_programItem->GetArt("thumb"));
+  }
+}
+
+void CGUIDialogProgramInfo::SetLabel(int iControl, const std::string &strLabel)
+{
+  if (strLabel.empty())
+  {
+    SET_CONTROL_LABEL(iControl, 416);  // "Not available"
+  }
+  else
+  {
+    SET_CONTROL_LABEL(iControl, strLabel);
+  }
 }
 
 void CGUIDialogProgramInfo::ShowFor(const CFileItem& item)
