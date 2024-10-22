@@ -20,15 +20,19 @@
 
 #include "GUIWindowProgramBase.h"
 #include "Util.h"
+#include "addons/GUIDialogAddonInfo.h"
 #include "programs/ProgramInfoScanner.h"
+#include "programs/dialogs/GUIDialogProgramInfo.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "Application.h"
 #include "guilib/GUIWindowManager.h"
+#include "dialogs/GUIDialogSelect.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
 #include "utils/FileUtils.h"
 
 using namespace PROGRAM;
+using namespace ADDON;
 
 CGUIWindowProgramBase::CGUIWindowProgramBase(int id, const std::string &xmlFile)
     : CGUIMediaWindow(id, xmlFile.c_str())
@@ -62,6 +66,76 @@ bool CGUIWindowProgramBase::OnMessage(CGUIMessage& message)
     break;
   }
   return CGUIMediaWindow::OnMessage(message);
+}
+
+void CGUIWindowProgramBase::OnItemInfo(const CFileItem& fileItem, ADDON::ScraperPtr& scraper)
+{
+  if (fileItem.IsParentFolder() || fileItem.m_bIsShareOrDrive || fileItem.IsPath("add") || fileItem.IsPlayList())
+    return;
+
+  CFileItem item(fileItem);
+  if ((item.IsProgramDb() && item.HasProgramInfoTag()) ||
+      (item.HasProgramInfoTag() && item.GetProgramInfoTag()->m_iDbId != -1))
+  {
+    item.SetPath(item.GetProgramInfoTag()->GetPath());
+  }
+  else
+  {
+    // TODO: item is not in library, look for programs and scrape them
+  }
+
+  bool modified = ShowIGDB(CFileItemPtr(new CFileItem(item)), scraper);
+  if (modified)
+  {
+    int itemNumber = m_viewControl.GetSelectedItem();
+    Refresh();
+    m_viewControl.SetSelectedItem(itemNumber);
+  }
+}
+
+bool CGUIWindowProgramBase::ShowIGDB(CFileItemPtr item, const ScraperPtr &info2)
+{
+  CGUIDialogProgress* pDlgProgress = (CGUIDialogProgress*)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
+  CGUIDialogSelect* pDlgSelect = (CGUIDialogSelect*)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
+  CGUIDialogProgramInfo* pDlgInfo = (CGUIDialogProgramInfo*)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRAM_INFO);
+
+  ScraperPtr info(info2); // use this as nfo might change it..
+
+  if (!pDlgProgress) return false;
+  if (!pDlgSelect) return false;
+  if (!pDlgInfo) return false;
+
+  // 1.  Check for already downloaded information, and if we have it, display our dialog
+  //     Return if no Refresh is needed.
+  bool bHasInfo=false;
+
+  CProgramInfoTag programDetails;
+  if (info)
+  {
+    m_database.Open();
+
+    int dbId = item->HasProgramInfoTag() ? item->GetProgramInfoTag()->m_iDbId : -1;
+    if (info->Content() == CONTENT_GAMES)
+    {
+      bHasInfo = m_database.GetGameInfo(item->GetPath(), programDetails, dbId);
+    }
+    m_database.Close();
+  }
+  else if(item->HasProgramInfoTag())
+  {
+    bHasInfo = true;
+    programDetails = *item->GetProgramInfoTag();
+  }
+
+  if (bHasInfo)
+  {
+    *item->GetProgramInfoTag() = programDetails;
+    pDlgInfo->SetProgram(item.get());
+    pDlgInfo->Open();
+    // TODO: add support for refreshing item info in case something has changed
+  }
+
+  return false;
 }
 
 bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)

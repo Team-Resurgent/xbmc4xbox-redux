@@ -32,6 +32,8 @@ public:
   virtual bool OnMessage(CGUIMessage& message);
   virtual bool OnAction(const CAction &action);
 
+  virtual void OnItemInfo(const CFileItem& fileItem, ADDON::ScraperPtr& scraper);
+
   /*! \brief Prompt the user for assigning content to a path.
    Based on changes, we then call OnUnassignContent, update or refresh scraper information in the database
    and optionally start a scan
@@ -46,6 +48,8 @@ protected:
   virtual void OnItemLoaded(CFileItem* pItem) {};
 
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
+
+  bool ShowIGDB(CFileItemPtr item, const ADDON::ScraperPtr& content);
 
   int GetScraperForItem(CFileItem *item, ADDON::ScraperPtr &info, PROGRAM::SScanSettings& settings);
 

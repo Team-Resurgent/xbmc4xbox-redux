@@ -75,6 +75,7 @@
 #include "video/dialogs/GUIDialogVideoOSD.h"
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #include "programs/windows/GUIWindowProgramNav.h"
+#include "programs/dialogs/GUIDialogProgramInfo.h"
 #endif
 
 // Dialog includes
@@ -253,6 +254,7 @@ void CGUIWindowManager::CreateWindows()
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   Add(new CGUIWindowProgramNav);
+  Add(new CGUIDialogProgramInfo);
 #endif
 }
 
@@ -340,6 +342,7 @@ bool CGUIWindowManager::DestroyWindows()
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
     Remove(WINDOW_PROGRAM_NAV);
+    Remove(WINDOW_DIALOG_PROGRAM_INFO);
 #endif
   }
   catch (...)

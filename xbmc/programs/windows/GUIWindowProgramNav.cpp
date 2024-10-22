@@ -23,6 +23,7 @@
 #include "dialogs/GUIDialogMediaSource.h"
 #include "FileItem.h"
 #include "profiles/ProfilesManager.h"
+#include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
 
 using namespace XFILE;
@@ -87,6 +88,24 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
     }
   }
   return bResult;
+}
+
+void CGUIWindowProgramNav::OnItemInfo(const CFileItem& fileItem, ADDON::ScraperPtr& scraper)
+{
+  if (!scraper || scraper->Content() == CONTENT_NONE)
+  {
+    m_database.Open();
+    if (fileItem.IsProgramDb())
+      scraper = m_database.GetScraperForPath(fileItem.GetProgramInfoTag()->m_strPath);
+    else
+    {
+      std::string strPath,strFile;
+      URIUtils::Split(fileItem.GetPath(),strPath,strFile);
+      scraper = m_database.GetScraperForPath(strPath);
+    }
+    m_database.Close();
+  }
+  CGUIWindowProgramBase::OnItemInfo(fileItem, scraper);
 }
 
 void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &buttons)

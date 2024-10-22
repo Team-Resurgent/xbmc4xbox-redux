@@ -20,26 +20,19 @@
  *
  */
 
-#include "GUIWindowProgramBase.h"
+#include "guilib/GUIDialog.h"
+#include "FileItem.h"
 
-class CGUIWindowProgramNav : public CGUIWindowProgramBase
+class CGUIDialogProgramInfo :
+      public CGUIDialog
 {
 public:
-  CGUIWindowProgramNav(void);
-  virtual ~CGUIWindowProgramNav(void);
+  CGUIDialogProgramInfo(void);
+  virtual ~CGUIDialogProgramInfo(void);
+  void SetProgram(const CFileItem *item);
 
-  virtual bool OnAction(const CAction &action);
-  virtual bool OnMessage(CGUIMessage& message);
-
-  virtual void OnItemInfo(const CFileItem& fileItem, ADDON::ScraperPtr &info);
-
-  // override base class methods
-  virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
-  virtual void GetContextButtons(int itemNumber, CContextButtons &buttons);
-  virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
-  bool OnAddMediaSource();
-  virtual std::string GetStartFolder(const std::string &dir);
+  static void ShowFor(const CFileItem& item);
 
 protected:
-  virtual void OnItemLoaded(CFileItem* pItem) {};
+  CFileItemPtr m_programItem;
 };

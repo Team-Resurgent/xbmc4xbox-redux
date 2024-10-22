@@ -4839,6 +4839,48 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				Name="programs"
 				Filter="">
 				<File
+					RelativePath=".\xbmc\programs\ContextMenus.cpp">
+					<FileConfiguration
+						Name="Debug|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile_FastCap|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_LTCG|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug Xbox No Memory Tracking|Xbox">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)3.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\xbmc\programs\ContextMenus.h">
+				</File>
+				<File
 					RelativePath=".\xbmc\programs\GUIViewStateProgram.cpp">
 				</File>
 				<File
@@ -4928,6 +4970,16 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 					</File>
 					<File
 						RelativePath=".\xbmc\programs\jobs\ProgramLibraryScanningJob.h">
+					</File>
+				</Filter>
+				<Filter
+					Name="dialogs"
+					Filter="">
+					<File
+						RelativePath=".\xbmc\programs\dialogs\GUIDialogProgramInfo.cpp">
+					</File>
+					<File
+						RelativePath=".\xbmc\programs\dialogs\GUIDialogProgramInfo.h">
 					</File>
 				</Filter>
 			</Filter>

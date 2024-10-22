@@ -26,6 +26,9 @@
 #include "addons/IAddon.h"
 #include "music/ContextMenus.h"
 #include "video/ContextMenus.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ContextMenus.h"
+#endif
 #include "utils/log.h"
 #include "ServiceBroker.h"
 
@@ -72,6 +75,9 @@ void CContextMenuManager::Init()
   m_items.push_back(boost::make_shared<CONTEXTMENU::CCheckForUpdates>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CEpisodeInfo>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CMovieInfo>());
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_items.push_back(boost::make_shared<CONTEXTMENU::CGameInfo>());
+#endif
   m_items.push_back(boost::make_shared<CONTEXTMENU::CMusicVideoInfo>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CTVShowInfo>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CAlbumInfo>());

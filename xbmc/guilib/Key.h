@@ -339,6 +339,7 @@
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #define WINDOW_PROGRAM_NAV                10061
+#define WINDOW_DIALOG_PROGRAM_INFO        10062
 #endif
 
 #define WINDOW_DIALOG_POINTER             10099
