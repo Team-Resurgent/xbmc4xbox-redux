@@ -3769,6 +3769,14 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "albumartist",      LISTITEM_ALBUM_ARTIST },
                                   { "year",             LISTITEM_YEAR },
                                   { "genre",            LISTITEM_GENRE },
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+                                  { "developer",        LISTITEM_DEVELOPER },
+                                  { "publisher",        LISTITEM_PUBLISHER },
+                                  { "descriptor",       LISTITEM_DESCRIPTOR },
+                                  { "generalfeature",   LISTITEM_GENERALFEATURE },
+                                  { "onlinefeature",    LISTITEM_ONLINEFEATURE },
+                                  { "platform",         LISTITEM_PLATFORM },
+#endif
                                   { "contributors",     LISTITEM_CONTRIBUTORS },
                                   { "contributorandrole", LISTITEM_CONTRIBUTOR_AND_ROLE },
                                   { "director",         LISTITEM_DIRECTOR },
@@ -10403,6 +10411,32 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       return StringUtils::Join(item->GetProgramInfoTag()->m_genre, g_advancedSettings.m_programItemSeparator);
 #endif
     break;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  case LISTITEM_DEVELOPER:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_developer, g_advancedSettings.m_programItemSeparator);
+    break;
+  case LISTITEM_PUBLISHER:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_publisher, g_advancedSettings.m_programItemSeparator);
+    break;
+  case LISTITEM_DESCRIPTOR:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_descriptor, g_advancedSettings.m_programItemSeparator);
+    break;
+  case LISTITEM_GENERALFEATURE:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_generalFeature, g_advancedSettings.m_programItemSeparator);
+    break;
+  case LISTITEM_ONLINEFEATURE:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_onlineFeature, g_advancedSettings.m_programItemSeparator);
+    break;
+  case LISTITEM_PLATFORM:
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_platform, g_advancedSettings.m_programItemSeparator);
+    break;
+#endif
   case LISTITEM_FILENAME:
   case LISTITEM_FILE_EXTENSION:
     {
