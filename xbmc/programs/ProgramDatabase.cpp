@@ -105,6 +105,10 @@ void CProgramDatabase::CreateTables()
   CLog::Log(LOGINFO, "create art table");
   m_pDS->exec("CREATE TABLE art(art_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, type TEXT, url TEXT)");
 
+  CLog::Log(LOGINFO, "create tag table");
+  m_pDS->exec("CREATE TABLE tag (tag_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE tag_link (tag_id integer, media_id integer, media_type TEXT)");
+
   CLog::Log(LOGINFO, "create rating table");
   m_pDS->exec("CREATE TABLE rating (rating_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, rating_type TEXT, rating FLOAT, votes INTEGER)");
 }
@@ -140,6 +144,7 @@ void CProgramDatabase::CreateAnalytics()
 
   m_pDS->exec("CREATE INDEX ix_rating ON rating(media_id, media_type(20))");
 
+  CreateLinkIndex("tag");
   CreateLinkIndex("developer");
   CreateLinkIndex("publisher");
   CreateLinkIndex("genre");
@@ -158,7 +163,11 @@ void CProgramDatabase::CreateAnalytics()
               "DELETE FROM onlinefeature_link WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM platform_link WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM art WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM tag_link WHERE media_id=old.idGame AND media_type='game'; "
               "DELETE FROM rating WHERE media_id=old.idGame AND media_type='game'; "
+              "END");
+  m_pDS->exec("CREATE TRIGGER delete_tag AFTER DELETE ON tag_link FOR EACH ROW BEGIN "
+              "DELETE FROM tag WHERE tag_id=old.tag_id AND tag_id NOT IN (SELECT DISTINCT tag_id FROM tag_link); "
               "END");
 
   CreateViews();
@@ -798,6 +807,7 @@ int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, C
     AddLinksToItem(idGame, MediaTypeGame, "generalfeature", details.m_generalFeature);
     AddLinksToItem(idGame, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
     AddLinksToItem(idGame, MediaTypeGame, "platform", details.m_platform);
+    AddLinksToItem(idGame, MediaTypeGame, "tag", details.m_tags);
 
     // add ratings
     details.m_iIdRating = AddRatings(idGame, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
