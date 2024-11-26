@@ -163,6 +163,10 @@ public:
 
   int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
 
+  bool SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int dbField, const std::string &strValue);
+  bool SetSingleValue(const std::string &table, const std::string &fieldName, const std::string &strValue,
+                      const std::string &conditionName = "", int conditionValue = -1);
+
   void DeleteGame(int idMovie, bool bKeepId = false);
   void DeleteGame(const std::string& strFilenameAndPath, bool bKeepId = false);
   void RemoveContentForPath(const std::string& strPath,CGUIDialogProgress *progress = NULL);

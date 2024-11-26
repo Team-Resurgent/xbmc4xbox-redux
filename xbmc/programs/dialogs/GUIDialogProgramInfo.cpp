@@ -21,12 +21,17 @@
 #include "GUIDialogProgramInfo.h"
 #include "Util.h"
 #include "guilib/GUIImage.h"
+#include "utils/URIUtils.h"
 #include "programs/windows/GUIWindowProgramNav.h"
+#include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/Key.h"
 
+using namespace KODI::MESSAGING;
+
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
+#define CONTROL_BTN_PLAY_TRAILER    11
 
 CGUIDialogProgramInfo::CGUIDialogProgramInfo(void)
     : CGUIDialog(WINDOW_DIALOG_PROGRAM_INFO, "DialogProgramInfo.xml")
@@ -37,6 +42,24 @@ CGUIDialogProgramInfo::CGUIDialogProgramInfo(void)
 
 CGUIDialogProgramInfo::~CGUIDialogProgramInfo(void)
 {
+}
+
+bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
+{
+  switch ( message.GetMessage() )
+  {
+  case GUI_MSG_CLICKED:
+    {
+      int iControl = message.GetSenderId();
+      if (iControl == CONTROL_BTN_PLAY_TRAILER)
+      {
+        PlayTrailer();
+      }
+    }
+    break;
+  }
+
+  return CGUIDialog::OnMessage(message);
 }
 
 void CGUIDialogProgramInfo::OnInitWindow()
@@ -56,7 +79,32 @@ void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
   if (!item->HasProgramInfoTag())
     return;
 
-  // TODO: check for local trailers and override remote ones (http://)
+  MediaType type = item->GetProgramInfoTag()->m_type;
+
+  if (type == MediaTypeGame)
+  {
+    // local trailers should always override non-local, so check
+    // for a local one if the registered trailer is online
+    if (m_programItem->GetProgramInfoTag()->m_strTrailer.empty() ||
+        URIUtils::IsInternetStream(m_programItem->GetProgramInfoTag()->m_strTrailer))
+    {
+      std::string localTrailer = m_programItem->FindTrailer();
+      if (!localTrailer.empty())
+      {
+        m_programItem->GetProgramInfoTag()->m_strTrailer = localTrailer;
+        CProgramDatabase database;
+        if(database.Open())
+        {
+          database.SetSingleValue(PROGRAMDB_CONTENT_GAMES,
+                                  m_programItem->GetProgramInfoTag()->m_iDbId,
+                                  PROGRAMDB_ID_TRAILER,
+                                  m_programItem->GetProgramInfoTag()->m_strTrailer);
+          database.Close();
+          CUtil::DeleteProgramDatabaseDirectoryCache();
+        }
+      }
+    }
+  }
 
   CProgramThumbLoader loader;
   loader.LoadItem(m_programItem.get());
@@ -77,6 +125,31 @@ void CGUIDialogProgramInfo::Update()
     pImageControl->FreeResources();
     pImageControl->SetFileName(m_programItem->GetArt("thumb"));
   }
+}
+
+void CGUIDialogProgramInfo::PlayTrailer()
+{
+  CFileItem item;
+  item.SetPath(m_programItem->GetProgramInfoTag()->m_strTrailer);
+  *item.GetProgramInfoTag() = *m_programItem->GetProgramInfoTag();
+  item.GetProgramInfoTag()->m_strTitle = StringUtils::Format("%s (%s)",
+                                                           m_programItem->GetProgramInfoTag()->m_strTitle.c_str(),
+                                                           g_localizeStrings.Get(20410).c_str());
+  CProgramThumbLoader::SetArt(item, m_programItem->GetArt());
+  item.GetProgramInfoTag()->m_iDbId = -1;
+  item.GetProgramInfoTag()->m_iFileId = -1;
+
+  // Close the dialog.
+  Close(true);
+
+  if (item.IsPlayList())
+  {
+    CFileItemList *l = new CFileItemList; //don't delete,
+    l->Add(boost::make_shared<CFileItem>(item));
+    CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, -1, -1, static_cast<void*>(l));
+  }
+  else
+    CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(item)));
 }
 
 void CGUIDialogProgramInfo::SetLabel(int iControl, const std::string &strLabel)

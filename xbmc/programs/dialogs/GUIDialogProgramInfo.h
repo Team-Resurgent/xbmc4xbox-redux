@@ -29,6 +29,7 @@ class CGUIDialogProgramInfo :
 public:
   CGUIDialogProgramInfo(void);
   virtual ~CGUIDialogProgramInfo(void);
+  bool OnMessage(CGUIMessage& message);
   void SetProgram(const CFileItem *item);
 
   static void ShowFor(const CFileItem& item);
@@ -37,6 +38,8 @@ protected:
   void OnInitWindow();
   void Update();
   void SetLabel(int iControl, const std::string& strLabel);
+
+  void PlayTrailer();
 
   CFileItemPtr m_programItem;
 };

@@ -1928,6 +1928,58 @@ bool CProgramDatabase::CommitTransaction()
   return false;
 }
 
+bool CProgramDatabase::SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int dbField, const std::string &strValue)
+{
+  std::string strSQL;
+  try
+  {
+    if (NULL == m_pDB.get() || NULL == m_pDS.get())
+      return false;
+
+    std::string strTable, strField;
+    if (type == PROGRAMDB_CONTENT_GAMES)
+    {
+      strTable = "game";
+      strField = "idGame";
+    }
+
+    if (strTable.empty())
+      return false;
+
+    return SetSingleValue(strTable, StringUtils::Format("c%02u", dbField), strValue, strField, dbId);
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strSQL.c_str());
+  }
+  return false;
+}
+
+bool CProgramDatabase::SetSingleValue(const std::string &table, const std::string &fieldName, const std::string &strValue,
+                                    const std::string &conditionName /* = "" */, int conditionValue /* = -1 */)
+{
+  if (table.empty() || fieldName.empty())
+    return false;
+
+  std::string sql;
+  try
+  {
+    if (NULL == m_pDB.get() || NULL == m_pDS.get())
+      return false;
+
+    sql = PrepareSQL("UPDATE %s SET %s='%s'", table.c_str(), fieldName.c_str(), strValue.c_str());
+    if (!conditionName.empty())
+      sql += PrepareSQL(" WHERE %s=%u", conditionName.c_str(), conditionValue);
+    if (m_pDS->exec(sql) == 0)
+      return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, sql.c_str());
+  }
+  return false;
+}
+
 void CProgramDatabase::AppendIdLinkFilter(const char* field, const char *table, const MediaType& mediaType, const char *view, const char *viewKey, const CUrlOptions::UrlOptions& options, Filter &filter)
 {
   CVariant::const_iterator_map option = options.find((std::string)field + "id");
