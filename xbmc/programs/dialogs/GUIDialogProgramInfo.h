@@ -39,7 +39,11 @@ protected:
   void Update();
   void SetLabel(int iControl, const std::string& strLabel);
 
+  // link screenshot to games
+  void ClearScreenshotList();
+
   void PlayTrailer();
 
   CFileItemPtr m_programItem;
+  CFileItemList *m_screenshotList;
 };

@@ -25,29 +25,42 @@
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIWindowManager.h"
+#include "settings/AdvancedSettings.h"
 #include "guilib/Key.h"
+#include "filesystem/Directory.h"
 
+using namespace XFILE;
 using namespace KODI::MESSAGING;
 
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
 #define CONTROL_BTN_PLAY_TRAILER    11
 
+#define CONTROL_LIST                50
+
 CGUIDialogProgramInfo::CGUIDialogProgramInfo(void)
     : CGUIDialog(WINDOW_DIALOG_PROGRAM_INFO, "DialogProgramInfo.xml")
     , m_programItem(new CFileItem)
 {
+  m_screenshotList = new CFileItemList;
   m_loadType = KEEP_IN_MEMORY;
 }
 
 CGUIDialogProgramInfo::~CGUIDialogProgramInfo(void)
 {
+  delete m_screenshotList;
 }
 
 bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
 {
   switch ( message.GetMessage() )
   {
+  case GUI_MSG_WINDOW_DEINIT:
+    {
+      ClearScreenshotList();
+    }
+    break;
+
   case GUI_MSG_CLICKED:
     {
       int iControl = message.GetSenderId();
@@ -73,11 +86,24 @@ void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
 {
   *m_programItem = *item;
 
-  // TODO: add support for screenshots (look how cast is implemented for videos)
+  // setup screenshot list
+  ClearScreenshotList();
 
   // When the scraper throws an error, the program tag can be null here
   if (!item->HasProgramInfoTag())
     return;
+
+  CFileItemList items;
+  std::string strScreenshots = URIUtils::AddFileToFolder(URIUtils::GetParentPath(item->GetPath()), "_resources", "screenshots");
+  CDirectory::GetDirectory(strScreenshots, items, g_advancedSettings.m_pictureExtensions, DIR_FLAG_READ_CACHE | DIR_FLAG_NO_FILE_INFO | DIR_FLAG_NO_FILE_DIRS);
+  for (int i = 0; i < items.Size(); i++)
+  {
+    std::string strLabel = URIUtils::GetFileName(items[i]->GetPath());
+    CFileItemPtr item(new CFileItem(strLabel));
+    item->SetPath(items[i]->GetPath());
+    item->SetArt("thumb", items[i]->GetPath());
+    m_screenshotList->Add(item);
+  }
 
   MediaType type = item->GetProgramInfoTag()->m_type;
 
@@ -106,6 +132,8 @@ void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
     }
   }
 
+  m_screenshotList->SetContent(CMediaTypes::ToPlural(type));
+
   CProgramThumbLoader loader;
   loader.LoadItem(m_programItem.get());
 }
@@ -117,6 +145,9 @@ void CGUIDialogProgramInfo::Update()
   StringUtils::Trim(strTmp);
   SetLabel(CONTROL_TEXTAREA, strTmp);
 
+  CGUIMessage msg(GUI_MSG_LABEL_BIND, GetID(), CONTROL_LIST, 0, 0, m_screenshotList);
+  OnMessage(msg);
+
   // update the thumbnail
   const CGUIControl* pControl = GetControl(CONTROL_IMAGE);
   if (pControl)
@@ -125,6 +156,13 @@ void CGUIDialogProgramInfo::Update()
     pImageControl->FreeResources();
     pImageControl->SetFileName(m_programItem->GetArt("thumb"));
   }
+}
+
+void CGUIDialogProgramInfo::ClearScreenshotList()
+{
+  CGUIMessage msg(GUI_MSG_LABEL_RESET, GetID(), CONTROL_LIST);
+  OnMessage(msg);
+  m_screenshotList->Clear();
 }
 
 void CGUIDialogProgramInfo::PlayTrailer()
