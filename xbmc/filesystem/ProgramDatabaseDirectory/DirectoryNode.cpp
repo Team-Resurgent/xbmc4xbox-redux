@@ -103,6 +103,7 @@ CDirectoryNode* CDirectoryNode::CreateNode(NODE_TYPE Type, const std::string& st
   case NODE_TYPE_GENERALFEATURE:
   case NODE_TYPE_ONLINEFEATURE:
   case NODE_TYPE_PLATFORM:
+  case NODE_TYPE_TAGS:
   case NODE_TYPE_YEAR:
     return new CDirectoryNodeGrouped(Type, strName, pParent);
   case NODE_TYPE_TITLE_GAMES:

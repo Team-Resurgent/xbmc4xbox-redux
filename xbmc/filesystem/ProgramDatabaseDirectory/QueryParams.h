@@ -39,6 +39,7 @@ namespace XFILE
       long GetGeneralFeatureId() const { return m_idGeneralFeature; }
       long GetOnlineFeatureId() const { return m_idOnlineFeature; }
       long GetPlatformId() const { return m_idPlatform; }
+      long GetTagId() const { return m_idTag; }
 
     protected:
       void SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName);
@@ -55,6 +56,7 @@ namespace XFILE
       long m_idOnlineFeature;
       long m_idPlatform;
       long m_idYear;
+      long m_idTag;
     };
   }
 }

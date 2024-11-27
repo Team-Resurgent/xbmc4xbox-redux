@@ -2060,6 +2060,9 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
     CVariant::const_iterator_map option = options.find("year");
     if (option != options.end())
       filter.AppendWhere(PrepareSQL("game_view.released like '%i%%'", (int)option->second.asInteger()));
+
+    AppendIdLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
+    AppendLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
   }
   else
     return false;

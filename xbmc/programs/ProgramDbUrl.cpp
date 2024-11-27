@@ -131,6 +131,8 @@ bool CProgramDbUrl::parse()
     AddOption("platformid", (int)queryParams.GetPlatformId());
   if (queryParams.GetYear() != -1)
     AddOption("year", (int)queryParams.GetYear());
+  if (queryParams.GetTagId() != -1)
+    AddOption("tagid", (int)queryParams.GetTagId());
 
   return true;
 }

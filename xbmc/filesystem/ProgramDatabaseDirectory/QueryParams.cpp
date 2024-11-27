@@ -35,6 +35,7 @@ CQueryParams::CQueryParams()
   m_idPlatform = -1;
   m_idYear = -1;
   m_idContent = -1;
+  m_idTag = -1;
 }
 
 void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeName)
@@ -72,6 +73,9 @@ void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeN
     break;
   case NODE_TYPE_TITLE_GAMES:
     m_idGame = idDb;
+    break;
+  case NODE_TYPE_TAGS:
+    m_idTag = idDb;
     break;
   default:
     break;
