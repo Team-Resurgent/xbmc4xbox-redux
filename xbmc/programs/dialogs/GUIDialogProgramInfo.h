@@ -35,7 +35,11 @@ public:
 
   std::string GetThumbnail() const;
 
+  static int ManageProgramItem(const CFileItemPtr &item);
+
   static bool GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag = -1, bool showAll = true);
+  static bool AddItemsToTag(const CFileItemPtr &tagItem);
+  static bool RemoveItemsFromTag(const CFileItemPtr &tagItem);
 
   static std::string GetLocalizedProgramType(const std::string &strType);
 

@@ -258,6 +258,7 @@ public:
 
   int AddTag(const std::string &tag);
   void AddTagToItem(int idItem, int idTag, const std::string &type);
+  void RemoveTagFromItem(int idItem, int idTag, const std::string &type);
 
   virtual bool GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting);
 
@@ -282,6 +283,7 @@ protected:
 
   // link functions - these two do all the work
   void AddToLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey = NULL);
+  void RemoveFromLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey = NULL);
 
   void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
 

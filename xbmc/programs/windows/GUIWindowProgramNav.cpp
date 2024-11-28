@@ -164,6 +164,21 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
       }
     }
   }
+  else
+  {
+    if (!item->IsParentFolder())
+    {
+      // can we update the database?
+      if (CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser)
+      {
+        if (!g_application.IsProgramScanning() && item->IsProgramDb() && item->HasProgramInfoTag() &&
+           (item->GetProgramInfoTag()->m_type == "tag"))  // tags
+        {
+          buttons.Add(CONTEXT_BUTTON_EDIT, 16106);
+        }
+      }
+    }
+  }
 }
 
 bool CGUIWindowProgramNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
@@ -182,6 +197,21 @@ bool CGUIWindowProgramNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button
     }
     Refresh();
     return true;
+  }
+  switch (button)
+  {
+  case CONTEXT_BUTTON_EDIT:
+    {
+      CONTEXT_BUTTON ret = (CONTEXT_BUTTON)CGUIDialogProgramInfo::ManageProgramItem(item);
+      if (ret >= 0)
+      {
+        Refresh(true);
+      }
+      return true;
+    }
+
+  default:
+    break;
   }
   return CGUIWindowProgramBase::OnContextButton(itemNumber, button);
 }

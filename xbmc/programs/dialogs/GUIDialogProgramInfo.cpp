@@ -31,6 +31,7 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "guilib/Key.h"
+#include "ContextMenuManager.h"
 #include "filesystem/Directory.h"
 
 using namespace XFILE;
@@ -276,6 +277,67 @@ std::string CGUIDialogProgramInfo::GetThumbnail() const
   return m_programItem->GetArt("thumb");
 }
 
+int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
+{
+  if (item == NULL || !item->IsProgramDb() || !item->HasProgramInfoTag() || item->GetProgramInfoTag()->m_iDbId < 0)
+    return -1;
+
+  CProgramDatabase database;
+  if (!database.Open())
+    return -1;
+
+  const std::string &type = item->GetProgramInfoTag()->m_type;
+  int dbId = item->GetProgramInfoTag()->m_iDbId;
+
+  CContextButtons buttons;
+  // tags
+  if (item->m_bIsFolder && type == "tag")
+  {
+    CProgramDbUrl programUrl;
+    if (programUrl.FromString(item->GetPath()))
+    {
+      const std::string &mediaType = programUrl.GetItemType();
+
+      buttons.Add(CONTEXT_BUTTON_TAGS_ADD_ITEMS, StringUtils::Format(g_localizeStrings.Get(20460).c_str(), GetLocalizedProgramType(mediaType).c_str()));
+      buttons.Add(CONTEXT_BUTTON_TAGS_REMOVE_ITEMS, StringUtils::Format(g_localizeStrings.Get(20461).c_str(), GetLocalizedProgramType(mediaType).c_str()));
+    }
+  }
+
+  //temporary workaround until the context menu ids are removed
+  const int addonItemOffset = 10000;
+  ContextMenuView addonItems = CContextMenuManager::GetInstance().GetAddonItems(*item, CContextMenuManager::MANAGE);
+  for (size_t i = 0; i < addonItems.size(); ++i)
+    buttons.Add(addonItemOffset + i, addonItems[i]->GetLabel(*item));
+
+  bool result = false;
+  int button = CGUIDialogContextMenu::ShowAndGetChoice(buttons);
+  if (button >= 0)
+  {
+    switch (static_cast<CONTEXT_BUTTON>(button))
+    {
+      case CONTEXT_BUTTON_TAGS_ADD_ITEMS:
+        result = AddItemsToTag(item);
+        break;
+
+      case CONTEXT_BUTTON_TAGS_REMOVE_ITEMS:
+        result = RemoveItemsFromTag(item);
+        break;
+
+      default:
+        if (button >= addonItemOffset)
+          result = CONTEXTMENU::LoopFrom(*addonItems[button - addonItemOffset], item);
+        break;
+    }
+  }
+
+  database.Close();
+
+  if (result)
+    return button;
+
+  return -1;
+}
+
 bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag /* = -1 */, bool showAll /* = true */)
 {
   CProgramDatabase programdb;
@@ -326,6 +388,72 @@ bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const 
   for (std::vector<int>::const_iterator it = dialog->GetSelectedItems().begin(); it != dialog->GetSelectedItems().end(); ++it)
     items.Add(listItems.Get(*it));
   return items.Size() > 0;
+}
+
+bool CGUIDialogProgramInfo::AddItemsToTag(const CFileItemPtr &tagItem)
+{
+  if (tagItem == NULL || !tagItem->HasProgramInfoTag())
+    return false;
+
+  CProgramDbUrl programUrl;
+  if (!programUrl.FromString(tagItem->GetPath()))
+    return false;
+
+  CProgramDatabase programdb;
+  if (!programdb.Open())
+    return true;
+
+  std::string mediaType = programUrl.GetItemType();
+  mediaType = mediaType.substr(0, mediaType.length() - 1);
+
+  CFileItemList items;
+  std::string localizedType = GetLocalizedProgramType(mediaType);
+  std::string strLabel = StringUtils::Format(g_localizeStrings.Get(20464).c_str(), localizedType.c_str());
+  if (!GetItemsForTag(strLabel, mediaType, items, tagItem->GetProgramInfoTag()->m_iDbId))
+    return true;
+
+  for (int index = 0; index < items.Size(); index++)
+  {
+    if (!items[index]->HasProgramInfoTag() || items[index]->GetProgramInfoTag()->m_iDbId <= 0)
+      continue;
+
+    programdb.AddTagToItem(items[index]->GetProgramInfoTag()->m_iDbId, tagItem->GetProgramInfoTag()->m_iDbId, mediaType);
+  }
+
+  return true;
+}
+
+bool CGUIDialogProgramInfo::RemoveItemsFromTag(const CFileItemPtr &tagItem)
+{
+  if (tagItem == NULL || !tagItem->HasProgramInfoTag())
+    return false;
+
+  CProgramDbUrl programUrl;
+  if (!programUrl.FromString(tagItem->GetPath()))
+    return false;
+
+  CProgramDatabase programdb;
+  if (!programdb.Open())
+    return true;
+
+  std::string mediaType = programUrl.GetItemType();
+  mediaType = mediaType.substr(0, mediaType.length() - 1);
+
+  CFileItemList items;
+  std::string localizedType = GetLocalizedProgramType(mediaType);
+  std::string strLabel = StringUtils::Format(g_localizeStrings.Get(20464).c_str(), localizedType.c_str());
+  if (!GetItemsForTag(strLabel, mediaType, items, tagItem->GetProgramInfoTag()->m_iDbId, false))
+    return true;
+
+  for (int index = 0; index < items.Size(); index++)
+  {
+    if (!items[index]->HasProgramInfoTag() || items[index]->GetProgramInfoTag()->m_iDbId <= 0)
+      continue;
+
+    programdb.RemoveTagFromItem(items[index]->GetProgramInfoTag()->m_iDbId, tagItem->GetProgramInfoTag()->m_iDbId, mediaType);
+  }
+
+  return true;
 }
 
 std::string CGUIDialogProgramInfo::GetLocalizedProgramType(const std::string &strType)

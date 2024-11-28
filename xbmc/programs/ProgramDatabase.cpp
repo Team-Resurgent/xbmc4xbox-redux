@@ -691,6 +691,14 @@ void CProgramDatabase::AddLinksToItem(int mediaId, const std::string& mediaType,
   }
 }
 
+void CProgramDatabase::RemoveFromLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey)
+{
+  const char *key = foreignKey ? foreignKey : table.c_str();
+  std::string sql = PrepareSQL("DELETE FROM %s_link WHERE %s_id=%i AND media_id=%i AND media_type='%s'", table.c_str(), key, valueId, mediaId, mediaType.c_str());
+
+  ExecuteQuery(sql);
+}
+
 //****Tags****
 void CProgramDatabase::AddTagToItem(int media_id, int tag_id, const std::string &type)
 {
@@ -714,6 +722,14 @@ bool CProgramDatabase::HasGameInfo(const std::string& strFilenameAndPath)
     CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
   }
   return false;
+}
+
+void CProgramDatabase::RemoveTagFromItem(int media_id, int tag_id, const std::string &type)
+{
+  if (type.empty())
+    return;
+
+  RemoveFromLinkTable(media_id, type, "tag", tag_id);
 }
 
 //********************************************************************************************************************************
