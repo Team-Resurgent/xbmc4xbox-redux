@@ -35,6 +35,10 @@ public:
 
   std::string GetThumbnail() const;
 
+  static bool GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag = -1, bool showAll = true);
+
+  static std::string GetLocalizedProgramType(const std::string &strType);
+
   static void ShowFor(const CFileItem& item);
 
 protected:

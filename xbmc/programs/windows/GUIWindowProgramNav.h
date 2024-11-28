@@ -38,6 +38,7 @@ public:
   virtual void GetContextButtons(int itemNumber, CContextButtons &buttons);
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
   bool OnAddMediaSource();
+  virtual bool OnClick(int iItem, const std::string &player = "");
   virtual std::string GetStartFolder(const std::string &dir);
 
 protected:

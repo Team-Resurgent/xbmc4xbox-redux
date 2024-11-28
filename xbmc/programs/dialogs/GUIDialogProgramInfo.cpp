@@ -29,6 +29,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/AdvancedSettings.h"
+#include "settings/Settings.h"
 #include "guilib/Key.h"
 #include "filesystem/Directory.h"
 
@@ -273,6 +274,66 @@ void CGUIDialogProgramInfo::SetLabel(int iControl, const std::string &strLabel)
 std::string CGUIDialogProgramInfo::GetThumbnail() const
 {
   return m_programItem->GetArt("thumb");
+}
+
+bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag /* = -1 */, bool showAll /* = true */)
+{
+  CProgramDatabase programdb;
+  if (!programdb.Open())
+    return false;
+
+  MediaType mediaType = MediaTypeNone;
+  std::string baseDir = "programdb://";
+  std::string idColumn;
+  if (type.compare(MediaTypeGame) == 0)
+  {
+    mediaType = MediaTypeGame;
+    baseDir += "games";
+    idColumn = "idGame";
+  }
+
+  baseDir += "/titles/";
+  CProgramDbUrl programUrl;
+  if (!programUrl.FromString(baseDir))
+    return false;
+
+  CProgramDatabase::Filter filter;
+  if (idTag > 0)
+  {
+    if (!showAll)
+      programUrl.AddOption("tagid", idTag);
+    else
+      filter.where = programdb.PrepareSQL("%s_view.%s NOT IN (SELECT tag_link.media_id FROM tag_link WHERE tag_link.tag_id = %d AND tag_link.media_type = '%s')", type.c_str(), idColumn.c_str(), idTag, type.c_str());
+  }
+
+  CFileItemList listItems;
+  if (!programdb.GetSortedPrograms(mediaType, programUrl.ToString(), SortDescription(), listItems, filter) || listItems.Size() <= 0)
+    return false;
+
+  CGUIDialogSelect *dialog = static_cast<CGUIDialogSelect *>(g_windowManager.GetWindow(WINDOW_DIALOG_SELECT));
+  if (dialog == nullptr)
+    return false;
+
+  listItems.Sort(SortByLabel, SortOrderAscending, CSettings::GetInstance().GetBool("filelists.ignorethewhensorting") ? SortAttributeIgnoreArticle : SortAttributeNone);
+
+  dialog->Reset();
+  dialog->SetMultiSelection(true);
+  dialog->SetHeading(strHeading);
+  dialog->SetItems(listItems);
+  dialog->EnableButton(true, 186);
+  dialog->Open();
+
+  for (std::vector<int>::const_iterator it = dialog->GetSelectedItems().begin(); it != dialog->GetSelectedItems().end(); ++it)
+    items.Add(listItems.Get(*it));
+  return items.Size() > 0;
+}
+
+std::string CGUIDialogProgramInfo::GetLocalizedProgramType(const std::string &strType)
+{
+  if (CMediaTypes::IsMediaType(strType, MediaTypeGame))
+    return g_localizeStrings.Get(38928);
+
+  return "";
 }
 
 void CGUIDialogProgramInfo::ShowFor(const CFileItem& item)

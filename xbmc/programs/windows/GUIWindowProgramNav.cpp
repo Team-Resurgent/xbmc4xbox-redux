@@ -20,11 +20,15 @@
 
 #include "GUIWindowProgramNav.h"
 #include "filesystem/ProgramDatabaseDirectory.h"
+#include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogMediaSource.h"
 #include "FileItem.h"
+#include "Application.h"
 #include "profiles/ProfilesManager.h"
 #include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
+#include "guilib/GUIKeyboardFactory.h"
+#include "programs/dialogs/GUIDialogProgramInfo.h"
 
 using namespace XFILE;
 using namespace PROGRAMDATABASEDIRECTORY;
@@ -91,6 +95,17 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
         items.SetContent("tags");
       else
         items.SetContent("");
+    }
+
+    CProgramDbUrl programUrl;
+    if (programUrl.FromString(items.GetPath()) && items.GetContent() == "tags" &&
+       !items.Contains("newtag://" + programUrl.GetType()))
+    {
+      CFileItemPtr newTag(new CFileItem("newtag://" + programUrl.GetType(), false));
+      newTag->SetLabel(g_localizeStrings.Get(20462));
+      newTag->SetLabelPreformated(true);
+      newTag->SetSpecialSort(SortSpecialOnTop);
+      items.Add(newTag);
     }
   }
   return bResult;
@@ -174,6 +189,62 @@ bool CGUIWindowProgramNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button
 bool CGUIWindowProgramNav::OnAddMediaSource()
 {
   return CGUIDialogMediaSource::ShowAndAddMediaSource("program");
+}
+
+bool CGUIWindowProgramNav::OnClick(int iItem, const std::string &player)
+{
+  CFileItemPtr item = m_vecItems->Get(iItem);
+  if (StringUtils::StartsWithNoCase(item->GetPath(), "newtag://"))
+  {
+    // dont allow update while scanning
+    if (g_application.IsProgramScanning())
+    {
+      CGUIDialogOK::ShowAndGetInput(257, 14057);
+      return true;
+    }
+
+    //Get the new title
+    std::string strTag;
+    if (!CGUIKeyboardFactory::ShowAndGetInput(strTag, g_localizeStrings.Get(20462), false))
+      return true;
+
+    CProgramDatabase programdb;
+    if (!programdb.Open())
+      return true;
+
+    // get the media type and convert from plural to singular (by removing the trailing "s")
+    std::string mediaType = item->GetPath().substr(9);
+    mediaType = mediaType.substr(0, mediaType.size() - 1);
+    std::string localizedType = CGUIDialogProgramInfo::GetLocalizedProgramType(mediaType);
+    if (localizedType.empty())
+      return true;
+
+    if (!programdb.GetSingleValue("tag", "tag.tag_id", programdb.PrepareSQL("tag.name = '%s' AND tag.tag_id IN (SELECT tag_link.tag_id FROM tag_link WHERE tag_link.media_type = '%s')", strTag.c_str(), mediaType.c_str())).empty())
+    {
+      std::string strError = StringUtils::Format(g_localizeStrings.Get(20463).c_str(), strTag.c_str());
+      CGUIDialogOK::ShowAndGetInput(20462, boost::move(strError));
+      return true;
+    }
+
+    int idTag = programdb.AddTag(strTag);
+    CFileItemList items;
+    std::string strLabel = StringUtils::Format(g_localizeStrings.Get(20464).c_str(), localizedType.c_str());
+    if (CGUIDialogProgramInfo::GetItemsForTag(strLabel, mediaType, items, idTag))
+    {
+      for (int index = 0; index < items.Size(); index++)
+      {
+        if (!items[index]->HasProgramInfoTag() || items[index]->GetProgramInfoTag()->m_iDbId <= 0)
+          continue;
+
+        programdb.AddTagToItem(items[index]->GetProgramInfoTag()->m_iDbId, idTag, mediaType);
+      }
+    }
+
+    Refresh(true);
+    return true;
+  }
+
+  return CGUIWindowProgramBase::OnClick(iItem, player);
 }
 
 std::string CGUIWindowProgramNav::GetStartFolder(const std::string &dir)

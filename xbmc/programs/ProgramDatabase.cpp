@@ -657,6 +657,14 @@ int CProgramDatabase::AddRatings(int mediaId, const char *mediaType, const Ratin
   return ratingid;
 }
 
+int CProgramDatabase::AddTag(const std::string& name)
+{
+  if (name.empty())
+    return -1;
+
+  return AddToTable("tag", "tag_id", "name", name);
+}
+
 void CProgramDatabase::AddToLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey)
 {
   const char *key = foreignKey ? foreignKey : table.c_str();
@@ -681,6 +689,15 @@ void CProgramDatabase::AddLinksToItem(int mediaId, const std::string& mediaType,
         AddToLinkTable(mediaId, mediaType, field, idValue);
     }
   }
+}
+
+//****Tags****
+void CProgramDatabase::AddTagToItem(int media_id, int tag_id, const std::string &type)
+{
+  if (type.empty())
+    return;
+
+  AddToLinkTable(media_id, type, "tag", tag_id);
 }
 
 bool CProgramDatabase::HasGameInfo(const std::string& strFilenameAndPath)
@@ -1535,6 +1552,37 @@ bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList&
     CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
   }
   return false;
+}
+
+bool CProgramDatabase::GetSortedPrograms(const MediaType &mediaType, const std::string& strBaseDir, const SortDescription &sortDescription, CFileItemList& items, const Filter &filter /* = Filter() */)
+{
+  if (NULL == m_pDB.get() || NULL == m_pDS.get())
+    return false;
+
+  if (mediaType != MediaTypeGame)
+    return false;
+
+  SortDescription sorting = sortDescription;
+  if (sortDescription.sortBy == SortByFile ||
+      sortDescription.sortBy == SortByTitle ||
+      sortDescription.sortBy == SortBySortTitle ||
+      sortDescription.sortBy == SortByLabel ||
+      sortDescription.sortBy == SortByDateAdded ||
+      sortDescription.sortBy == SortByRating ||
+      sortDescription.sortBy == SortByUserRating ||
+      sortDescription.sortBy == SortByYear ||
+      sortDescription.sortBy == SortByLastPlayed ||
+      sortDescription.sortBy == SortByPlaycount)
+    sorting.sortAttributes = (SortAttribute)(sortDescription.sortAttributes | SortAttributeIgnoreFolders);
+
+  bool success = false;
+  if (mediaType == MediaTypeGame)
+    success = GetGamesByWhere(strBaseDir, filter, items, sorting);
+  else
+    return false;
+
+  items.SetContent(CMediaTypes::ToPlural(mediaType));
+  return success;
 }
 
 bool CProgramDatabase::GetItems(const std::string &strBaseDir, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
