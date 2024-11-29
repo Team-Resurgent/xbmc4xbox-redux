@@ -294,7 +294,11 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
 
   CContextButtons buttons;
   if (type == MediaTypeGame)
+  {
     buttons.Add(CONTEXT_BUTTON_EDIT, 16105);
+    if (URIUtils::HasExtension(item->GetProgramInfoTag()->m_strFileNameAndPath, ".xbe"))
+      buttons.Add(CONTEXT_BUTTON_RENAME, 38693); // edit xbe title
+  }
 
   // tags
   if (item->m_bIsFolder && type == "tag")
@@ -326,6 +330,10 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
     {
       case CONTEXT_BUTTON_EDIT:
         result = UpdateProgramItemTitle(item);
+        break;
+
+      case CONTEXT_BUTTON_RENAME:
+        result = UpdateXBETitle(item);
         break;
 
       case CONTEXT_BUTTON_DELETE:
@@ -392,6 +400,16 @@ bool CGUIDialogProgramInfo::UpdateProgramItemTitle(const CFileItemPtr &pItem)
   database.UpdateProgramTitle(iDbId, detail.m_strTitle, iType);
 
   return true;
+}
+
+bool CGUIDialogProgramInfo::UpdateXBETitle(const CFileItemPtr &pItem)
+{
+  std::string strNewXbeTitle;
+  if (!CGUIKeyboardFactory::ShowAndGetInput(strNewXbeTitle, g_localizeStrings.Get(16008), false))
+    return false;
+
+  // SetXBEDescription will truncate to 40 characters.
+  return CUtil::SetXBEDescription(pItem->GetProgramInfoTag()->m_strFileNameAndPath, strNewXbeTitle);
 }
 
 bool CGUIDialogProgramInfo::CanDeleteProgramItem(const CFileItemPtr &item)
