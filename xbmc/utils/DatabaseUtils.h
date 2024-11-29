@@ -138,6 +138,17 @@ typedef enum {
   FieldStereoMode,
   FieldUserRating,
   FieldRelevance, // Used for actors' appearences
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  FieldSystem,
+  FieldExclusive,
+  FieldDeveloper,
+  FieldPublisher,
+  FieldDescriptor,
+  FieldGeneralFeature,
+  FieldOnlineFeature,
+  FieldPlatform,
+  FieldOriginalTitle,
+#endif
   FieldMax
 } Field;
 
@@ -157,6 +168,9 @@ class DatabaseUtils
 {
 public:
   static MediaType MediaTypeFromVideoContentType(int videoContentType);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  static MediaType MediaTypeFromProgramContentType(int programContentType);
+#endif
 
   static std::string GetField(Field field, const MediaType &mediaType, DatabaseQueryPart queryPart);
   static int GetField(Field field, const MediaType &mediaType);
