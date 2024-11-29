@@ -171,6 +171,7 @@ public:
   void DeleteGame(int idMovie, bool bKeepId = false);
   void DeleteGame(const std::string& strFilenameAndPath, bool bKeepId = false);
   void RemoveContentForPath(const std::string& strPath,CGUIDialogProgress *progress = NULL);
+  void DeleteTag(int idTag, PROGRAMDB_CONTENT_TYPE mediaType);
 
   // scraper settings
   void SetScraperForPath(const std::string& filePath, const ADDON::ScraperPtr& info, const PROGRAM::SScanSettings& settings);

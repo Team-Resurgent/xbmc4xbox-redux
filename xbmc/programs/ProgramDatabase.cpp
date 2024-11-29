@@ -928,6 +928,28 @@ int CProgramDatabase::GetDbId(const std::string &query)
   return -1;
 }
 
+void CProgramDatabase::DeleteTag(int idTag, PROGRAMDB_CONTENT_TYPE mediaType)
+{
+  try
+  {
+    if (m_pDB.get() == NULL || m_pDS.get() == NULL)
+      return;
+
+    std::string type;
+    if (mediaType == PROGRAMDB_CONTENT_GAMES)
+      type = MediaTypeGame;
+    else
+      return;
+
+    std::string strSQL = PrepareSQL("DELETE FROM tag_link WHERE tag_id = %i AND media_type = '%s'", idTag, type.c_str());
+    m_pDS->exec(strSQL);
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%i) failed", __FUNCTION__, idTag);
+  }
+}
+
 void CProgramDatabase::GetDetailsFromDB(boost::movelib::unique_ptr<Dataset> &pDS, int min, int max, const SDbTableOffsets *offsets, CProgramInfoTag &details, int idxOffset)
 {
   GetDetailsFromDB(pDS->get_sql_record(), min, max, offsets, details, idxOffset);

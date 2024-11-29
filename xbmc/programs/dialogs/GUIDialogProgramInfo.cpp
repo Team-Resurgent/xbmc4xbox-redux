@@ -19,6 +19,7 @@
  */
 
 #include "GUIDialogProgramInfo.h"
+#include "Application.h"
 #include "Util.h"
 #include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogSelect.h"
@@ -27,6 +28,7 @@
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIWindowManager.h"
+#include "dialogs/GUIDialogYesNo.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
@@ -303,6 +305,9 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
     }
   }
 
+  if (type == "tag")
+    buttons.Add(CONTEXT_BUTTON_DELETE, 646);
+
   //temporary workaround until the context menu ids are removed
   const int addonItemOffset = 10000;
   ContextMenuView addonItems = CContextMenuManager::GetInstance().GetAddonItems(*item, CContextMenuManager::MANAGE);
@@ -315,6 +320,10 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
   {
     switch (static_cast<CONTEXT_BUTTON>(button))
     {
+      case CONTEXT_BUTTON_DELETE:
+        result = DeleteProgramItem(item);
+        break;
+
       case CONTEXT_BUTTON_TAGS_ADD_ITEMS:
         result = AddItemsToTag(item);
         break;
@@ -336,6 +345,93 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
     return button;
 
   return -1;
+}
+
+bool CGUIDialogProgramInfo::CanDeleteProgramItem(const CFileItemPtr &item)
+{
+  if (item.get() == nullptr || !item->HasProgramInfoTag())
+    return false;
+
+  if (item->GetProgramInfoTag()->m_type == "tag")
+    return true;
+
+  return false;
+}
+
+bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &item, bool unavailable /* = false */)
+{
+  if (item.get() == nullptr || !item->HasProgramInfoTag() ||
+      !CanDeleteProgramItem(item))
+    return false;
+
+  // dont allow update while scanning
+  if (g_application.IsProgramScanning())
+  {
+    CGUIDialogOK::ShowAndGetInput(257, 14057);
+    return false;
+  }
+
+  CGUIDialogYesNo* pDialog = static_cast<CGUIDialogYesNo*>(g_windowManager.GetWindow(WINDOW_DIALOG_YES_NO));
+  if (pDialog == nullptr)
+    return false;
+
+  int heading = -1;
+  PROGRAMDB_CONTENT_TYPE type = static_cast<PROGRAMDB_CONTENT_TYPE>(item->GetProgramContentType());
+  std::string& subtype = item->GetProgramInfoTag()->m_type;
+  if (subtype != "tag")
+  {
+    // empty for now
+  }
+  else
+  {
+    heading = 10058;
+  }
+
+  pDialog->SetHeading(heading);
+
+  if (unavailable)
+  {
+    pDialog->SetLine(0, g_localizeStrings.Get(662));
+    pDialog->SetLine(1, g_localizeStrings.Get(663));
+  }
+  else
+  {
+    pDialog->SetLine(0, StringUtils::Format(g_localizeStrings.Get(433).c_str(), item->GetLabel().c_str()));
+    pDialog->SetLine(1, "");
+  }
+  pDialog->SetLine(2, "");
+  pDialog->Open();
+
+  if (!pDialog->IsConfirmed())
+    return false;
+
+  CProgramDatabase database;
+  database.Open();
+
+  if (item->GetProgramInfoTag()->m_iDbId < 0)
+    return false;
+
+  if (subtype == "tag")
+  {
+    database.DeleteTag(item->GetProgramInfoTag()->m_iDbId, type);
+    return true;
+  }
+
+  return true;
+}
+
+bool CGUIDialogProgramInfo::DeleteProgramItem(const CFileItemPtr &item, bool unavailable /* = false */)
+{
+  if (item.get() == nullptr)
+    return false;
+
+  // delete the program item from the database
+  if (!DeleteProgramItemFromDatabase(item, unavailable))
+    return false;
+
+  CUtil::DeleteProgramDatabaseDirectoryCache();
+
+  return true;
 }
 
 bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag /* = -1 */, bool showAll /* = true */)

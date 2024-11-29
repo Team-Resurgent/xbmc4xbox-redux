@@ -45,6 +45,7 @@
 #include "music/tags/MusicInfoTag.h"
 #include "pictures/PictureInfoTag.h"
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramDatabase.h"
 #include "programs/ProgramInfoTag.h"
 #endif
 #include "music/Artist.h"
@@ -3518,6 +3519,15 @@ int CFileItem::GetVideoContentType() const
 
   return type;
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+int CFileItem::GetProgramContentType() const
+{
+  PROGRAMDB_CONTENT_TYPE type = PROGRAMDB_CONTENT_GAMES;
+
+  return type;
+}
+#endif
 
 bool CFileItem::IsResumePointSet() const
 {

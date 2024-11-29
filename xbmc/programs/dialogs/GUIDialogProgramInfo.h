@@ -36,6 +36,9 @@ public:
   std::string GetThumbnail() const;
 
   static int ManageProgramItem(const CFileItemPtr &item);
+  static bool CanDeleteProgramItem(const CFileItemPtr &item);
+  static bool DeleteProgramItemFromDatabase(const CFileItemPtr &item, bool unavailable = false);
+  static bool DeleteProgramItem(const CFileItemPtr &item, bool unavailable = false);
 
   static bool GetItemsForTag(const std::string &strHeading, const std::string &type, CFileItemList &items, int idTag = -1, bool showAll = true);
   static bool AddItemsToTag(const CFileItemPtr &tagItem);
