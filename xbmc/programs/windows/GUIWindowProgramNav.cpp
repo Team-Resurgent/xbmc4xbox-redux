@@ -172,7 +172,8 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
       if (CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser)
       {
         if (!g_application.IsProgramScanning() && item->IsProgramDb() && item->HasProgramInfoTag() &&
-           (item->GetProgramInfoTag()->m_type == "tag"))  // tags
+           (item->GetProgramInfoTag()->m_type == MediaTypeGame ||   // games
+            item->GetProgramInfoTag()->m_type == "tag"))            // tags
         {
           buttons.Add(CONTEXT_BUTTON_EDIT, 16106);
         }

@@ -36,6 +36,7 @@ public:
   std::string GetThumbnail() const;
 
   static int ManageProgramItem(const CFileItemPtr &item);
+  static bool UpdateProgramItemTitle(const CFileItemPtr &pItem);
   static bool CanDeleteProgramItem(const CFileItemPtr &item);
   static bool DeleteProgramItemFromDatabase(const CFileItemPtr &item, bool unavailable = false);
   static bool DeleteProgramItem(const CFileItemPtr &item, bool unavailable = false);

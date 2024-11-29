@@ -1249,6 +1249,31 @@ int CProgramDatabase::GetSchemaVersion() const
   return 1;
 }
 
+void CProgramDatabase::UpdateProgramTitle(int idProgram, const std::string& strNewProgramTitle, PROGRAMDB_CONTENT_TYPE iType)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return ;
+    if (NULL == m_pDS.get()) return ;
+    std::string content;
+    if (iType == PROGRAMDB_CONTENT_GAMES)
+    {
+      CLog::Log(LOGINFO, "Changing Game:id:%i New Title:%s", idProgram, strNewProgramTitle.c_str());
+      content = MediaTypeGame;
+    }
+
+    if (!content.empty())
+    {
+      SetSingleValue(iType, idProgram, FieldTitle, strNewProgramTitle);
+      // TODO: Do we need to announce here?
+    }
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (int idProgram, const std::string& strNewProgramTitle) failed on ProgramID:%i and Title:%s", __FUNCTION__, idProgram, strNewProgramTitle.c_str());
+  }
+}
+
 bool CProgramDatabase::GetDevelopersNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
 {
   return GetNavCommon(strBaseDir, items, "developer", idContent, filter, countOnly);
@@ -2063,6 +2088,19 @@ bool CProgramDatabase::SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int
     CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strSQL.c_str());
   }
   return false;
+}
+
+bool CProgramDatabase::SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, Field dbField, const std::string &strValue)
+{
+  MediaType mediaType = DatabaseUtils::MediaTypeFromProgramContentType(type);
+  if (mediaType == MediaTypeNone)
+    return false;
+
+  int dbFieldIndex = DatabaseUtils::GetField(dbField, mediaType);
+  if (dbFieldIndex < 0)
+    return false;
+
+  return SetSingleValue(type, dbId, dbFieldIndex, strValue);
 }
 
 bool CProgramDatabase::SetSingleValue(const std::string &table, const std::string &fieldName, const std::string &strValue,

@@ -27,6 +27,7 @@
 #include "utils/URIUtils.h"
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "messaging/ApplicationMessenger.h"
+#include "guilib/GUIKeyboardFactory.h"
 #include "guilib/GUIWindowManager.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "profiles/ProfilesManager.h"
@@ -292,6 +293,9 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
   int dbId = item->GetProgramInfoTag()->m_iDbId;
 
   CContextButtons buttons;
+  if (type == MediaTypeGame)
+    buttons.Add(CONTEXT_BUTTON_EDIT, 16105);
+
   // tags
   if (item->m_bIsFolder && type == "tag")
   {
@@ -320,6 +324,10 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
   {
     switch (static_cast<CONTEXT_BUTTON>(button))
     {
+      case CONTEXT_BUTTON_EDIT:
+        result = UpdateProgramItemTitle(item);
+        break;
+
       case CONTEXT_BUTTON_DELETE:
         result = DeleteProgramItem(item);
         break;
@@ -345,6 +353,45 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
     return button;
 
   return -1;
+}
+
+//Add change a title's name
+bool CGUIDialogProgramInfo::UpdateProgramItemTitle(const CFileItemPtr &pItem)
+{
+  if (pItem.get() == nullptr || !pItem->HasProgramInfoTag())
+    return false;
+
+  // dont allow update while scanning
+  if (g_application.IsProgramScanning())
+  {
+    CGUIDialogOK::ShowAndGetInput(257, 14057);
+    return false;
+  }
+
+  CProgramDatabase database;
+  if (!database.Open())
+    return false;
+
+  int iDbId = pItem->GetProgramInfoTag()->m_iDbId;
+  MediaType mediaType = pItem->GetProgramInfoTag()->m_type;
+
+  CProgramInfoTag detail;
+  std::string title;
+  if (mediaType == MediaTypeGame)
+  {
+    database.GetGameInfo("", detail, iDbId, ProgramDbDetailsNone);
+    title = detail.m_strTitle;
+  }
+
+  // get the new title
+  if (!CGUIKeyboardFactory::ShowAndGetInput(title, g_localizeStrings.Get(16105) , false))
+    return false;
+
+  detail.m_strTitle = title;
+  PROGRAMDB_CONTENT_TYPE iType = static_cast<PROGRAMDB_CONTENT_TYPE>(pItem->GetProgramContentType());
+  database.UpdateProgramTitle(iDbId, detail.m_strTitle, iType);
+
+  return true;
 }
 
 bool CGUIDialogProgramInfo::CanDeleteProgramItem(const CFileItemPtr &item)

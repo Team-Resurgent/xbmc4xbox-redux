@@ -147,6 +147,8 @@ public:
 
   int AddGame(const std::string& strFilenameAndPath);
 
+  void UpdateProgramTitle(int idProgram, const std::string& strNewProgramTitle, PROGRAMDB_CONTENT_TYPE iType=PROGRAMDB_CONTENT_GAMES);
+
   bool HasGameInfo(const std::string& strFilenameAndPath);
 
   std::string GetDeveloperById(int id);
@@ -165,6 +167,7 @@ public:
   int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
 
   bool SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int dbField, const std::string &strValue);
+  bool SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, Field dbField, const std::string &strValue);
   bool SetSingleValue(const std::string &table, const std::string &fieldName, const std::string &strValue,
                       const std::string &conditionName = "", int conditionValue = -1);
 
