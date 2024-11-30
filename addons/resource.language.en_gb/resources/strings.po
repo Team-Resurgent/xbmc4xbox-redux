@@ -13952,4 +13952,8 @@ msgctxt "#38956"
 msgid "Platforms"
 msgstr ""
 
-#empty strings from id 38791 to 38999
+msgctxt "#38971"
+msgid "Remove game from library"
+msgstr ""
+
+#empty strings from id 38792 to 38999

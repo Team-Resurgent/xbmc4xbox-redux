@@ -36,7 +36,11 @@
 #include "guilib/Key.h"
 #include "ContextMenuManager.h"
 #include "filesystem/Directory.h"
+#include "filesystem/ProgramDatabaseDirectory.h"
+#include "filesystem/ProgramDatabaseDirectory/QueryParams.h"
+#include "utils/FileUtils.h"
 
+using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 using namespace XFILE;
 using namespace KODI::MESSAGING;
 
@@ -313,8 +317,7 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
     }
   }
 
-  if (type == "tag")
-    buttons.Add(CONTEXT_BUTTON_DELETE, 646);
+  buttons.Add(CONTEXT_BUTTON_DELETE, 646);
 
   //temporary workaround until the context menu ids are removed
   const int addonItemOffset = 10000;
@@ -420,7 +423,10 @@ bool CGUIDialogProgramInfo::CanDeleteProgramItem(const CFileItemPtr &item)
   if (item->GetProgramInfoTag()->m_type == "tag")
     return true;
 
-  return false;
+  CQueryParams params;
+  CProgramDatabaseDirectory::GetQueryParams(item->GetPath(), params);
+
+  return params.GetGameId()   != -1;
 }
 
 bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &item, bool unavailable /* = false */)
@@ -445,7 +451,15 @@ bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &it
   std::string& subtype = item->GetProgramInfoTag()->m_type;
   if (subtype != "tag")
   {
-    // empty for now
+    switch (type)
+    {
+      case PROGRAMDB_CONTENT_GAMES:
+        heading = 38971;
+        break;
+
+      default:
+        return false;
+    }
   }
   else
   {
@@ -482,6 +496,14 @@ bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &it
     return true;
   }
 
+  switch (type)
+  {
+    case PROGRAMDB_CONTENT_GAMES:
+      database.DeleteGame(item->GetProgramInfoTag()->m_iDbId);
+      break;
+    default:
+      return false;
+  }
   return true;
 }
 
@@ -493,6 +515,25 @@ bool CGUIDialogProgramInfo::DeleteProgramItem(const CFileItemPtr &item, bool una
   // delete the program item from the database
   if (!DeleteProgramItemFromDatabase(item, unavailable))
     return false;
+
+  // check if the user is allowed to delete the actual file as well
+  if (CSettings::GetInstance().GetBool("filelists.allowfiledeletion") &&
+      (CProfilesManager::Get().GetCurrentProfile().getLockMode() == LOCK_MODE_EVERYONE ||
+       !CProfilesManager::Get().GetCurrentProfile().filesLocked() ||
+       g_passwordManager.IsMasterLockUnlocked(true)))
+  {
+    std::string strDeletePath = item->GetProgramInfoTag()->GetPath();
+
+    if (URIUtils::HasSlashAtEnd(strDeletePath))
+      item->m_bIsFolder = true;
+
+    // check if the file/directory can be deleted
+    if (CUtil::SupportsWriteFileOperations(strDeletePath))
+    {
+      item->SetPath(strDeletePath);
+      CFileUtils::DeleteItem(item);
+    }
+  }
 
   CUtil::DeleteProgramDatabaseDirectoryCache();
 
