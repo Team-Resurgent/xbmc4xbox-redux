@@ -20,6 +20,8 @@
 
 #include "GUIDialogProgramInfo.h"
 #include "Util.h"
+#include "dialogs/GUIDialogOK.h"
+#include "dialogs/GUIDialogSelect.h"
 #include "guilib/GUIImage.h"
 #include "utils/URIUtils.h"
 #include "programs/windows/GUIWindowProgramNav.h"
@@ -35,6 +37,7 @@ using namespace KODI::MESSAGING;
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
 #define CONTROL_BTN_PLAY_TRAILER    11
+#define CONTROL_BTN_GET_PATCHES     12
 
 #define CONTROL_LIST                50
 
@@ -67,6 +70,44 @@ bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
       if (iControl == CONTROL_BTN_PLAY_TRAILER)
       {
         PlayTrailer();
+      }
+      if (iControl == CONTROL_BTN_GET_PATCHES)
+      {
+        CFileItemList items;
+        std::string strRootPath = URIUtils::GetParentPath(m_programItem->GetPath());
+        CDirectory::GetDirectory(strRootPath, items, ".xbe", DIR_FLAG_READ_CACHE | DIR_FLAG_NO_FILE_INFO | DIR_FLAG_NO_FILE_DIRS);
+        if (items.Size())
+        {
+          CGUIDialogSelect *pDlgSelect = static_cast<CGUIDialogSelect*>(g_windowManager.GetWindow(WINDOW_DIALOG_SELECT));
+          if (pDlgSelect)
+          {
+            pDlgSelect->Reset();
+            pDlgSelect->SetHeading(22080);
+
+            for (int i = 0; i < items.Size(); i++)
+            {
+              CFileItemPtr item = items[i];
+              if (item->IsXBE() && !item->IsDefaultXBE())
+              {
+                std::string strLabel = URIUtils::GetFileName(item->GetPath());
+                URIUtils::RemoveExtension(strLabel);
+                StringUtils::Replace(strLabel, "_", " + ");
+                item->SetLabel(strLabel);
+                pDlgSelect->Add(*item);
+              }
+            }
+
+            pDlgSelect->Open();
+            if (pDlgSelect->GetSelectedItem() < 0)
+              return true;
+
+            CFileItemPtr item = pDlgSelect->GetSelectedFileItem();
+            // TODO: launch this XBE using IProgramLauncher
+            return true;
+          }
+        }
+        else
+          CGUIDialogOK::ShowAndGetInput(m_programItem->GetLabel(), "Patches are not available!");
       }
     }
     break;
@@ -147,6 +188,15 @@ void CGUIDialogProgramInfo::Update()
 
   CGUIMessage msg(GUI_MSG_LABEL_BIND, GetID(), CONTROL_LIST, 0, 0, m_screenshotList);
   OnMessage(msg);
+
+  if (!m_programItem->IsXBE())
+  {
+    SET_CONTROL_HIDDEN(CONTROL_BTN_GET_PATCHES);
+  }
+  else
+  {
+    SET_CONTROL_VISIBLE(CONTROL_BTN_GET_PATCHES);
+  }
 
   // update the thumbnail
   const CGUIControl* pControl = GetControl(CONTROL_IMAGE);
