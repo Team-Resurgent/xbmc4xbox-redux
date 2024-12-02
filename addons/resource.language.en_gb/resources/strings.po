@@ -13960,4 +13960,12 @@ msgctxt "#38972"
 msgid "Recently added games"
 msgstr ""
 
-#empty strings from id 38973 to 38999
+#empty strings from id 38973 to 38997
+
+msgctxt "#38998"
+msgid "Skip patched XBEs"
+msgstr ""
+
+msgctxt "#38999"
+msgid "Only look for default.xbe during programs scraping"
+msgstr ""

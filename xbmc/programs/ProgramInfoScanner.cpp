@@ -389,6 +389,10 @@ namespace PROGRAM
       m_nfoReader.Close();
       CFileItemPtr pItem = items[i];
 
+      // skip patched XBEs (any XBE which is not default.xbe)
+      if (pItem->IsXBE() && !pItem->IsDefaultXBE() && CSettings::GetInstance().GetBool("myprograms.defaultxbe"))
+        continue;
+
       // we do this since we may have a override per dir
       ScraperPtr info2 = m_database.GetScraperForPath(pItem->m_bIsFolder ? pItem->GetPath() : items.GetPath());
       if (!info2) // skip

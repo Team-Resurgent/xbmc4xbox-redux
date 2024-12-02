@@ -213,6 +213,13 @@
       </group>
     </category>
     <category id="programs" label="350" help="">
+      <group id="library">
+        <setting id="myprograms.defaultxbe" type="boolean" label="38998" help="38999">
+          <level>1</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+      </group>
       <group id="1">
         <setting id="myprograms.autoffpatch" type="boolean" label="38791" help="">
           <level>1</level>
