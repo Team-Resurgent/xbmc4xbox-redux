@@ -13913,7 +13913,15 @@ msgctxt "#38941"
 msgid "Loading game details"
 msgstr ""
 
-#empty string from id 38942 to 38950 - reserved for info scanner labels
+msgctxt "#38942"
+msgid "Program information"
+msgstr ""
+
+msgctxt "#38943"
+msgid "Game information"
+msgstr ""
+
+#empty string from id 38944 to 38950 - reserved for info scanner labels
 
 msgctxt "#38951"
 msgid "Publishers"

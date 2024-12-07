@@ -52,6 +52,10 @@ bool CGUIWindowProgramNav::OnMessage(CGUIMessage& message)
     if (m_thumbLoader.IsLoading())
       m_thumbLoader.StopThread();
     break;
+  // update the display
+  case GUI_MSG_REFRESH_THUMBS:
+    Refresh();
+    break;
   }
   return CGUIWindowProgramBase::OnMessage(message);
 }

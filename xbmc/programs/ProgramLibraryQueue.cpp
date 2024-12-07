@@ -25,6 +25,7 @@
 #include "threads/SingleLock.h"
 #include "Util.h"
 #include "programs/jobs/ProgramLibraryJob.h"
+#include "programs/jobs/ProgramLibraryRefreshingJob.h"
 #include "programs/jobs/ProgramLibraryScanningJob.h"
 
 CProgramLibraryQueue::CProgramLibraryQueue()
@@ -70,6 +71,21 @@ bool CProgramLibraryQueue::IsScanningLibrary() const
   return false;
 }
 
+bool CProgramLibraryQueue::RefreshItemModal(CFileItemPtr item, bool forceRefresh /* = true */)
+{
+  // we can't perform a modal library cleaning if other jobs are running
+  if (IsRunning())
+    return false;
+
+  m_modal = true;
+  CProgramLibraryRefreshingJob refreshingJob(item, forceRefresh);
+
+  bool result = refreshingJob.DoModal();
+  m_modal = false;
+
+  return result;
+}
+
 void CProgramLibraryQueue::AddJob(CProgramLibraryJob *job)
 {
   if (job == NULL)
@@ -90,6 +106,11 @@ void CProgramLibraryQueue::AddJob(CProgramLibraryJob *job)
   }
   else
     jobsIt->second.insert(job);
+}
+
+bool CProgramLibraryQueue::IsRunning() const
+{
+  return CJobQueue::IsProcessing() || m_modal;
 }
 
 void CProgramLibraryQueue::Refresh()

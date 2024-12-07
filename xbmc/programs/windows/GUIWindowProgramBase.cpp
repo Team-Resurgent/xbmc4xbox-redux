@@ -22,12 +22,15 @@
 #include "Util.h"
 #include "addons/GUIDialogAddonInfo.h"
 #include "programs/ProgramInfoScanner.h"
+#include "programs/ProgramLibraryQueue.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "Application.h"
 #include "guilib/GUIWindowManager.h"
+#include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogSelect.h"
+#include "profiles/ProfilesManager.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
 #include "utils/FileUtils.h"
 
@@ -127,15 +130,58 @@ bool CGUIWindowProgramBase::ShowIGDB(CFileItemPtr item, const ScraperPtr &info2)
     programDetails = *item->GetProgramInfoTag();
   }
 
+  bool needsRefresh = false;
   if (bHasInfo)
   {
     *item->GetProgramInfoTag() = programDetails;
     pDlgInfo->SetProgram(item.get());
     pDlgInfo->Open();
-    // TODO: add support for refreshing item info in case something has changed
+    needsRefresh = pDlgInfo->NeedRefresh();
+    if (!needsRefresh)
+      return false;
+    // check if the item in the program info dialog has changed and if so, get the new item
+    else if (pDlgInfo->GetCurrentListItem() != NULL)
+    {
+      item = pDlgInfo->GetCurrentListItem();
+
+      if (item->IsProgramDb() && item->HasProgramInfoTag())
+        item->SetPath(item->GetProgramInfoTag()->GetPath());
+    }
   }
 
-  return false;
+  // quietly return if Internet lookups are disabled
+  if (!CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() && !g_passwordManager.bMasterUser)
+    return false;
+
+  if (!info)
+    return false;
+
+  if (g_application.IsProgramScanning())
+  {
+    CGUIDialogOK::ShowAndGetInput(13346, 14057);
+    return false;
+  }
+
+  bool listNeedsUpdating = false;
+  // 3. Run a loop so that if we Refresh we re-run this block
+  do
+  {
+    if (!CProgramLibraryQueue::GetInstance().RefreshItemModal(item, needsRefresh))
+      return listNeedsUpdating;
+
+    // remove directory caches and reload images
+    CUtil::DeleteProgramDatabaseDirectoryCache();
+    CGUIMessage reload(GUI_MSG_NOTIFY_ALL, 0, 0, GUI_MSG_REFRESH_THUMBS);
+    OnMessage(reload);
+
+    pDlgInfo->SetProgram(item.get());
+    pDlgInfo->Open();
+    item->SetArt("thumb", pDlgInfo->GetThumbnail());
+    needsRefresh = pDlgInfo->NeedRefresh();
+    listNeedsUpdating = true;
+  } while (needsRefresh);
+
+  return listNeedsUpdating;
 }
 
 bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)

@@ -1,7 +1,6 @@
 #pragma once
-
 /*
- *      Copyright (C) 2005-2013 Team XBMC
+ *      Copyright (C) 2014 Team XBMC
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -20,34 +19,22 @@
  *
  */
 
-#include "guilib/GUIDialog.h"
-#include "FileItem.h"
+#include "utils/ProgressJob.h"
+#include "programs/jobs/ProgramLibraryJob.h"
 
-class CGUIDialogProgramInfo :
-      public CGUIDialog
+/*!
+ \brief Combined base implementation of a program library job with a progress bar.
+ */
+class CProgramLibraryProgressJob : public CProgressJob, public CProgramLibraryJob
 {
 public:
-  CGUIDialogProgramInfo(void);
-  virtual ~CGUIDialogProgramInfo(void);
-  bool OnMessage(CGUIMessage& message);
-  void SetProgram(const CFileItem *item);
-  bool NeedRefresh() const;
+  virtual ~CProgramLibraryProgressJob();
 
-  std::string GetThumbnail() const;
-
-  static void ShowFor(const CFileItem& item);
+  // implementation of CJob
+  virtual bool DoWork();
+  virtual const char *GetType() const { return "CProgramLibraryProgressJob"; }
+  virtual bool operator==(const CJob* job) const { return false; }
 
 protected:
-  void OnInitWindow();
-  void Update();
-  void SetLabel(int iControl, const std::string& strLabel);
-
-  // link screenshot to games
-  void ClearScreenshotList();
-
-  void PlayTrailer();
-
-  CFileItemPtr m_programItem;
-  CFileItemList *m_screenshotList;
-  bool m_bRefresh;
+  CProgramLibraryProgressJob(CGUIDialogProgressBarHandle* progressBar);
 };

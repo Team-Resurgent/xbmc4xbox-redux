@@ -27,6 +27,7 @@
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIWindowManager.h"
+#include "profiles/ProfilesManager.h"
 #include "settings/AdvancedSettings.h"
 #include "guilib/Key.h"
 #include "filesystem/Directory.h"
@@ -36,6 +37,7 @@ using namespace KODI::MESSAGING;
 
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
+#define CONTROL_BTN_REFRESH          6
 #define CONTROL_BTN_PLAY_TRAILER    11
 #define CONTROL_BTN_GET_PATCHES     12
 
@@ -45,6 +47,7 @@ CGUIDialogProgramInfo::CGUIDialogProgramInfo(void)
     : CGUIDialog(WINDOW_DIALOG_PROGRAM_INFO, "DialogProgramInfo.xml")
     , m_programItem(new CFileItem)
 {
+  m_bRefresh = false;
   m_screenshotList = new CFileItemList;
   m_loadType = KEEP_IN_MEMORY;
 }
@@ -67,6 +70,12 @@ bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
   case GUI_MSG_CLICKED:
     {
       int iControl = message.GetSenderId();
+      if (iControl == CONTROL_BTN_REFRESH)
+      {
+        m_bRefresh = true;
+        Close();
+        return true;
+      }
       if (iControl == CONTROL_BTN_PLAY_TRAILER)
       {
         PlayTrailer();
@@ -118,6 +127,10 @@ bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
 
 void CGUIDialogProgramInfo::OnInitWindow()
 {
+  m_bRefresh = false;
+
+  CONTROL_ENABLE_ON_CONDITION(CONTROL_BTN_REFRESH, CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser);
+
   Update();
 
   CGUIDialog::OnInitWindow();
@@ -208,6 +221,11 @@ void CGUIDialogProgramInfo::Update()
   }
 }
 
+bool CGUIDialogProgramInfo::NeedRefresh() const
+{
+  return m_bRefresh;
+}
+
 void CGUIDialogProgramInfo::ClearScreenshotList()
 {
   CGUIMessage msg(GUI_MSG_LABEL_RESET, GetID(), CONTROL_LIST);
@@ -250,6 +268,11 @@ void CGUIDialogProgramInfo::SetLabel(int iControl, const std::string &strLabel)
   {
     SET_CONTROL_LABEL(iControl, strLabel);
   }
+}
+
+std::string CGUIDialogProgramInfo::GetThumbnail() const
+{
+  return m_programItem->GetArt("thumb");
 }
 
 void CGUIDialogProgramInfo::ShowFor(const CFileItem& item)

@@ -19,6 +19,7 @@
  *
  */
 
+#include "FileItem.h"
 #include "threads/CriticalSection.h"
 #include "utils/JobManager.h"
 
@@ -51,11 +52,25 @@ public:
   bool IsScanningLibrary() const;
 
   /*!
+   \brief Refreshes the details of the given item with a modal dialog.
+
+   \param[inout] item Program item to be refreshed
+   \param[in] forceRefresh Whether to force a complete refresh (including NFO or internet lookup)
+   \return True if the item has been successfully refreshed, false otherwise.
+  */
+  bool RefreshItemModal(CFileItemPtr item, bool forceRefresh = true);
+
+  /*!
    \brief Adds the given job to the queue.
 
    \param[in] job Program library job to be queued.
    */
   void AddJob(CProgramLibraryJob *job);
+
+  /*!
+   \brief Whether any jobs are running or not.
+   */
+  bool IsRunning() const;
 
 protected:
   // implementation of IJobCallback
