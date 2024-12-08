@@ -49,6 +49,8 @@ protected:
 
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
 
+  virtual bool OnPlayMedia(int iItem, const std::string &player = "");
+
   bool ShowIGDB(CFileItemPtr item, const ADDON::ScraperPtr& content);
 
   int GetScraperForItem(CFileItem *item, ADDON::ScraperPtr &info, PROGRAM::SScanSettings& settings);

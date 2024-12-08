@@ -25,6 +25,7 @@
 #include "FileItem.h"
 #include "filesystem/Directory.h"
 #include "programs/ProgramDatabase.h"
+#include "programs/launchers/ProgramLauncher.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/lib/Setting.h"
 #include "settings/windows/GUIControlSettings.h"
@@ -369,6 +370,8 @@ void CGUIDialogProgramSettings::Save()
     return;
 
   SaveProgramSettings();
+
+  LAUNCHERS::CProgramLauncher::LaunchProgram(m_strExecutable);
 }
 
 void CGUIDialogProgramSettings::InitializeSettings()

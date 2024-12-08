@@ -24,6 +24,7 @@
 #include "programs/ProgramInfoScanner.h"
 #include "programs/ProgramLibraryQueue.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
+#include "programs/launchers/ProgramLauncher.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "Application.h"
@@ -227,6 +228,16 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
     break;
   }
   return CGUIMediaWindow::OnContextButton(itemNumber, button);
+}
+
+bool CGUIWindowProgramBase::OnPlayMedia(int iItem, const std::string &player)
+{
+  if ( iItem < 0 || iItem >= (int)m_vecItems->Size() )
+    return false;
+
+  CFileItemPtr pItem = m_vecItems->Get(iItem);
+
+  return LAUNCHERS::CProgramLauncher::LaunchProgram(pItem->HasProgramInfoTag() ? pItem->GetProgramInfoTag()->m_strFileNameAndPath : pItem->GetPath());
 }
 
 bool CGUIWindowProgramBase::Update(const std::string &strDirectory, bool updateFilterPath /* = true */)
