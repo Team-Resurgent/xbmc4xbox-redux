@@ -219,6 +219,11 @@
           <default>true</default>
           <control type="toggle" />
         </setting>
+        <setting id="myprograms.customlaunch" type="boolean" label="38996" help="38997">
+          <level>1</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
       </group>
       <group id="1">
         <setting id="myprograms.autoffpatch" type="boolean" label="38791" help="">

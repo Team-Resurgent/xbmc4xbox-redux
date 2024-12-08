@@ -76,6 +76,7 @@ void CContextMenuManager::Init()
   m_items.push_back(boost::make_shared<CONTEXTMENU::CEpisodeInfo>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CMovieInfo>());
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_items.push_back(boost::make_shared<CONTEXTMENU::CLaunchCustom>());
   m_items.push_back(boost::make_shared<CONTEXTMENU::CGameInfo>());
 #endif
   m_items.push_back(boost::make_shared<CONTEXTMENU::CMusicVideoInfo>());

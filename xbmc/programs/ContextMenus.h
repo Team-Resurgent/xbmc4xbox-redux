@@ -39,4 +39,11 @@ struct CGameInfo : CProgramInfo
 {
   CGameInfo() : CProgramInfo(MediaTypeGame) {}
 };
+
+struct CLaunchCustom : IContextMenuItem
+{
+  std::string GetLabel(const CFileItem& item) const;
+  bool IsVisible(const CFileItem& item) const;
+  bool Execute(const CFileItemPtr& _item) const;
+};
 }

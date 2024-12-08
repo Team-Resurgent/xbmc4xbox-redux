@@ -76,6 +76,7 @@
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #include "programs/windows/GUIWindowProgramNav.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
+#include "programs/dialogs/GUIDialogProgramSettings.h"
 #endif
 
 // Dialog includes
@@ -255,6 +256,7 @@ void CGUIWindowManager::CreateWindows()
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   Add(new CGUIWindowProgramNav);
   Add(new CGUIDialogProgramInfo);
+  Add(new CGUIDialogProgramSettings);
 #endif
 }
 
@@ -343,6 +345,7 @@ bool CGUIWindowManager::DestroyWindows()
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
     Remove(WINDOW_PROGRAM_NAV);
     Remove(WINDOW_DIALOG_PROGRAM_INFO);
+    Remove(WINDOW_DIALOG_PROGRAM_SETTINGS);
 #endif
   }
   catch (...)

@@ -21,6 +21,7 @@
 #include "ContextMenus.h"
 #include "Application.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
+#include "programs/dialogs/GUIDialogProgramSettings.h"
 #include "programs/windows/GUIWindowProgramBase.h"
 
 
@@ -43,4 +44,23 @@ bool CProgramInfo::Execute(const CFileItemPtr& item) const
   CGUIDialogProgramInfo::ShowFor(*item);
   return true;
 }
+
+std::string CLaunchCustom::GetLabel(const CFileItem& item) const
+{
+  return g_localizeStrings.Get(38996);
+}
+
+bool CLaunchCustom::IsVisible(const CFileItem& item) const
+{
+  if (item.m_bIsFolder)
+    return false; //! @todo implement
+
+  return item.IsProgram();
+}
+
+bool CLaunchCustom::Execute(const CFileItemPtr& item) const
+{
+  CGUIDialogProgramSettings::ShowForTitle(item);
+  return true;
+};
 }

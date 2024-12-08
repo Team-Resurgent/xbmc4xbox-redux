@@ -13960,7 +13960,15 @@ msgctxt "#38972"
 msgid "Recently added games"
 msgstr ""
 
-#empty strings from id 38973 to 38997
+#empty strings from id 38973 to 38995
+
+msgctxt "#38996"
+msgid "Custom launch"
+msgstr ""
+
+msgctxt "#38997"
+msgid "Use custom settings if available when launching programs"
+msgstr ""
 
 msgctxt "#38998"
 msgid "Skip patched XBEs"

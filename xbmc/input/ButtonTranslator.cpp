@@ -295,6 +295,7 @@ static const ActionMapping windows[] =
         {"movieinformation"         , WINDOW_DIALOG_VIDEO_INFO},
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
         {"programinformation"       , WINDOW_DIALOG_PROGRAM_INFO},
+        {"programsettings"          , WINDOW_DIALOG_PROGRAM_SETTINGS},
 #endif
         {"textviewer"               , WINDOW_DIALOG_TEXT_VIEWER},
         {"fullscreenvideo"          , WINDOW_FULLSCREEN_VIDEO},
