@@ -268,6 +268,10 @@ public:
 
   virtual bool GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting);
 
+  // Program settings
+  bool SetProgramSettings(const std::string& strFileNameAndPath, const std::string& strSettings);
+  bool GetProgramSettings(const std::string& strFileNameAndPath, std::string& strSettings);
+
 protected:
   int GetGameId(const std::string& strFilenameAndPath);
 

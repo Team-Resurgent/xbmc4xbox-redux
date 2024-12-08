@@ -100,7 +100,7 @@ void CProgramDatabase::CreateTables()
   m_pDS->exec("CREATE TABLE path ( idPath integer primary key, strPath text, strContent text, strScraper text, strHash text, scanRecursive integer, useFolderNames bool, strSettings text, noUpdate bool, exclude bool, dateAdded text, idParentPath integer)");
 
   CLog::Log(LOGINFO, "create files table");
-  m_pDS->exec("CREATE TABLE files ( idFile integer primary key, idPath integer, strFilename text, titleId integer, playCount integer, lastPlayed text, dateAdded text)");
+  m_pDS->exec("CREATE TABLE files ( idFile integer primary key, idPath integer, strFilename text, titleId integer, playCount integer, lastPlayed text, strSettings text, dateAdded text)");
 
   CLog::Log(LOGINFO, "create art table");
   m_pDS->exec("CREATE TABLE art(art_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, type TEXT, url TEXT)");
@@ -2202,4 +2202,56 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
   // TODO: add support for smartplaylists
 
   return true;
+}
+
+bool CProgramDatabase::SetProgramSettings(const std::string& strFileNameAndPath, const std::string& strSettings)
+{
+  std::string strSQL = "";
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    int idFile = GetFileId(strFileNameAndPath);
+    if (idFile < 0)
+      return false;
+
+    strSQL = PrepareSQL("UPDATE files SET strSettings='%s' WHERE idFile=%i", strSettings.c_str(), idFile);
+    m_pDS->exec(strSQL);
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strSQL.c_str());
+  }
+  return false;
+}
+
+bool CProgramDatabase::GetProgramSettings(const std::string& strFileNameAndPath, std::string& strSettings)
+{
+  std::string strSQL = "";
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    int idFile = GetFileId(strFileNameAndPath);
+    if (idFile < 0)
+      return false;
+
+    strSQL = PrepareSQL("SELECT strSettings FROM files WHERE idFile=%i", idFile);
+    m_pDS->query(strSQL);
+    if (m_pDS->num_rows() > 0)
+    {
+      strSettings = m_pDS->fv("files.strSettings").get_asString();
+      m_pDS->close();
+      return true;
+    }
+    return false;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strSQL.c_str());
+  }
+  return false;
 }
