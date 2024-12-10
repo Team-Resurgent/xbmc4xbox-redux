@@ -105,6 +105,16 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
         SetViewAsControl(viewState->m_viewMode);
       }
       break;
+    case NODE_TYPE_RECENTLY_ADDED_GAMES:
+      {
+        AddSortMethod(SortByNone, 552, LABEL_MASKS("%T", "%R"));  // Title, Rating | empty, empty
+        SetSortMethod(SortByNone);
+
+        SetViewAsControl(CViewStateSettings::Get().Get("programnavtitles")->m_viewMode);
+
+        SetSortOrder(SortOrderNone);
+      }
+      break;
     default:
       break;
     }

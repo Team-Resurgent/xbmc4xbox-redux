@@ -1813,6 +1813,14 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
   return false;
 }
 
+bool CProgramDatabase::GetRecentlyAddedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit /* = 0 */, int getDetails /* = ProgramDbDetailsNone */)
+{
+  Filter filter;
+  filter.order = "dateAdded desc, idGame desc";
+  filter.limit = PrepareSQL("%u", limit ? limit : g_advancedSettings.m_iVideoLibraryRecentlyAddedItems);
+  return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
+}
+
 std::string CProgramDatabase::GetDeveloperById(int id)
 {
   return GetSingleValue("developer", "name", PrepareSQL("developer_id=%i", id));

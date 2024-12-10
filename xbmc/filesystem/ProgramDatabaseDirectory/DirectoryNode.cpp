@@ -26,6 +26,7 @@
 #include "DirectoryNodeGrouped.h"
 #include "DirectoryNodeTitleGames.h"
 #include "DirectoryNodeGamesOverview.h"
+#include "DirectoryNodeRecentlyAddedGames.h"
 #include "URL.h"
 #include "FileItem.h"
 #include "utils/StringUtils.h"
@@ -110,6 +111,8 @@ CDirectoryNode* CDirectoryNode::CreateNode(NODE_TYPE Type, const std::string& st
     return new CDirectoryNodeTitleGames(strName, pParent);
   case NODE_TYPE_GAMES_OVERVIEW:
     return new CDirectoryNodeGamesOverview(strName, pParent);
+  case NODE_TYPE_RECENTLY_ADDED_GAMES:
+    return new CDirectoryNodeRecentlyAddedGames(strName,pParent);
   default:
     break;
   }

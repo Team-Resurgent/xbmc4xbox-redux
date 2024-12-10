@@ -284,6 +284,7 @@ void CAdvancedSettings::Initialize()
   m_iVideoLibraryDateAdded = 1; // prefer mtime over ctime and current time
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_iProgramLibraryRecentlyAddedItems = 25;
   m_bProgramLibraryCleanOnUpdate = false;
   m_bProgramLibraryUseFastHash = false;
   m_bProgramScannerIgnoreErrors = false;
@@ -552,6 +553,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   pElement = pRootElement->FirstChildElement("programlibrary");
   if (pElement)
   {
+    XMLUtils::GetInt(pElement, "recentlyaddeditems", m_iProgramLibraryRecentlyAddedItems, 1, INT_MAX);
     XMLUtils::GetBoolean(pElement, "cleanonupdate", m_bProgramLibraryCleanOnUpdate);
     XMLUtils::GetBoolean(pElement, "usefasthash", m_bProgramLibraryUseFastHash);
     XMLUtils::GetString(pElement, "itemseparator", m_programItemSeparator);

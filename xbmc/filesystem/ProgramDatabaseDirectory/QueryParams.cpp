@@ -72,6 +72,7 @@ void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeN
     m_idYear = idDb;
     break;
   case NODE_TYPE_TITLE_GAMES:
+  case NODE_TYPE_RECENTLY_ADDED_GAMES:
     m_idGame = idDb;
     break;
   case NODE_TYPE_TAGS:

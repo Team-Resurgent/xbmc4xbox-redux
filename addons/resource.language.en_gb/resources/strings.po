@@ -13956,4 +13956,8 @@ msgctxt "#38971"
 msgid "Remove game from library"
 msgstr ""
 
-#empty strings from id 38792 to 38999
+msgctxt "#38972"
+msgid "Recently added games"
+msgstr ""
+
+#empty strings from id 38973 to 38999

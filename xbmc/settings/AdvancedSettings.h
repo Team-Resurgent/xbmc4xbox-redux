@@ -269,6 +269,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     int m_iVideoLibraryDateAdded;
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    int m_iProgramLibraryRecentlyAddedItems;
     bool m_bProgramLibraryCleanOnUpdate;
     bool m_bProgramLibraryUseFastHash;
 
