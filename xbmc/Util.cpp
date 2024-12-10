@@ -63,7 +63,6 @@
 #include "utils/fstrcmp.h"
 #ifdef HAS_XBOX_HARDWARE
 #include "utils/MemoryUnitManager.h"
-#include "utils/FilterFlickerPatch.h"
 #include "utils/LED.h"
 #include "utils/FanController.h"
 #include "utils/SystemInfo.h"
@@ -3234,67 +3233,6 @@ void CUtil::GetHomePath(CStdString& strPath)
   strPath = szXBEFileName;
 }
 
-bool CUtil::RunFFPatchedXBE(CStdString szPath1, CStdString& szNewPath)
-{
-  if (!CSettings::GetInstance().GetBool("myprograms.autoffpatch"))
-  {
-    CLog::Log(LOGDEBUG, "%s - Auto Filter Flicker is off. Skipping Filter Flicker Patching.", __FUNCTION__);
-    return false;
-  }
-  CStdString strIsPMode = CDisplaySettings::Get().GetCurrentResolutionInfo().strMode;
-  if ( strIsPMode.Equals("480p 16:9") || strIsPMode.Equals("480p 4:3") || strIsPMode.Equals("720p 16:9"))
-  {
-    CLog::Log(LOGDEBUG, "%s - Progressive Mode detected: Skipping Auto Filter Flicker Patching!", __FUNCTION__);
-    return false;
-  }
-  if (strncmp(szPath1, "D:", 2) == 0)
-  {
-    CLog::Log(LOGDEBUG, "%s - Source is DVD-ROM! Skipping Filter Flicker Patching.", __FUNCTION__);
-    return false;
-  }
-
-  CLog::Log(LOGDEBUG, "%s - Auto Filter Flicker is ON. Starting Filter Flicker Patching.", __FUNCTION__);
-
-  // Test if we already have a patched _ffp XBE
-  // Since the FF can be changed in XBMC, we will not check for a pre patched _ffp xbe!
-  /* // May we can add. a changed FF detection.. then we can actived this!
-  CFile	xbe;
-	if (xbe.Exists(szPath1))
-  {
-    char szDrive[_MAX_DRIVE], szDir[_MAX_DIR], szFname[_MAX_FNAME], szExt[_MAX_EXT];
-		_splitpath(szPath1, szDrive, szDir, szFname, szExt);
-		strncat(szFname, "_ffp", 4);
-		_makepath(szNewPath.GetBuffer(MAX_PATH), szDrive, szDir, szFname, szExt);
-		szNewPath.ReleaseBuffer();
-		if (xbe.Exists(szNewPath))
-			return true;
-	} */
-
-
-  CXBE m_xbe;
-  if((int)m_xbe.ExtractGameRegion(szPath1.c_str()) <= 0) // Reading the GameRegion is enought to detect a Patchable xbe!
-  {
-    CLog::Log(LOGDEBUG, "%s - %s",szPath1.c_str(), __FUNCTION__);
-    CLog::Log(LOGDEBUG, "%s - Not Patchable xbe detected (Homebrew?)! Skipping Filter Flicker Patching.", __FUNCTION__);
-    return false;
-  }
-#ifdef HAS_XBOX_HARDWARE
-  CGFFPatch m_ffp;
-  if (!m_ffp.FFPatch(szPath1, szNewPath))
-  {
-    CLog::Log(LOGDEBUG, "%s - ERROR during Filter Flicker Patching. Falling back to the original source.", __FUNCTION__);
-    return false;
-  }
-#endif
-  if(szNewPath.IsEmpty())
-  {
-    CLog::Log(LOGDEBUG, "%s - ERROR NO Patchfile Path is empty! Falling back to the original source.", __FUNCTION__);
-    return false;
-  }
-  CLog::Log(LOGDEBUG, "%s - Filter Flicker Patching done. Starting %s.", __FUNCTION__, szNewPath.c_str());
-  return true;
-}
-
 void CUtil::RunXBE(const char* szPath1, char* szParameters, F_VIDEO ForceVideo, F_COUNTRY ForceCountry, CUSTOM_LAUNCH_DATA* pData)
 {
   // check if locked
@@ -3311,12 +3249,6 @@ void CUtil::RunXBE(const char* szPath1, char* szParameters, F_VIDEO ForceVideo, 
 
   char szPath[1024];
   strcpy(szPath, CSpecialProtocol::TranslatePath(szPath1).c_str());
-
-  CStdString szNewPath;
-  if (RunFFPatchedXBE(szPath, szNewPath))
-  {
-    strcpy(szPath, szNewPath.c_str());
-  }
 
   if (strncmp(szPath, "Q:", 2) == 0)
   { // may aswell support the virtual drive as well...

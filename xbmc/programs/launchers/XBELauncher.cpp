@@ -22,10 +22,14 @@
 #include "programs/dialogs/GUIDialogProgramSettings.h"
 #include "programs/ProgramDatabase.h"
 #include "FileItem.h"
+#include "settings/DisplaySettings.h"
+#include "settings/Settings.h"
+#include "utils/FilterFlickerPatch.h"
 #include "utils/URIUtils.h"
 #include "utils/Trainer.h"
 #include "utils/log.h"
 #include "Util.h"
+#include "xbox/xbeheader.h"
 
 using namespace LAUNCHERS;
 
@@ -47,12 +51,47 @@ CXBELauncher::~CXBELauncher(void)
 
 bool CXBELauncher::LoadSettings()
 {
-    return false;
+  return false;
 }
 
 bool CXBELauncher::IsSupported()
 {
   return URIUtils::HasExtension(m_strExecutable, ".xbe");
+}
+
+bool CXBELauncher::ApplyFFPatch(const std::string& strExecutable, std::string& strPatchedExecutable)
+{
+  RESOLUTION res = CDisplaySettings::Get().GetCurrentResolution();
+  if (res == RES_HDTV_480p_4x3 ||
+      res == RES_HDTV_480p_16x9 ||
+      res == RES_HDTV_720p)
+  {
+    CLog::Log(LOGDEBUG, "%s - Progressive Mode detected: Skipping Filter Flicker Patching!", __FUNCTION__);
+    return false;
+  }
+
+  if (URIUtils::IsOnDVD(strExecutable))
+  {
+    CLog::Log(LOGDEBUG, "%s - Source is DVD-ROM: Skipping Filter Flicker Patching!", __FUNCTION__);
+    return false;
+  }
+
+  CXBE m_xbe;
+  if((int)m_xbe.ExtractGameRegion(strExecutable.c_str()) <= 0) // Reading the GameRegion is enought to detect a Patchable xbe!
+  {
+    CLog::Log(LOGDEBUG, "%s - Not Patchable xbe detected (Homebrew?): Skipping Filter Flicker Patching!", __FUNCTION__);
+    return false;
+  }
+
+  CLog::Log(LOGDEBUG, "%s - Starting Filter Flicker Patching...", __FUNCTION__);
+  CGFFPatch m_ffp;
+  if (!m_ffp.FFPatch(strExecutable, strPatchedExecutable))
+  {
+    CLog::Log(LOGERROR, "%s - Filter Flicker Patching failed!", __FUNCTION__);
+    return false;
+  }
+  CLog::Log(LOGDEBUG, "%s - Filter Flicker Patching done. Saved to %s.", __FUNCTION__, strPatchedExecutable.c_str());
+  return true;
 }
 
 CTrainer* CXBELauncher::LoadTrainer(unsigned int iTitleID)
@@ -97,6 +136,14 @@ bool CXBELauncher::Launch()
     return false;
   }
 
-  // TODO: implement launching of this executable (region switching, flicke filter etc.)
+  // apply flicker filter
+  if (CSettings::GetInstance().GetBool("myprograms.autoffpatch"))
+  {
+    std::string strPatchedExecutable;
+    if (ApplyFFPatch(m_strExecutable, strPatchedExecutable))
+      m_strExecutable = strPatchedExecutable;
+  }
+
+  // TODO: implement launching of this executable (region switching etc.)
   return false;
 }

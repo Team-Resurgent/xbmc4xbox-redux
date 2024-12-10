@@ -168,7 +168,6 @@ public:
   static void WipeDir(const CStdString& strPath);
   static void ForceForwardSlashes(CStdString& strPath);
   static bool PWMControl(const CStdString &strRGBa, const CStdString &strRGBb, const CStdString &strWhiteA, const CStdString &strWhiteB, const CStdString &strTransition, int iTrTime);
-  static bool RunFFPatchedXBE(CStdString szPath1, CStdString& szNewPath);
   static void RemoveKernelPatch();
   static bool LookForKernelPatch();
 

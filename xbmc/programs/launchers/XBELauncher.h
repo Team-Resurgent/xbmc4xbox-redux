@@ -37,6 +37,12 @@ namespace LAUNCHERS
 
     static CTrainer* LoadTrainer(unsigned int iTitleID);
 
+    /*! \brief Applies a flicker filter patch to an Xbox Executable (XBE) file.
+     \param strExecutable path to original XBE file that needs patching.
+     \param strPatchedExecutable path to patched XBE
+     */
+    static bool ApplyFFPatch(const std::string& strExecutable, std::string& strPatchedExecutable);
+
   protected:
     virtual bool LoadSettings();
 

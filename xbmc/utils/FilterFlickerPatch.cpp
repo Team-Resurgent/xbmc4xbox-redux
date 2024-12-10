@@ -30,6 +30,8 @@
 #include "FilterFlickerPatch.h"
 #include "filesystem/File.h"
 #include "settings/Settings.h"
+#include "StringUtils.h"
+#include "URIUtils.h"
 #include "log.h"
 
 using namespace XFILE;
@@ -37,10 +39,9 @@ using namespace XFILE;
 int patchCount=0;
 UINT patches[50][2];
 
-bool CGFFPatch::FFPatch(CStdString m_FFPatchFilePath, CStdString &strNEW_FFPatchFilePath)  // apply the patch
+bool CGFFPatch::FFPatch(const std::string& m_FFPatchFilePath, std::string &strNEW_FFPatchFilePath)  // apply the patch
 {
   CFile xbe;
-  CStdString tmp;
 	UINT location, startPos;
 	BOOL results=FALSE;
  
@@ -53,9 +54,7 @@ bool CGFFPatch::FFPatch(CStdString m_FFPatchFilePath, CStdString &strNEW_FFPatch
   
   xbe.Open(m_FFPatchFilePath);
   int size = (int)xbe.GetLength();
-	tmp.Format("%d", (size/1024) );
-	
-  CLog::Log(LOGDEBUG, __FUNCTION__" - File size is:%s kb",tmp.c_str());
+  CLog::Log(LOGDEBUG, __FUNCTION__" - File size is:%d kb", (size/1024));
 	
   BYTE* pbuffer = new BYTE[size+1];
 	if ( pbuffer == NULL )
@@ -123,8 +122,11 @@ bool CGFFPatch::FFPatch(CStdString m_FFPatchFilePath, CStdString &strNEW_FFPatch
 		{
       // Create a new file with the patch!
       CFile file;
-      CStdString strNewFFPFile;
-      strNewFFPFile.Format("%s_ffp.xbe",m_FFPatchFilePath.Left(m_FFPatchFilePath.GetLength()-4));
+			std::string strFilename = URIUtils::GetFileName(m_FFPatchFilePath);
+			URIUtils::RemoveExtension(strFilename);
+			strFilename = StringUtils::Format("%s_ffp.xbe", strFilename.c_str());
+      std::string strNewFFPFile = URIUtils::GetParentPath(m_FFPatchFilePath);
+			strNewFFPFile = URIUtils::AddFileToFolder(strNewFFPFile, strFilename);
       if(file.OpenForWrite(strNewFFPFile.c_str(),true))
       {
         file.Write(&pbuffer[0],size);
@@ -235,15 +237,13 @@ void CGFFPatch::replaceConditionalJump(BYTE* pbuffer, UINT &location, UINT range
 BOOL CGFFPatch::findConditionalJump(BYTE* pbuffer, UINT &location, UINT range)
 {
 	CLog::Log(LOGDEBUG, __FUNCTION__" - Locate conditional jump...");
-	CStdString tmp;
 	for (UINT i=location; i>(location-range); i--)		// should be within ~20 bytes
 	{
     //if ( (pbuffer[i] == 0x74) && (pbuffer[i+1] < range+0x10) )
     if ( (pbuffer[i] == 0x74) && (pbuffer[i+1] < range+0x10) && (pbuffer[i-3] != 0x8b) )
     {
 			location = i;
-				tmp.Format("%x", i);
-				CLog::Log(LOGDEBUG, __FUNCTION__" - found at:0x",tmp.c_str());
+			CLog::Log(LOGDEBUG, __FUNCTION__" - found at:0x%x", i);
 			return TRUE;
 		}
 	}
