@@ -1339,6 +1339,13 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
         media_type = MediaTypeGame;
         extraField = "files.playCount";
       }
+      else if (idContent == PROGRAMDB_CONTENT_APPS)
+      {
+        view       = MediaTypeGame;
+        view_id    = "idGame";
+        media_type = MediaTypeApp;
+        extraField = "";
+      }
       else
         return false;
 
@@ -1360,6 +1367,14 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
         view_id    = "idGame";
         media_type = MediaTypeGame;
         extraField = "count(1), count(files.playCount)";
+        extraJoin  = PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str());
+      }
+      else if (idContent == PROGRAMDB_CONTENT_APPS)
+      {
+        view       = MediaTypeGame;
+        view_id    = "idGame";
+        media_type = MediaTypeApp;
+        extraField = "count(1)";
         extraJoin  = PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str());
       }
       else
@@ -1740,7 +1755,7 @@ bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList&
     return false;
 
   Filter filter;
-  filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
+  filter.where = PrepareSQL("c0%i = '%s'", PROGRAMDB_ID_TYPE, programUrl.GetType() == "apps" ? "app" : "game");
   return GetGamesByWhere(programUrl.ToString(), filter, items, sortDescription, getDetails);
 }
 

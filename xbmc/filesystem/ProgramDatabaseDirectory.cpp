@@ -105,6 +105,14 @@ std::string CProgramDatabaseDirectory::GetIcon(const std::string &strDirectory)
       return "DefaultMovieTitle.png";
     }
     return "";
+  case NODE_TYPE_TITLE_APPS:
+    if (URIUtils::PathEquals(path, "programdb://apps/titles/"))
+    {
+      if (CSettings::GetInstance().GetBool("myprograms.flatten"))
+        return "DefaultProgram.png";
+      return "DefaultMovieTitle.png";
+    }
+    return "";
   case NODE_TYPE_GAMES_OVERVIEW: // Games
     return "DefaultGames.png";
   case NODE_TYPE_RECENTLY_ADDED_GAMES: // Recently Added Games

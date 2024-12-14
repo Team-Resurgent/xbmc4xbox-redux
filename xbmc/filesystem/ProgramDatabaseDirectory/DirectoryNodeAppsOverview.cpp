@@ -28,7 +28,8 @@
 using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 
 Node AppChildren[] = {
-                        { NODE_TYPE_TITLE_APPS,     "titles",          369 }
+                        { NODE_TYPE_TITLE_APPS,     "titles",          369 },
+                        { NODE_TYPE_TAGS,           "tags",            20459 }
                        };
 
 CDirectoryNodeAppsOverview::CDirectoryNodeAppsOverview(const std::string& strName, CDirectoryNode* pParent)

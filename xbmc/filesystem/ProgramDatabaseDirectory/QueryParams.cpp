@@ -45,7 +45,10 @@ void CQueryParams::SetQueryParam(NODE_TYPE NodeType, const std::string& strNodeN
   switch (NodeType)
   {
   case NODE_TYPE_OVERVIEW:
-    m_idContent = PROGRAMDB_CONTENT_GAMES;
+    if (strNodeName == "apps")
+      m_idContent = PROGRAMDB_CONTENT_APPS;
+    else
+      m_idContent = PROGRAMDB_CONTENT_GAMES;
     break;
   case NODE_TYPE_DEVELOPER:
     m_idDeveloper = idDb;

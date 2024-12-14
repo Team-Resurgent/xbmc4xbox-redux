@@ -37,6 +37,9 @@ NODE_TYPE CDirectoryNodeGrouped::GetChildType() const
   if (params.GetContentType() == PROGRAMDB_CONTENT_GAMES)
     return NODE_TYPE_TITLE_GAMES;
 
+  if (params.GetContentType() == PROGRAMDB_CONTENT_APPS)
+    return NODE_TYPE_TITLE_APPS;
+
   return NODE_TYPE_NONE;
 }
 
@@ -102,11 +105,13 @@ std::string CDirectoryNodeGrouped::GetContentType(const CQueryParams &params) co
       return "years";
 
     case NODE_TYPE_GAMES_OVERVIEW:
+    case NODE_TYPE_APPS_OVERVIEW:
     case NODE_TYPE_NONE:
     case NODE_TYPE_OVERVIEW:
     case NODE_TYPE_RECENTLY_ADDED_GAMES:
     case NODE_TYPE_ROOT:
     case NODE_TYPE_TITLE_GAMES:
+    case NODE_TYPE_TITLE_APPS:
     default:
       break;
   }
