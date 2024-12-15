@@ -19,6 +19,7 @@
  */
 
 #include "LauncherFactory.h"
+#include "XBELauncher.h"
 #include "utils/log.h"
 #include "URL.h"
 
@@ -38,6 +39,9 @@ IProgramLauncher* CLauncherFactory::Create(const CURL& url)
     CLog::Log(LOGWARNING, "%s - unsupported protocol: %s", __FUNCTION__, url.GetProtocol().c_str());
     return false;
   }
+
+  if (url.IsFileType("xbe"))
+    return new CXBELauncher(url.Get());
 
   CLog::Log(LOGWARNING, "%s - unsupported executable: %s", __FUNCTION__, url.Get().c_str());
   return NULL;
