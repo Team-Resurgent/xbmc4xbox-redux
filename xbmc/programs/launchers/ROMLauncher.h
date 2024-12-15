@@ -20,11 +20,12 @@
  */
 
 #include "IProgramLauncher.h"
+#include "FileItem.h"
 
 #include <string>
 
 class CProgramDatabase;
-class CFileItemList;
+struct SProgramSettings;
 
 namespace LAUNCHERS
 {
@@ -41,14 +42,20 @@ namespace LAUNCHERS
     CROMLauncher(std::string strExecutable);
     virtual ~CROMLauncher(void);
 
+    static bool FindEmulators(const std::string strRomFile, CFileItemList& emulators);
+
+  protected:
+    virtual bool LoadSettings();
+
   private:
     virtual bool Launch(bool bLoadSettings, bool bAllowRegionSwitching);
     virtual bool IsSupported();
 
-    bool FindEmulators(CFileItemList& emulators);
+    bool GetDefaultEmulator(CFileItemPtr& emulator);
 
     std::string m_strExecutable;
 
     CProgramDatabase* m_database;
+    SProgramSettings* m_settings;
   };
 }

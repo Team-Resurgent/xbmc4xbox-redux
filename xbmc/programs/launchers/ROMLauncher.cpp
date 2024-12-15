@@ -19,10 +19,11 @@
  */
 
 #include "ROMLauncher.h"
-#include "FileItem.h"
 #include "Shortcut.h"
+#include "filesystem/File.h"
 #include "dialogs/GUIDialogSelect.h"
 #include "guilib/GUIWindowManager.h"
+#include "programs/dialogs/GUIDialogProgramSettings.h"
 #include "programs/ProgramDatabase.h"
 #include "settings/AdvancedSettings.h"
 #include "utils/URIUtils.h"
@@ -44,11 +45,19 @@ CROMLauncher::CROMLauncher(std::string strExecutable)
 {
   m_strExecutable = strExecutable;
   m_database = new CProgramDatabase();
+  m_settings = new SProgramSettings();
 }
 
 CROMLauncher::~CROMLauncher(void)
 {
   delete m_database;
+  delete m_settings;
+}
+
+bool CROMLauncher::LoadSettings()
+{
+  CGUIDialogProgramSettings::LoadSettings(m_strExecutable, *m_settings);
+  return true;
 }
 
 bool CROMLauncher::IsSupported()
@@ -59,16 +68,32 @@ bool CROMLauncher::IsSupported()
   return URIUtils::HasExtension(m_strExecutable, g_advancedSettings.m_programExtensions);
 }
 
-bool CROMLauncher::FindEmulators(CFileItemList& emulators)
+bool CROMLauncher::GetDefaultEmulator(CFileItemPtr& emulator)
 {
+  if (m_settings->strEmulator.empty())
+    return false;
+
+  if (!XFILE::CFile::Exists(m_settings->strEmulator))
+    return false;
+
+  emulator = CFileItemPtr(new CFileItem(m_settings->strEmulator));
+  return true;
+}
+
+bool CROMLauncher::FindEmulators(const std::string strRomFile, CFileItemList& emulators)
+{
+  CProgramDatabase database;
+  if (!database.Open())
+    return false;
+
   std::vector<std::string> vecSystems;
   for (unsigned int i = 0; i < sizeof(Systems) / sizeof(SystemMapping); ++i)
   {
-    if (URIUtils::HasExtension(m_strExecutable, Systems[i].extension))
+    if (URIUtils::HasExtension(strRomFile, Systems[i].extension))
       vecSystems.push_back(Systems[i].shortname);
   }
 
-  return m_database->GetEmulators(vecSystems, emulators);
+  return database.GetEmulators(vecSystems, emulators);
 }
 
 bool CROMLauncher::Launch(bool bLoadSettings, bool bAllowRegionSwitching)
@@ -76,36 +101,45 @@ bool CROMLauncher::Launch(bool bLoadSettings, bool bAllowRegionSwitching)
   if (!m_database->Open())
     return false;
 
+  if (bLoadSettings)
+    LoadSettings();
+
   if (!IsSupported())
     return false;
 
-  // get emualators for this ROM
-  CFileItemList emulators;
-  if (!FindEmulators(emulators) || emulators.IsEmpty())
-  {
-    CLog::Log(LOGINFO, "Emulator for %s is not installed", m_strExecutable.c_str());
-    return false;
-  }
-
-  // if there is more then one, let user to choose one
+  // Get emulator for this ROM
   CFileItemPtr emulator;
-  if (emulators.Size() > 1)
-  {
-    CGUIDialogSelect *dialog = static_cast<CGUIDialogSelect*>(g_windowManager.GetWindow(WINDOW_DIALOG_SELECT));
-    dialog->Reset();
-    dialog->SetHeading(22080);
-    dialog->SetItems(emulators);
-    dialog->Open();
-    if (dialog->GetSelectedItem() < 0)
+  if (!GetDefaultEmulator(emulator))
+  { // no default, look for available emulators
+    CFileItemList emulators;
+    if (!FindEmulators(m_strExecutable, emulators) || emulators.IsEmpty())
+    {
+      CLog::Log(LOGINFO, "Emulator for %s is not installed", m_strExecutable.c_str());
       return false;
-    emulator = dialog->GetSelectedFileItem();
+    }
+
+    // if there is more then one, let user to choose one
+    if (emulators.Size() > 1)
+    {
+      CGUIDialogSelect *dialog = static_cast<CGUIDialogSelect*>(g_windowManager.GetWindow(WINDOW_DIALOG_SELECT));
+      dialog->Reset();
+      dialog->SetHeading(22080);
+      dialog->SetItems(emulators);
+      dialog->Open();
+      if (dialog->GetSelectedItem() < 0)
+        return false;
+      emulator = dialog->GetSelectedFileItem();
+    }
+    else
+      emulator = emulators[0];
+
+    m_settings->strEmulator = emulator->GetProgramInfoTag()->m_strFileNameAndPath;
+    CGUIDialogProgramSettings::SaveSettings(m_strExecutable, *m_settings);
   }
-  else
-    emulator = emulators[0];
 
   // Launch ROM
   CShortcut shortcut;
-  shortcut.m_strPath = emulator->GetProgramInfoTag()->m_strFileNameAndPath.c_str();
+  shortcut.m_strPath = m_settings->strEmulator.c_str();
   shortcut.m_strCustomGame = m_strExecutable.c_str();
   shortcut.Save(CUSTOM_LAUNCH);
   CUtil::RunShortcut(CUSTOM_LAUNCH);

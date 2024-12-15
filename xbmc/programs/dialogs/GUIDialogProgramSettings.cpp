@@ -26,6 +26,7 @@
 #include "filesystem/Directory.h"
 #include "programs/ProgramDatabase.h"
 #include "programs/launchers/ProgramLauncher.h"
+#include "programs/launchers/ROMLauncher.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/lib/Setting.h"
 #include "settings/windows/GUIControlSettings.h"
@@ -37,6 +38,7 @@
 #include "xbox/xbeheader.h"
 
 #define SETTING_EXECUTABLE            "programexecutable"
+#define SETTING_EMULATOR              "defaultemulator"
 #define SETTING_FORCEREGION           "programforceregion"
 #define SETTING_TRAINER_LIST          "trainerlist"
 #define SETTING_TRAINER_HACKS         "trainerchoosehacks"
@@ -105,6 +107,10 @@ void CGUIDialogProgramSettings::LoadSettings(const std::string& strExecutable, S
         if (isXBE)
         {
           XMLUtils::GetInt(element, SETTING_FORCEREGION, programSettings.iForceRegion);
+        }
+        else
+        { // for now, everything else is ROM
+          XMLUtils::GetString(element, SETTING_EMULATOR, programSettings.strEmulator);
         }
       }
     }
@@ -202,6 +208,10 @@ void CGUIDialogProgramSettings::SaveSettings(const std::string& strExecutable, c
       {
         XMLUtils::SetInt(pRoot, SETTING_FORCEREGION, settings.iForceRegion);
       }
+      else
+      { // for now, everything else is ROM
+        XMLUtils::SetString(pRoot, SETTING_EMULATOR, settings.strEmulator);
+      }
 
       TiXmlPrinter printer;
       printer.SetIndent("");
@@ -272,6 +282,16 @@ void CGUIDialogProgramSettings::StringOptionsFiller(const CSetting *setting, std
       }
     }
   }
+  else if (setting->GetId() == SETTING_EMULATOR)
+  {
+    list.push_back(std::pair<std::string, std::string>(g_localizeStrings.Get(231), "none"));
+    CFileItemList emulators;
+    if (LAUNCHERS::CROMLauncher::FindEmulators(programSettings->m_strExecutable, emulators))
+    {
+      for (int i = 0; i < emulators.Size(); ++i)
+        list.push_back(std::pair<std::string, std::string>(emulators[i]->GetLabel(), emulators[i]->GetProgramInfoTag()->m_strFileNameAndPath));
+    }
+  }
 }
 
 void CGUIDialogProgramSettings::OnSettingChanged(const CSetting *setting)
@@ -285,6 +305,10 @@ void CGUIDialogProgramSettings::OnSettingChanged(const CSetting *setting)
   if (settingId == SETTING_EXECUTABLE)
   {
     m_settings.strExecutable = ((CSettingString*)setting)->GetValue();
+  }
+  else if (settingId == SETTING_EMULATOR)
+  {
+    m_settings.strEmulator = ((CSettingString*)setting)->GetValue();
   }
   else if (settingId == SETTING_FORCEREGION)
   {
@@ -412,6 +436,10 @@ void CGUIDialogProgramSettings::InitializeSettings()
     deps.push_back(dependencyHacks);
     btnHacks->SetDependencies(deps);
     deps.clear();
+  }
+  else
+  { // for now, everything else is ROM
+    AddList(group, SETTING_EMULATOR, 38995, 0, m_settings.strEmulator, StringOptionsFiller, 38995);
   }
 }
 
