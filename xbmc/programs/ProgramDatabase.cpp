@@ -2454,3 +2454,16 @@ bool CProgramDatabase::GetProgramSettings(const std::string& strFileNameAndPath,
   }
   return false;
 }
+
+bool CProgramDatabase::GetEmulators(const std::vector<std::string>& systems, CFileItemList &emulators)
+{
+  Filter filter;
+  filter.AppendWhere(PrepareSQL("c%02d = 'app'", PROGRAMDB_ID_TYPE));
+  std::string strWhere;
+  for (std::vector<std::string>::const_iterator it = systems.begin(); it != systems.end(); ++it)
+    strWhere += strWhere.empty() ? PrepareSQL("c%02d LIKE '%%%s%%'", PROGRAMDB_ID_SYSTEN, (*it).c_str())
+                                 : PrepareSQL("OR c%02d LIKE '%%%s%%'", PROGRAMDB_ID_SYSTEN, (*it).c_str());
+  filter.AppendWhere(strWhere);
+
+  return GetGamesByWhere("programdb://apps/titles/", filter, emulators);
+}

@@ -24,9 +24,17 @@
 #include <string>
 
 class CProgramDatabase;
+class CFileItemList;
 
 namespace LAUNCHERS
 {
+  typedef struct
+  {
+    const char* name;
+    const char* shortname;
+    const char* extension;
+  } SystemMapping;
+
   class CROMLauncher : public IProgramLauncher
   {
   public:
@@ -36,6 +44,8 @@ namespace LAUNCHERS
   private:
     virtual bool Launch(bool bLoadSettings, bool bAllowRegionSwitching);
     virtual bool IsSupported();
+
+    bool FindEmulators(CFileItemList& emulators);
 
     std::string m_strExecutable;
 

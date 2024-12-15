@@ -283,6 +283,9 @@ public:
   bool SetProgramSettings(const std::string& strFileNameAndPath, const std::string& strSettings);
   bool GetProgramSettings(const std::string& strFileNameAndPath, std::string& strSettings);
 
+  // Emulators
+  bool GetEmulators(const std::vector<std::string>& systems, CFileItemList& emulators);
+
 protected:
   int GetGameId(const std::string& strFilenameAndPath);
 
