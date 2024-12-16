@@ -51,7 +51,8 @@ CXBELauncher::~CXBELauncher(void)
 
 bool CXBELauncher::LoadSettings()
 {
-  return false;
+  CGUIDialogProgramSettings::LoadSettings(m_strExecutable, *m_settings);
+  return true;
 }
 
 bool CXBELauncher::IsSupported()
@@ -128,6 +129,8 @@ bool CXBELauncher::Launch()
   if (!IsSupported())
     return false;
 
+  LoadSettings();
+
   // install trainer if available
   m_trainer = LoadTrainer(CUtil::GetXbeID(m_strExecutable));
   if (m_trainer && !CTrainer::InstallTrainer(*m_trainer))
@@ -144,6 +147,11 @@ bool CXBELauncher::Launch()
       m_strExecutable = strPatchedExecutable;
   }
 
-  // TODO: implement launching of this executable (region switching etc.)
-  return false;
+  // apply video mode switching
+  int iRegion = m_settings->iForceRegion;
+  if (!iRegion && CSettings::GetInstance().GetBool("myprograms.gameautoregion"))
+    iRegion = CGUIDialogProgramSettings::GetXBERegion(m_strExecutable);
+
+  CUtil::RunXBE(m_strExecutable.c_str(), NULL, F_VIDEO(iRegion));
+  return true;
 }
