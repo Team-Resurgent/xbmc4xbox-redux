@@ -152,6 +152,13 @@ bool CXBELauncher::Launch()
   if (!iRegion && CSettings::GetInstance().GetBool("myprograms.gameautoregion"))
     iRegion = CGUIDialogProgramSettings::GetXBERegion(m_strExecutable);
 
+  // look for default executable
+  if (!m_settings->strExecutable.empty() && !CSettings::GetInstance().GetBool("myprograms.autoffpatch"))
+  {
+    std::string strParentPath = URIUtils::GetParentPath(m_strExecutable);
+    m_strExecutable = URIUtils::AddFileToFolder(strParentPath, m_settings->strExecutable);
+  }
+
   CUtil::RunXBE(m_strExecutable.c_str(), NULL, F_VIDEO(iRegion));
   return true;
 }
