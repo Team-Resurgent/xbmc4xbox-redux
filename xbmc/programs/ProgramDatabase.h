@@ -150,6 +150,12 @@ public:
 
   int AddGame(const std::string& strFilenameAndPath);
 
+  /*! \brief Update the last played time of program
+   Updates the last played date
+   \param strFilenameAndPath program to update the last played time for
+   */
+  void UpdateLastPlayed(const std::string& strFilenameAndPath);
+
   void UpdateProgramTitle(int idProgram, const std::string& strNewProgramTitle, PROGRAMDB_CONTENT_TYPE iType=PROGRAMDB_CONTENT_GAMES);
 
   bool HasGameInfo(const std::string& strFilenameAndPath);

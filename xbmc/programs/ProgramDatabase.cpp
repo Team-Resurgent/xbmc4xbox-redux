@@ -1260,6 +1260,26 @@ int CProgramDatabase::GetSchemaVersion() const
   return 1;
 }
 
+void CProgramDatabase::UpdateLastPlayed(const std::string& strFilenameAndPath)
+{
+  int id = AddFile(strFilenameAndPath);
+  if (id < 0)
+    return;
+
+  try
+  {
+    if (NULL == m_pDB.get()) return ;
+    if (NULL == m_pDS.get()) return ;
+
+    std::string strSQL = PrepareSQL("update files set lastPlayed='%s' where idFile=%i", CDateTime::GetCurrentDateTime().GetAsDBDateTime().c_str(), id);
+    m_pDS->exec(strSQL);
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+}
+
 void CProgramDatabase::UpdateProgramTitle(int idProgram, const std::string& strNewProgramTitle, PROGRAMDB_CONTENT_TYPE iType)
 {
   try

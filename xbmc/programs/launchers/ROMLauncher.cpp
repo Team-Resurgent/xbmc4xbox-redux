@@ -137,17 +137,21 @@ bool CROMLauncher::Launch(bool bLoadSettings, bool bAllowRegionSwitching)
     CGUIDialogProgramSettings::SaveSettings(m_strExecutable, *m_settings);
   }
 
+  std::string strExecutable = m_strExecutable;
+
   // look for default executable
   if (!m_settings->strExecutable.empty())
   {
     std::string strParentPath = URIUtils::GetParentPath(m_strExecutable);
-    m_strExecutable = URIUtils::AddFileToFolder(strParentPath, m_settings->strExecutable);
+    strExecutable = URIUtils::AddFileToFolder(strParentPath, m_settings->strExecutable);
   }
+
+  m_database->UpdateLastPlayed(m_strExecutable);
 
   // Launch ROM
   CShortcut shortcut;
   shortcut.m_strPath = m_settings->strEmulator.c_str();
-  shortcut.m_strCustomGame = m_strExecutable.c_str();
+  shortcut.m_strCustomGame = strExecutable.c_str();
   shortcut.Save(CUSTOM_LAUNCH);
   CUtil::RunShortcut(CUSTOM_LAUNCH);
   return true;
