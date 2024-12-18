@@ -22,6 +22,9 @@
 #include "GUIDialogFileBrowser.h"
 #include "music/MusicDatabase.h"
 #include "video/VideoDatabase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramDatabase.h"
+#endif
 #include "guilib/GUIWindowManager.h"
 #include "GUIDialogSelect.h"
 #include "filesystem/Directory.h"
@@ -108,10 +111,18 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
   database.Open();
   CVideoDatabase videodatabase;
   videodatabase.Open();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  CProgramDatabase programdatabase;
+  programdatabase.Open();
+#endif
 
   std::string basePath;
   if (CSmartPlaylist::IsMusicType(m_type))
     basePath = "musicdb://";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (CSmartPlaylist::IsProgramType(m_type))
+    basePath = "programdb://";
+#endif
   else
     basePath = "videodb://";
 
@@ -138,6 +149,11 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
     basePath += "tvshows/";
   }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (m_type == "games")
+    basePath += "games/";
+#endif
+
   int iLabel = 0;
   if (m_rule.m_field == FieldGenre)
   {
@@ -145,6 +161,10 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
         m_type == "episodes" ||
         m_type == "movies")
       videodatabase.GetGenresNav(basePath + "genres/", items, type);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (m_type == "games")
+      programdatabase.GetGenresNav(basePath + "genres/", items, PROGRAMDB_CONTENT_GAMES);
+#endif
     else if (m_type == "songs" ||
              m_type == "albums" ||
              m_type == "artists" ||
@@ -213,6 +233,14 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
       videodatabase.GetYearsNav(basePath + "years/", items2, type);
       items.Append(items2);
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (CSmartPlaylist::IsProgramType(m_type))
+    {
+      CFileItemList items2;
+      programdatabase.GetYearsNav(basePath + "years/", items2, PROGRAMDB_CONTENT_GAMES);
+      items.Append(items2);
+    }
+#endif
     iLabel = 562;
   }
   else if (m_rule.m_field == FieldDirector)
@@ -248,6 +276,13 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
       videodatabase.GetMoviesNav(basePath + "titles/", items);
       iLabel = 20342;
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (m_type == "games")
+    {
+      programdatabase.GetGamesNav(basePath + "titles/", items);
+      iLabel = 38928;
+    }
+#endif
     if (m_type == "episodes")
     {
       videodatabase.GetEpisodesNav(basePath + "titles/-1/-1/", items);
@@ -310,6 +345,13 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
       VECSOURCES sources2 = *CMediaSourceSettings::Get().GetSources("video");
       sources.insert(sources.end(),sources2.begin(),sources2.end());
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (CSmartPlaylist::IsProgramType(m_type))
+    {
+      VECSOURCES sources2 = *CMediaSourceSettings::Get().GetSources("program");
+      sources.insert(sources.end(),sources2.begin(),sources2.end());
+    }
+#endif
     g_mediaManager.GetLocalDrives(sources);
 
     std::string path = m_rule.GetParameter();
@@ -329,6 +371,15 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
   }
   else if (m_rule.m_field == FieldTag)
   {
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (m_type == "games")
+    {
+      programdatabase.GetTagsNav(basePath + "tags/", items, PROGRAMDB_CONTENT_GAMES);
+      iLabel = 20459;
+      return;
+    }
+#endif
+
     VIDEODB_CONTENT_TYPE type = VIDEODB_CONTENT_MOVIES;
     if (m_type == "tvshows" ||
         m_type == "episodes")

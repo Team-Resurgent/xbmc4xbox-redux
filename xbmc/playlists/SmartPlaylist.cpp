@@ -433,6 +433,24 @@ std::vector<Field> CSmartPlaylistRule::GetFields(const std::string &type)
     fields.push_back(FieldDateAdded);
     isVideo = true;
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (type == "games")
+  {
+    fields.push_back(FieldTitle);
+    fields.push_back(FieldPlot);
+    fields.push_back(FieldRating);
+    fields.push_back(FieldPlaycount);
+    fields.push_back(FieldLastPlayed);
+    fields.push_back(FieldGenre);
+    fields.push_back(FieldYear); // released
+    fields.push_back(FieldMPAA); // ESRB
+    fields.push_back(FieldTrailer);
+    fields.push_back(FieldFilename);
+    fields.push_back(FieldPath);
+    fields.push_back(FieldTag);
+    fields.push_back(FieldDateAdded);
+  }
+#endif
   else if (type == "musicvideos")
   {
     fields.push_back(FieldTitle);
@@ -582,6 +600,21 @@ std::vector<SortBy> CSmartPlaylistRule::GetOrders(const std::string &type)
     orders.push_back(SortByPath);
     orders.push_back(SortByDateAdded);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (type == "games")
+  {
+    orders.push_back(SortBySortTitle);
+    orders.push_back(SortByRating);
+    orders.push_back(SortByPlaycount);
+    orders.push_back(SortByLastPlayed);
+    orders.push_back(SortByGenre);
+    orders.push_back(SortByYear); // released
+    orders.push_back(SortByMPAA); // ESRB
+    orders.push_back(SortByFile);
+    orders.push_back(SortByPath);
+    orders.push_back(SortByDateAdded);
+  }
+#endif
   else if (type == "musicvideos")
   {
     orders.push_back(SortByTitle);
@@ -626,6 +659,15 @@ std::vector<Field> CSmartPlaylistRule::GetGroups(const std::string &type)
     groups.push_back(FieldCountry);
     groups.push_back(FieldTag);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (type == "games")
+  {
+    groups.push_back(FieldNone);
+    groups.push_back(FieldGenre);
+    groups.push_back(FieldYear);
+    groups.push_back(FieldTag);
+  }
+#endif
   else if (type == "tvshows")
   {
     groups.push_back(FieldGenre);
@@ -718,6 +760,13 @@ std::string CSmartPlaylistRule::GetBooleanQuery(const std::string &negate, const
     else if (m_field == FieldTrailer)
       return negate + GetField(m_field, strType) + "!= ''";
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (strType == "games")
+  {
+    if (m_field == FieldTrailer)
+      return negate + GetField(m_field, strType) + "!= ''";
+  }
+#endif
   else if (strType == "episodes")
   {
     if (m_field == FieldInProgress)
@@ -851,6 +900,19 @@ std::string CSmartPlaylistRule::FormatWhereClause(const std::string &negate, con
     else if (m_field == FieldTag)
       query = negate + FormatLinkQuery("tag", "tag", MediaTypeMovie, GetField(FieldId, strType), parameter);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (strType == "games")
+  {
+    table = "game_view";
+
+    if (m_field == FieldGenre)
+      query = negate + FormatLinkQuery("genre", "genre", MediaTypeGame, GetField(FieldId, strType), parameter);
+    else if ((m_field == FieldLastPlayed || m_field == FieldDateAdded) && (m_operator == OPERATOR_LESS_THAN || m_operator == OPERATOR_BEFORE || m_operator == OPERATOR_NOT_IN_THE_LAST))
+      query = GetField(m_field, strType) + " IS NULL OR " + GetField(m_field, strType) + parameter;
+    else if (m_field == FieldTag)
+      query = negate + FormatLinkQuery("tag", "tag", MediaTypeGame, GetField(FieldId, strType), parameter);
+  }
+#endif
   else if (strType == "musicvideos")
   {
     table = "musicvideo_view";
@@ -1396,6 +1458,13 @@ bool CSmartPlaylist::IsVideoType() const
   return IsVideoType(m_playlistType);
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CSmartPlaylist::IsProgramType() const
+{
+  return IsProgramType(m_playlistType);
+}
+#endif
+
 bool CSmartPlaylist::IsMusicType() const
 {
   return IsMusicType(m_playlistType);
@@ -1406,6 +1475,13 @@ bool CSmartPlaylist::IsVideoType(const std::string &type)
   return type == "movies" || type == "tvshows" || type == "episodes" ||
          type == "musicvideos" || type == "mixed";
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CSmartPlaylist::IsProgramType(const std::string &type)
+{
+  return type == "games";
+}
+#endif
 
 bool CSmartPlaylist::IsMusicType(const std::string &type)
 {
@@ -1429,6 +1505,10 @@ std::string CSmartPlaylist::GetSaveLocation() const
     return "mixed";
   if (IsMusicType())
     return "music";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (IsProgramType())
+    return "program";
+#endif
   // all others are video
   return "video";
 }

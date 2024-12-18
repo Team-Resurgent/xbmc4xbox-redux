@@ -98,6 +98,9 @@ void CProfilesManager::OnSettingsLoaded()
   CDirectory::Create(strDir);
   CDirectory::Create(URIUtils::AddFileToFolder(strDir,"music"));
   CDirectory::Create(URIUtils::AddFileToFolder(strDir,"video"));
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  CDirectory::Create(URIUtils::AddFileToFolder(strDir,"program"));
+#endif
   CDirectory::Create(URIUtils::AddFileToFolder(strDir,"mixed"));
 }
 

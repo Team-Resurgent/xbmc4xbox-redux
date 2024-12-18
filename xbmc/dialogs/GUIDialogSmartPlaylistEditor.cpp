@@ -69,6 +69,9 @@ static const translateType types[] = { { CGUIDialogSmartPlaylistEditor::TYPE_SON
                                        { CGUIDialogSmartPlaylistEditor::TYPE_MIXED, "mixed", 20395 },
                                        { CGUIDialogSmartPlaylistEditor::TYPE_MUSICVIDEOS, "musicvideos", 20389 },
                                        { CGUIDialogSmartPlaylistEditor::TYPE_MOVIES, "movies", 20342 },
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+                                       { CGUIDialogSmartPlaylistEditor::TYPE_GAMES, "games", 38928 },
+#endif
                                        { CGUIDialogSmartPlaylistEditor::TYPE_TVSHOWS, "tvshows", 20343 },
                                        { CGUIDialogSmartPlaylistEditor::TYPE_EPISODES, "episodes", 20360 }
                                      };
@@ -174,6 +177,10 @@ bool CGUIDialogSmartPlaylistEditor::OnMessage(CGUIMessage& message)
             PLAYLIST_TYPE type = ConvertType(m_playlist.GetType());
             if (type == TYPE_SONGS || type == TYPE_ALBUMS || type == TYPE_ARTISTS)
               m_mode = "music";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+            else if (type == TYPE_GAMES)
+              m_mode = "program";
+#endif
             else
               m_mode = "video";
           }
@@ -430,7 +437,7 @@ void CGUIDialogSmartPlaylistEditor::UpdateButtons()
   m_ruleLabels->Clear();
   for (CDatabaseQueryRules::const_iterator it = m_playlist.m_ruleCombination.m_rules.begin(); it != m_playlist.m_ruleCombination.m_rules.end(); ++it)
   {
-    const boost::shared_ptr<CDatabaseQueryRule> &rule = *it; 
+    const boost::shared_ptr<CDatabaseQueryRule> &rule = *it;
     CFileItemPtr item(new CFileItem("", false));
     item->SetLabel(boost::static_pointer_cast<CSmartPlaylistRule>(rule)->GetLocalizedRule());
     m_ruleLabels->Add(item);
@@ -593,6 +600,12 @@ std::vector<CGUIDialogSmartPlaylistEditor::PLAYLIST_TYPE> CGUIDialogSmartPlaylis
     allowedTypes.push_back(TYPE_MUSICVIDEOS);
     allowedTypes.push_back(TYPE_MIXED);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (mode == "program")
+  { // general category for programs
+    allowedTypes.push_back(TYPE_GAMES);
+  }
+#endif
   return allowedTypes;
 }
 

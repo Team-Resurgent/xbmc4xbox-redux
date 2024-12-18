@@ -121,6 +121,9 @@ public:
   const std::string& GetType() const { return m_playlistType; };
   bool IsVideoType() const;
   bool IsMusicType() const;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  bool IsProgramType() const;
+#endif
 
   void SetMatchAllRules(bool matchAll) { m_ruleCombination.SetType(matchAll ? CSmartPlaylistRuleCombination::CombinationAnd : CSmartPlaylistRuleCombination::CombinationOr); }
   bool GetMatchAllRules() const { return m_ruleCombination.GetType() == CSmartPlaylistRuleCombination::CombinationAnd; }
@@ -157,6 +160,9 @@ public:
   static void GetAvailableFields(const std::string &type, std::vector<std::string> &fieldList);
 
   static bool IsVideoType(const std::string &type);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  static bool IsProgramType(const std::string &type);
+#endif
   static bool IsMusicType(const std::string &type);
   static bool CheckTypeCompatibility(const std::string &typeLeft, const std::string &typeRight);
 
