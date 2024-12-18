@@ -1818,15 +1818,8 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
     DatabaseResults results;
     results.reserve(iRowsFound);
 
-    // TODO: add support for sorting queried games
-    const dbiplus::result_set &resultSet = m_pDS->get_result_set();
-    unsigned int offset = results.size();
-    DatabaseResult result;
-    for (unsigned int index = 0; index < resultSet.records.size(); index++)
-    {
-      result[FieldRow] = index + offset;
-      results.push_back(result);
-    }
+    if (!SortUtils::SortFromDataset(sortDescription, MediaTypeGame, m_pDS, results))
+      return false;
 
     // get data from returned rows
     items.Reserve(results.size());
