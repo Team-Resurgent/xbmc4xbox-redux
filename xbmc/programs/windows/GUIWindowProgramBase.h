@@ -47,6 +47,7 @@ protected:
   virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
   virtual void OnItemLoaded(CFileItem* pItem) {};
 
+  virtual void GetContextButtons(int itemNumber, CContextButtons &buttons);
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
 
   virtual bool OnPlayMedia(int iItem, const std::string &player = "");

@@ -25,6 +25,7 @@
 #include "programs/ProgramLibraryQueue.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
 #include "programs/launchers/ProgramLauncher.h"
+#include "dialogs/GUIDialogSmartPlaylistEditor.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "Application.h"
@@ -189,6 +190,21 @@ bool CGUIWindowProgramBase::ShowIGDB(CFileItemPtr item, const ScraperPtr &info2)
   return listNeedsUpdating;
 }
 
+void CGUIWindowProgramBase::GetContextButtons(int itemNumber, CContextButtons &buttons)
+{
+  CFileItemPtr item;
+  if (itemNumber >= 0 && itemNumber < m_vecItems->Size())
+    item = m_vecItems->Get(itemNumber);
+
+  // contextual buttons
+  if (item && !item->IsParentFolder())
+  {
+    if (item->IsSmartPlayList() || m_vecItems->IsSmartPlayList())
+      buttons.Add(CONTEXT_BUTTON_EDIT_SMART_PLAYLIST, 586);
+  }
+  CGUIMediaWindow::GetContextButtons(itemNumber, buttons);
+}
+
 bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
 {
   CFileItemPtr item;
@@ -226,6 +242,14 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
       else
         // TODO: implement on item info
 
+      return true;
+    }
+
+  case CONTEXT_BUTTON_EDIT_SMART_PLAYLIST:
+    {
+      std::string playlist = m_vecItems->Get(itemNumber)->IsSmartPlayList() ? m_vecItems->Get(itemNumber)->GetPath() : m_vecItems->GetPath(); // save path as activatewindow will destroy our items
+      if (CGUIDialogSmartPlaylistEditor::EditPlaylist(playlist, "program"))
+        Refresh(true); // need to update
       return true;
     }
   default:
