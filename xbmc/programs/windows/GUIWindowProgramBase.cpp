@@ -256,6 +256,10 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
         Refresh(true); // need to update
       return true;
     }
+
+  case CONTEXT_BUTTON_RENAME:
+    OnRenameItem(itemNumber);
+    return true;
   default:
     break;
   }

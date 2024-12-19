@@ -194,6 +194,7 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
         if (inPlaylists && (item->IsPlayList() || item->IsSmartPlayList()))
         {
           buttons.Add(CONTEXT_BUTTON_DELETE, 117);
+          buttons.Add(CONTEXT_BUTTON_RENAME, 118);
         }
       }
     }
