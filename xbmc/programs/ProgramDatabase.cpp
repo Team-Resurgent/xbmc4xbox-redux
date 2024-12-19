@@ -28,9 +28,11 @@
 #include "filesystem/MultiPathDirectory.h"
 #include "guiinfo/GUIInfoLabels.h"
 #include "GUIInfoManager.h"
+#include "playlists/SmartPlayList.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSourceSettings.h"
+#include "settings/Settings.h"
 #include "URL.h"
 #include "utils/FileUtils.h"
 #include "utils/log.h"
@@ -2255,7 +2257,48 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
   else
     return false;
 
-  // TODO: add support for smartplaylists
+  CVariant::const_iterator_map option = options.find("xsp");
+  if (option != options.end())
+  {
+    CSmartPlaylist xsp;
+    if (!xsp.LoadFromJson(option->second.asString()))
+      return false;
+
+    // check if the filter playlist matches the item type
+    if (xsp.GetType() == itemType ||
+       (xsp.GetGroup() == itemType && !xsp.IsGroupMixed()))
+    {
+      std::set<std::string> playlists;
+      filter.AppendWhere(xsp.GetWhereClause(*this, playlists));
+
+      if (xsp.GetLimit() > 0)
+        sorting.limitEnd = xsp.GetLimit();
+      if (xsp.GetOrder() != SortByNone)
+        sorting.sortBy = xsp.GetOrder();
+      if (xsp.GetOrderDirection() != SortOrderNone)
+        sorting.sortOrder = xsp.GetOrderDirection();
+      if (CSettings::GetInstance().GetBool("filelists.ignorethewhensorting"))
+        sorting.sortAttributes = SortAttributeIgnoreArticle;
+    }
+  }
+
+  option = options.find("filter");
+  if (option != options.end())
+  {
+    CSmartPlaylist xspFilter;
+    if (!xspFilter.LoadFromJson(option->second.asString()))
+      return false;
+
+    // check if the filter playlist matches the item type
+    if (xspFilter.GetType() == itemType)
+    {
+      std::set<std::string> playlists;
+      filter.AppendWhere(xspFilter.GetWhereClause(*this, playlists));
+    }
+    // remove the filter if it doesn't match the item type
+    else
+      programUrl.RemoveOption("filter");
+  }
 
   return true;
 }

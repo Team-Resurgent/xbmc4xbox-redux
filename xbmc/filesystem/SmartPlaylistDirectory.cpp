@@ -199,7 +199,7 @@ namespace XFILE
 
         CDatabase::Filter dbfilter;
         dbfilter.where = StringUtils::Format("c0%i = '%s'", PROGRAMDB_ID_TYPE, mediaType == MediaTypeApp ? "app" : "game");
-        success = db.GetItems(baseDir, items, dbfilter, sorting);
+        success = db.GetItems(programUrl.ToString(), items, dbfilter, sorting);
         db.Close();
         items.SetProperty(PROPERTY_PATH_DB, baseDir);
       }
