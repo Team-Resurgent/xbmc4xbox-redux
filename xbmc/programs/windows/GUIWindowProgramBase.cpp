@@ -245,6 +245,10 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
       return true;
     }
 
+  case CONTEXT_BUTTON_DELETE:
+    OnDeleteItem(itemNumber);
+    return true;
+
   case CONTEXT_BUTTON_EDIT_SMART_PLAYLIST:
     {
       std::string playlist = m_vecItems->Get(itemNumber)->IsSmartPlayList() ? m_vecItems->Get(itemNumber)->GetPath() : m_vecItems->GetPath(); // save path as activatewindow will destroy our items
@@ -266,6 +270,30 @@ bool CGUIWindowProgramBase::OnPlayMedia(int iItem, const std::string &player)
   CFileItemPtr pItem = m_vecItems->Get(iItem);
 
   return LAUNCHERS::CProgramLauncher::LaunchProgram(pItem->HasProgramInfoTag() ? pItem->GetProgramInfoTag()->m_strFileNameAndPath : pItem->GetPath());
+}
+
+void CGUIWindowProgramBase::OnDeleteItem(int iItem)
+{
+  if ( iItem < 0 || iItem >= m_vecItems->Size())
+    return;
+
+  OnDeleteItem(m_vecItems->Get(iItem));
+
+  Refresh(true);
+  m_viewControl.SetSelectedItem(iItem);
+}
+
+void CGUIWindowProgramBase::OnDeleteItem(CFileItemPtr item)
+{
+  if (CProfilesManager::Get().GetCurrentProfile().getLockMode() != LOCK_MODE_EVERYONE &&
+      CProfilesManager::Get().GetCurrentProfile().filesLocked())
+  {
+    if (!g_passwordManager.IsMasterLockUnlocked(true))
+      return;
+  }
+
+  if (m_vecItems->IsPath("special://programplaylists/") && CUtil::SupportsWriteFileOperations(item->GetPath()))
+    CFileUtils::DeleteItem(item);
 }
 
 bool CGUIWindowProgramBase::Update(const std::string &strDirectory, bool updateFilterPath /* = true */)

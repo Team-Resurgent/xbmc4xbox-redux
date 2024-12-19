@@ -49,6 +49,8 @@ protected:
 
   virtual void GetContextButtons(int itemNumber, CContextButtons &buttons);
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
+  virtual void OnDeleteItem(CFileItemPtr pItem);
+  virtual void OnDeleteItem(int iItem);
 
   virtual bool OnPlayMedia(int iItem, const std::string &player = "");
 

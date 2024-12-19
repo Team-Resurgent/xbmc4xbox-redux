@@ -19,6 +19,7 @@
  */
 
 #include "GUIWindowProgramNav.h"
+#include "Util.h"
 #include "filesystem/ProgramDatabaseDirectory.h"
 #include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogMediaSource.h"
@@ -183,6 +184,16 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
             item->GetProgramInfoTag()->m_type == "tag"))            // tags
         {
           buttons.Add(CONTEXT_BUTTON_EDIT, 16106);
+        }
+      }
+
+      if (!m_vecItems->IsProgramDb() && !m_vecItems->IsVirtualDirectoryRoot())
+      { // non-program db items, file operations are allowed
+        bool inPlaylists = m_vecItems->IsPath(CUtil::ProgramPlaylistsLocation()) ||
+                          m_vecItems->IsPath("special://programplaylists/");
+        if (inPlaylists && (item->IsPlayList() || item->IsSmartPlayList()))
+        {
+          buttons.Add(CONTEXT_BUTTON_DELETE, 117);
         }
       }
     }
