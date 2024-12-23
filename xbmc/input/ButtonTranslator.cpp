@@ -220,7 +220,7 @@ static const ActionMapping actions[] =
 
 static const ActionMapping windows[] =
        {{"home"                     , WINDOW_HOME},
-        {"programs"                 , WINDOW_PROGRAMS},
+        {"programs"                 , WINDOW_PROGRAM_NAV},
         {"pictures"                 , WINDOW_PICTURES},
         {"filemanager"              , WINDOW_FILES},
         {"files"                    , WINDOW_FILES}, // backward compat
