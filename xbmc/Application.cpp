@@ -5747,6 +5747,11 @@ bool CApplication::IsProgramScanning() const
 {
   return CProgramLibraryQueue::GetInstance().IsScanningLibrary();
 }
+
+void CApplication::StopProgramScan()
+{
+  CProgramLibraryQueue::GetInstance().StopLibraryScanning();
+}
 #endif
 
 void CApplication::StopVideoScan()

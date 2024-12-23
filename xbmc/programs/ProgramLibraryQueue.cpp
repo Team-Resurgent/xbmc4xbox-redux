@@ -71,6 +71,22 @@ bool CProgramLibraryQueue::IsScanningLibrary() const
   return false;
 }
 
+void CProgramLibraryQueue::StopLibraryScanning()
+{
+  CSingleLock lock(m_critical);
+  ProgramLibraryJobMap::const_iterator scanningJobs = m_jobs.find("ProgramLibraryScanningJob");
+  if (scanningJobs == m_jobs.end())
+    return;
+
+  // get a copy of the scanning jobs because CancelJob() will modify m_scanningJobs
+  ProgramLibraryJobs tmpScanningJobs(scanningJobs->second.begin(), scanningJobs->second.end());
+
+  // cancel all scanning jobs
+  for (ProgramLibraryJobs::const_iterator job = tmpScanningJobs.begin(); job != tmpScanningJobs.end(); ++job)
+    CancelJob(*job);
+  Refresh();
+}
+
 bool CProgramLibraryQueue::RefreshItemModal(CFileItemPtr item, bool forceRefresh /* = true */)
 {
   // we can't perform a modal library cleaning if other jobs are running

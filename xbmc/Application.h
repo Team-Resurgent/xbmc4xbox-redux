@@ -216,6 +216,7 @@ public:
   void StopVideoScan();
   void StopMusicScan();
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  void StopProgramScan();
   bool IsProgramScanning() const;
 #endif
   bool IsMusicScanning() const;
@@ -421,7 +422,7 @@ protected:
   void CreateUserDirs() const;
 
   CNetwork    *m_network;
-  
+
 #ifdef HAS_EVENT_SERVER
   std::map<std::string, std::map<int, float> > m_lastAxisMap;
 #endif

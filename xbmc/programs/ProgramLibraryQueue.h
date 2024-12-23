@@ -52,6 +52,11 @@ public:
   bool IsScanningLibrary() const;
 
   /*!
+   \brief Stop and dequeue all scanning jobs.
+   */
+  void StopLibraryScanning();
+
+  /*!
    \brief Refreshes the details of the given item with a modal dialog.
 
    \param[inout] item Program item to be refreshed

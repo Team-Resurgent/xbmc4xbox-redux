@@ -271,6 +271,15 @@ static int UpdateLibrary(const std::vector<std::string>& params)
     else
       g_application.StartVideoScan(params.size() > 1 ? params[1] : "", userInitiated);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (StringUtils::EqualsNoCase(params[0], "program"))
+  {
+    if (g_application.IsProgramScanning())
+      g_application.StopProgramScan();
+    else
+      g_application.StartProgramScan(params.size() > 1 ? params[1] : "", userInitiated);
+  }
+#endif
 
   return 0;
 }

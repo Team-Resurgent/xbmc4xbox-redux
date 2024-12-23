@@ -35,6 +35,8 @@
 using namespace XFILE;
 using namespace PROGRAMDATABASEDIRECTORY;
 
+#define CONTROL_UPDATE_LIBRARY    20
+
 CGUIWindowProgramNav::CGUIWindowProgramNav(void)
     : CGUIWindowProgramBase(WINDOW_PROGRAM_NAV, "MyProgramNav.xml")
 {
@@ -57,6 +59,20 @@ bool CGUIWindowProgramNav::OnMessage(CGUIMessage& message)
   case GUI_MSG_WINDOW_DEINIT:
     if (m_thumbLoader.IsLoading())
       m_thumbLoader.StopThread();
+    break;
+
+  case GUI_MSG_CLICKED:
+    {
+      int iControl = message.GetSenderId();
+      if (iControl == CONTROL_UPDATE_LIBRARY)
+      {
+        if (!g_application.IsProgramScanning())
+          OnScan("");
+        else
+          g_application.StopProgramScan();
+        return true;
+      }
+    }
     break;
   // update the display
   case GUI_MSG_REFRESH_THUMBS:
