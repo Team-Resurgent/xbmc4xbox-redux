@@ -215,6 +215,9 @@ public:
 
   void StopVideoScan();
   void StopMusicScan();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  bool IsProgramScanning() const;
+#endif
   bool IsMusicScanning() const;
   bool IsVideoScanning() const;
 

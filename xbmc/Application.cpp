@@ -5752,6 +5752,13 @@ bool CApplication::IsMusicScanning() const
   return CMusicLibraryQueue::GetInstance().IsScanningLibrary();
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CApplication::IsProgramScanning() const
+{
+  return CProgramLibraryQueue::GetInstance().IsScanningLibrary();
+}
+#endif
+
 void CApplication::StopVideoScan()
 {
   CVideoLibraryQueue::GetInstance().StopLibraryScanning();

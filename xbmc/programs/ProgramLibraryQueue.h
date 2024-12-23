@@ -44,6 +44,13 @@ public:
   void ScanLibrary(const std::string& directory, bool scanAll = false, bool showProgress = true);
 
   /*!
+   \brief Check if a library scan is in progress.
+
+   \return True if a scan is in progress, false otherwise
+   */
+  bool IsScanningLibrary() const;
+
+  /*!
    \brief Adds the given job to the queue.
 
    \param[in] job Program library job to be queued.

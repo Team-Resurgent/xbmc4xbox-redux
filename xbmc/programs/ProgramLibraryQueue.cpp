@@ -51,6 +51,25 @@ void CProgramLibraryQueue::ScanLibrary(const std::string& directory, bool scanAl
   AddJob(new CProgramLibraryScanningJob(directory, scanAll, showProgress));
 }
 
+bool CProgramLibraryQueue::IsScanningLibrary() const
+{
+  // check if the library is being cleaned synchronously
+  if (m_cleaning)
+    return true;
+
+  // check if the library is being scanned asynchronously
+  ProgramLibraryJobMap::const_iterator scanningJobs = m_jobs.find("ProgramLibraryScanningJob");
+  if (scanningJobs != m_jobs.end() && !scanningJobs->second.empty())
+    return true;
+
+  // check if the library is being cleaned asynchronously
+  ProgramLibraryJobMap::const_iterator cleaningJobs = m_jobs.find("ProgramLibraryCleaningJob");
+  if (cleaningJobs != m_jobs.end() && !cleaningJobs->second.empty())
+    return true;
+
+  return false;
+}
+
 void CProgramLibraryQueue::AddJob(CProgramLibraryJob *job)
 {
   if (job == NULL)
