@@ -1389,6 +1389,11 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
   return false;
 }
 
+bool CProgramDatabase::GetTagsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
+{
+  return GetNavCommon(strBaseDir, items, "tag", idContent, filter, countOnly);
+}
+
 bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */)
 {
   try
@@ -1572,6 +1577,8 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
     return GetPlatformsNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "years"))
     return GetYearsNav(strBaseDir, items, mediaType, filter);
+  else if (StringUtils::EqualsNoCase(itemType, "tags"))
+    return GetTagsNav(strBaseDir, items, mediaType, filter);
 
   return false;
 }
@@ -1594,6 +1601,8 @@ std::string CProgramDatabase::GetItemById(const std::string &itemType, int id)
     return GetPlatformById(id);
   else if (StringUtils::EqualsNoCase(itemType, "years"))
     return StringUtils::Format("%d", id);
+  else if (StringUtils::EqualsNoCase(itemType, "tags"))
+    return GetTagById(id);
 
   return "";
 }
@@ -1726,6 +1735,11 @@ std::string CProgramDatabase::GetOnlineFeatureById(int id)
 std::string CProgramDatabase::GetPlatformById(int id)
 {
   return GetSingleValue("platform", "name", PrepareSQL("platform_id=%i", id));
+}
+
+std::string CProgramDatabase::GetTagById(int id)
+{
+  return GetSingleValue("tag", "name", PrepareSQL("tag_id = %i", id));
 }
 
 bool CProgramDatabase::HasContent()

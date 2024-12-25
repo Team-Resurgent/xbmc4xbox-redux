@@ -156,6 +156,7 @@ public:
   std::string GetGeneralFeatureById(int id);
   std::string GetOnlineFeatureById(int id);
   std::string GetPlatformById(int id);
+  std::string GetTagById(int id);
 
   bool GetGameInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idGame = -1, int getDetails = ProgramDbDetailsAll);
 
@@ -206,8 +207,8 @@ public:
   bool GetGeneralFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   bool GetOnlineFeaturesNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   bool GetPlatformsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
-
   bool GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter());
+  bool GetTagsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
 
   bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 

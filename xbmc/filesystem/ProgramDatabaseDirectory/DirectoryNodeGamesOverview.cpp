@@ -37,6 +37,7 @@ Node GameChildren[] = {
                         { NODE_TYPE_PLATFORM,       "platforms",       135 },
                         { NODE_TYPE_TITLE_GAMES,    "titles",          369 },
                         { NODE_TYPE_YEAR,           "years",           562 },
+                        { NODE_TYPE_TAGS,           "tags",            20459 }
                        };
 
 CDirectoryNodeGamesOverview::CDirectoryNodeGamesOverview(const std::string& strName, CDirectoryNode* pParent)

@@ -94,6 +94,10 @@ bool CProgramDbUrl::parse()
       m_itemType = "years";
       break;
 
+    case PROGRAMDATABASEDIRECTORY::NODE_TYPE_TAGS:
+      m_itemType = "tags";
+      break;
+
     case PROGRAMDATABASEDIRECTORY::NODE_TYPE_ROOT:
     case PROGRAMDATABASEDIRECTORY::NODE_TYPE_OVERVIEW:
     default:
