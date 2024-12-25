@@ -231,6 +231,12 @@ CStdString CUtil::GetTitleFromPath(const CURL& url, bool bIsFolder /* = false */
   else if (URIUtils::PathStarts(path, "special://videoplaylists"))
     strFilename = g_localizeStrings.Get(136);
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  // Program Playlists
+  else if (URIUtils::PathStarts(path, "special://programplaylists"))
+    strFilename = g_localizeStrings.Get(136);
+#endif
+
   else if (URIUtils::HasParentInHostname(url) && strFilename.empty())
     strFilename = URIUtils::GetFileName(url.GetHostName());
 
@@ -2285,6 +2291,14 @@ void CUtil::DeleteVideoDatabaseDirectoryCache()
 void CUtil::DeleteProgramDatabaseDirectoryCache()
 {
   CUtil::DeleteDirectoryCache("pdb-");
+}
+
+std::string CUtil::ProgramPlaylistsLocation()
+{
+  std::vector<std::string> vec;
+  vec.push_back(URIUtils::AddFileToFolder(CSettings::GetInstance().GetString("system.playlistspath"), "program"));
+  vec.push_back(URIUtils::AddFileToFolder(CSettings::GetInstance().GetString("system.playlistspath"), "mixed"));
+  return XFILE::CMultiPathDirectory::ConstructMultiPath(vec);
 }
 #endif
 

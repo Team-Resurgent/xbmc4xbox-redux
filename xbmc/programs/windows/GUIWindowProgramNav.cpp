@@ -99,6 +99,8 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
       else
         items.SetContent("");
     }
+    else if (URIUtils::PathEquals(items.GetPath(), "special://programplaylists/"))
+      items.SetContent("playlists");
     else if (URIUtils::IsDOSPath(strDirectory))
       items.SetContent("programs");
 

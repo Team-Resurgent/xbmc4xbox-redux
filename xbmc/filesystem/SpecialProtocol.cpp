@@ -90,7 +90,7 @@ CStdString CSpecialProtocol::TranslatePath(const CStdString &path)
   {
     return path;
   }
-  
+
   return TranslatePath(url);
 }
 
@@ -136,6 +136,10 @@ CStdString CSpecialProtocol::TranslatePath(const CURL &url)
     translatedPath = URIUtils::AddFileToFolder(CUtil::MusicPlaylistsLocation(), FileName);
   else if (RootDir.Equals("videoplaylists"))
     translatedPath = URIUtils::AddFileToFolder(CUtil::VideoPlaylistsLocation(), FileName);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (RootDir.Equals("programplaylists"))
+    translatedPath = URIUtils::AddFileToFolder(CUtil::ProgramPlaylistsLocation(), FileName);
+#endif
   else if (RootDir.Equals("skin"))
     translatedPath = URIUtils::AddFileToFolder(g_graphicsContext.GetMediaDir(), FileName);
   else if (RootDir.Equals("logpath"))

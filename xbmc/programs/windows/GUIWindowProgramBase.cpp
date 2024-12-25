@@ -289,6 +289,16 @@ std::string GetExecutable(const std::string& strFolder)
 bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileItemList &items)
 {
   bool bResult = CGUIMediaWindow::GetDirectory(strDirectory, items);
+
+  // add in the "New Playlist" item if we're in the playlists folder
+  if ((items.GetPath() == "special://programplaylists/") && !items.Contains("newplaylist://"))
+  {
+    CFileItemPtr newPlaylist(new CFileItem("newsmartplaylist://program", false));
+    newPlaylist->SetLabel(g_localizeStrings.Get(21437));  // "new smart playlist..."
+    newPlaylist->SetLabelPreformated(true);
+    items.Add(newPlaylist);
+  }
+
   if (URIUtils::IsDOSPath(strDirectory))
   { // listing programs by sources (ex. F:\Games\)
     for (int i = 0; i < items.Size(); ++i)

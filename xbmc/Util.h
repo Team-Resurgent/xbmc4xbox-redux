@@ -151,6 +151,7 @@ public:
   static void DeleteVideoDatabaseDirectoryCache();
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   static void DeleteProgramDatabaseDirectoryCache();
+  static std::string ProgramPlaylistsLocation();
 #endif
   static CStdString MusicPlaylistsLocation();
   static CStdString VideoPlaylistsLocation();
