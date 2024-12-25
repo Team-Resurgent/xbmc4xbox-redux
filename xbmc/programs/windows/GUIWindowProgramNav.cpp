@@ -82,6 +82,8 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
       if (node == NODE_TYPE_TITLE_GAMES ||
           node == NODE_TYPE_RECENTLY_ADDED_GAMES)
         items.SetContent("games");
+      else if (node == NODE_TYPE_TITLE_APPS)
+        items.SetContent("apps");
       else if (node == NODE_TYPE_GENRE ||
                node == NODE_TYPE_DEVELOPER  ||
                node == NODE_TYPE_PUBLISHER  ||

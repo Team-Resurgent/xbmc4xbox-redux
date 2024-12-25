@@ -13907,7 +13907,23 @@ msgctxt "#38928"
 msgid "Games"
 msgstr ""
 
-#empty string from id 38928 to 38940 - reserved for media types
+msgctxt "#38929"
+msgid "app"
+msgstr ""
+
+msgctxt "#38930"
+msgid "apps"
+msgstr ""
+
+msgctxt "#38931"
+msgid "Application"
+msgstr ""
+
+msgctxt "#38932"
+msgid "Applications"
+msgstr ""
+
+#empty string from id 38933 to 38940 - reserved for media types
 
 msgctxt "#38941"
 msgid "Loading game details"

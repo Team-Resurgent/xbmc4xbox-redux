@@ -1,0 +1,6 @@
+<node order="1" type="filter" visible="Library.HasContent(Apps)">
+  <label>38932</label>
+  <icon>DefaultMovieTitle.png</icon>
+  <content>apps</content>
+  <order direction="ascending">sorttitle</order>
+</node>

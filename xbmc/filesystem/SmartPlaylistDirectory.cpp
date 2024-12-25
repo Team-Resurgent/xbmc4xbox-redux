@@ -156,7 +156,7 @@ namespace XFILE
       }
     }
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    else if (playlist.GetType() == "games")
+    else if (playlist.GetType() == "games" || playlist.GetType() == "apps")
     {
       CProgramDatabase db;
       if (db.Open())
@@ -168,6 +168,8 @@ namespace XFILE
         {
           if (mediaType == MediaTypeGame)
             baseDir = "programdb://games/";
+          else if (mediaType == MediaTypeApp)
+            baseDir = "programdb://apps/";
           else
             return false;
 
@@ -196,6 +198,7 @@ namespace XFILE
           programUrl.RemoveOption(option);
 
         CDatabase::Filter dbfilter;
+        dbfilter.where = StringUtils::Format("c0%i = '%s'", PROGRAMDB_ID_TYPE, mediaType == MediaTypeApp ? "app" : "game");
         success = db.GetItems(baseDir, items, dbfilter, sorting);
         db.Close();
         items.SetProperty(PROPERTY_PATH_DB, baseDir);

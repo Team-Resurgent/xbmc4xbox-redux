@@ -88,6 +88,8 @@ bool CProgramInfoTag::Save(TiXmlNode *node, const std::string &tag, bool savePat
   XMLUtils::SetStringArray(program, "platform", m_platform);
   XMLUtils::SetStringArray(program, "tag", m_tags);
 
+  if (!m_type.empty())
+    XMLUtils::SetString(program, "type", m_type);
   if (!m_strTrailer.empty())
     XMLUtils::SetString(program, "trailer", m_strTrailer);
   if (!m_strPlot.empty())
@@ -398,6 +400,9 @@ void CProgramInfoTag::ParseNative(const TiXmlElement* program, bool prioritise)
   std::vector<std::string> tags(m_tags);
   if (XMLUtils::GetStringArray(program, "tag", tags, prioritise, g_advancedSettings.m_programItemSeparator))
     SetTags(tags);
+
+  if (XMLUtils::GetString(program, "type", value))
+    m_type = value;
 
   if (XMLUtils::GetString(program, "trailer", value))
     m_strTrailer = value;

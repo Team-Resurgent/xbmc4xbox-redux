@@ -90,6 +90,7 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
       }
       break;
     case NODE_TYPE_TITLE_GAMES:
+    case NODE_TYPE_TITLE_APPS:
       {
         AddSortMethod(SortBySortTitle, sortAttributes, 556, LABEL_MASKS("%T", "%R", "%T", "%R"));  // Title, Rating | Title, Rating
         AddSortMethod(SortByYear, 562, LABEL_MASKS("%T", "%Y", "%T", "%Y"));  // Title, Year | Title, Year
@@ -150,6 +151,7 @@ void CGUIViewStateWindowProgramNav::SaveViewState()
       SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavgenres"));
       break;
     case NODE_TYPE_TITLE_GAMES:
+    case NODE_TYPE_TITLE_APPS:
       SaveViewToDb(m_items.GetPath(), WINDOW_PROGRAM_NAV, CViewStateSettings::Get().Get("programnavtitles"));
       break;
     default:

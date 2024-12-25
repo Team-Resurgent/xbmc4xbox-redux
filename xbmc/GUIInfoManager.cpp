@@ -5582,6 +5582,7 @@ int CGUIInfoManager::TranslateSingleString(const std::string &strCondition, bool
         else if (cat == "movies") return LIBRARY_HAS_MOVIES;
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
         else if (cat == "games") return LIBRARY_HAS_GAMES;
+        else if (cat == "apps") return LIBRARY_HAS_APPS;
 #endif
         else if (cat == "tvshows") return LIBRARY_HAS_TVSHOWS;
         else if (cat == "musicvideos") return LIBRARY_HAS_MUSICVIDEOS;
@@ -7212,7 +7213,7 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
   else if (condition >= LIBRARY_HAS_MUSIC && condition <= LIBRARY_HAS_COMPILATIONS)
     bReturn = GetLibraryBool(condition);
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  else if (condition >= LIBRARY_HAS_PROGRAM && condition <= LIBRARY_HAS_GAMES)
+  else if (condition >= LIBRARY_HAS_PROGRAM && condition <= LIBRARY_HAS_APPS)
     bReturn = GetLibraryBool(condition);
 #endif
   else if (condition == LIBRARY_IS_SCANNING)
@@ -11706,6 +11707,9 @@ void CGUIInfoManager::SetLibraryBool(int condition, bool value)
     case LIBRARY_HAS_GAMES:
       m_libraryHasGames = value ? 1 : 0;
       break;
+    case LIBRARY_HAS_APPS:
+      m_libraryHasApps = value ? 1 : 0;
+      break;
 #endif
     case LIBRARY_HAS_MOVIE_SETS:
       m_libraryHasMovieSets = value ? 1 : 0;
@@ -11733,6 +11737,7 @@ void CGUIInfoManager::ResetLibraryBools()
   m_libraryHasMovies = -1;
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   m_libraryHasGames = -1;
+  m_libraryHasApps = -1;
 #endif
   m_libraryHasTVShows = -1;
   m_libraryHasMusicVideos = -1;
@@ -11783,6 +11788,19 @@ bool CGUIInfoManager::GetLibraryBool(int condition)
       }
     }
     return m_libraryHasGames > 0;
+  }
+  else if (condition == LIBRARY_HAS_APPS)
+  {
+    if (m_libraryHasApps < 0)
+    {
+      CProgramDatabase db;
+      if (db.Open())
+      {
+        m_libraryHasApps = db.HasContent(PROGRAMDB_CONTENT_APPS) ? 1 : 0;
+        db.Close();
+      }
+    }
+    return m_libraryHasApps > 0;
   }
 #endif
   else if (condition == LIBRARY_HAS_MOVIE_SETS)

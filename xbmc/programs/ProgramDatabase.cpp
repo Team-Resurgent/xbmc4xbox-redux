@@ -837,14 +837,21 @@ int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, C
       UpdateFileDateAdded(details.m_iFileId, strFilenameAndPath, details.m_dateAdded);
     }
 
-    AddLinksToItem(idGame, MediaTypeGame, "developer", details.m_developer);
-    AddLinksToItem(idGame, MediaTypeGame, "publisher", details.m_publisher);
-    AddLinksToItem(idGame, MediaTypeGame, "genre", details.m_genre);
-    AddLinksToItem(idGame, MediaTypeGame, "descriptor", details.m_descriptor);
-    AddLinksToItem(idGame, MediaTypeGame, "generalfeature", details.m_generalFeature);
-    AddLinksToItem(idGame, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
-    AddLinksToItem(idGame, MediaTypeGame, "platform", details.m_platform);
-    AddLinksToItem(idGame, MediaTypeGame, "tag", details.m_tags);
+    if (details.m_type == MediaTypeApp)
+    {
+      AddLinksToItem(idGame, MediaTypeApp, "tag", details.m_tags);
+    }
+    else
+    {
+      AddLinksToItem(idGame, MediaTypeGame, "developer", details.m_developer);
+      AddLinksToItem(idGame, MediaTypeGame, "publisher", details.m_publisher);
+      AddLinksToItem(idGame, MediaTypeGame, "genre", details.m_genre);
+      AddLinksToItem(idGame, MediaTypeGame, "descriptor", details.m_descriptor);
+      AddLinksToItem(idGame, MediaTypeGame, "generalfeature", details.m_generalFeature);
+      AddLinksToItem(idGame, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
+      AddLinksToItem(idGame, MediaTypeGame, "platform", details.m_platform);
+      AddLinksToItem(idGame, MediaTypeGame, "tag", details.m_tags);
+    }
 
     // add ratings
     details.m_iIdRating = AddRatings(idGame, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
@@ -1666,6 +1673,8 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, const std::string
   PROGRAMDB_CONTENT_TYPE contentType;
   if (StringUtils::EqualsNoCase(mediaType, "games"))
     contentType = PROGRAMDB_CONTENT_GAMES;
+  else if (StringUtils::EqualsNoCase(mediaType, "apps"))
+    contentType = PROGRAMDB_CONTENT_APPS;
   else
     return false;
 
@@ -1674,7 +1683,8 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, const std::string
 
 bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT_TYPE mediaType, const std::string &itemType, CFileItemList &items, const Filter &filter /* = Filter() */, const SortDescription &sortDescription /* = SortDescription() */)
 {
-  if (StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES)
+  if ((StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES) ||
+      (StringUtils::EqualsNoCase(itemType, "apps") && mediaType == PROGRAMDB_CONTENT_APPS))
     return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
   else if (StringUtils::EqualsNoCase(itemType, "developers"))
     return GetDevelopersNav(strBaseDir, items, mediaType, filter);
@@ -1730,6 +1740,7 @@ bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList&
     return false;
 
   Filter filter;
+  filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
   return GetGamesByWhere(programUrl.ToString(), filter, items, sortDescription, getDetails);
 }
 
@@ -1822,6 +1833,7 @@ bool CProgramDatabase::GetRecentlyAddedGamesNav(const std::string& strBaseDir, C
   Filter filter;
   filter.order = "dateAdded desc, idGame desc";
   filter.limit = PrepareSQL("%u", limit ? limit : g_advancedSettings.m_iVideoLibraryRecentlyAddedItems);
+  filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
   return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
 }
 
@@ -1880,7 +1892,9 @@ bool CProgramDatabase::HasContent(PROGRAMDB_CONTENT_TYPE type)
 
     std::string sql;
     if (type == PROGRAMDB_CONTENT_GAMES)
-      sql = "select count(1) from game";
+      sql = PrepareSQL("select count(1) from game where c0%i = 'game'", PROGRAMDB_ID_TYPE);
+    else if (type == PROGRAMDB_CONTENT_APPS)
+      sql = PrepareSQL("select count(1) from game where c0%i = 'app'", PROGRAMDB_ID_TYPE);
     m_pDS->query( sql );
 
     if (!m_pDS->eof())
@@ -2070,6 +2084,7 @@ bool CProgramDatabase::CommitTransaction()
   if (CDatabase::CommitTransaction())
   { // number of items in the db has likely changed, so recalculate
     g_infoManager.SetLibraryBool(LIBRARY_HAS_GAMES, HasContent(PROGRAMDB_CONTENT_GAMES));
+    g_infoManager.SetLibraryBool(LIBRARY_HAS_APPS, HasContent(PROGRAMDB_CONTENT_APPS));
     return true;
   }
   return false;
@@ -2200,6 +2215,8 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
     AppendIdLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
     AppendLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
   }
+  else if (type == "apps")
+    return true;
   else
     return false;
 

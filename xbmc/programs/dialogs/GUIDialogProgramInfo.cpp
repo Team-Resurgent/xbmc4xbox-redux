@@ -170,7 +170,7 @@ void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
 
   MediaType type = item->GetProgramInfoTag()->m_type;
 
-  if (type == MediaTypeGame)
+  if (type == MediaTypeGame || type == MediaTypeApp)
   {
     // local trailers should always override non-local, so check
     // for a local one if the registered trailer is online

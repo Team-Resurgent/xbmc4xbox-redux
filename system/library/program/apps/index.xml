@@ -1,0 +1,5 @@
+<node order="1" visible="Library.HasContent(Apps)">
+  <!-- a virtual folder -->
+  <label>38932</label>
+  <icon>DefaultProgram.png</icon>
+</node>

@@ -79,14 +79,16 @@ enum ProgramDbDetails
 
 typedef enum
 {
-  PROGRAMDB_CONTENT_GAMES = 1
+  PROGRAMDB_CONTENT_GAMES = 1,
+  PROGRAMDB_CONTENT_APPS = 2
 } PROGRAMDB_CONTENT_TYPE;
 
 typedef enum // this enum MUST match the offset struct further down!! and make sure to keep min and max at -1 and sizeof(offsets)
 {
   PROGRAMDB_ID_MIN = -1,
-  PROGRAMDB_ID_TITLE = 0,
-  PROGRAMDB_ID_PLOT = 1,
+  PROGRAMDB_ID_TYPE = 0,
+  PROGRAMDB_ID_TITLE = 1,
+  PROGRAMDB_ID_PLOT = 2,
   PROGRAMDB_ID_RATING_ID = 5,
   PROGRAMDB_ID_EXCLUSIVE = 6,
   PROGRAMDB_ID_ESRB = 7,
@@ -111,9 +113,9 @@ typedef enum // this enum MUST match the offset struct further down!! and make s
 
 const struct SDbTableOffsets DbGameOffsets[] =
 {
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_type) },
   { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strTitle) },
   { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strPlot) },
-  { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
   { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
   { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
   { PROGRAMDB_TYPE_INT, my_offsetof(CProgramInfoTag,m_iIdRating) },

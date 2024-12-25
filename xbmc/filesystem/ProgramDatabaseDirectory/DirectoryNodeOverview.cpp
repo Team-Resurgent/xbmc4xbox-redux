@@ -31,6 +31,7 @@ using namespace XFILE::PROGRAMDATABASEDIRECTORY;
 
 Node OverviewChildren[] = {
                             { NODE_TYPE_GAMES_OVERVIEW,            "games",                   38928 },
+                            { NODE_TYPE_APPS_OVERVIEW,             "apps",                    38932 },
                             { NODE_TYPE_RECENTLY_ADDED_GAMES,      "recentlyaddedgames",      38972 },
                           };
 

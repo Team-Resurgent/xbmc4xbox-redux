@@ -40,6 +40,7 @@ static std::map<std::string, CMediaTypes::MediaTypeInfo> fillDefaultMediaTypes()
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   mediaTypes.insert(std::make_pair(MediaTypeProgram,          CMediaTypes::MediaTypeInfo(MediaTypeProgram,         MediaTypeProgram "s",         true,  38921, 38922, 38923, 38924)));
   mediaTypes.insert(std::make_pair(MediaTypeGame,             CMediaTypes::MediaTypeInfo(MediaTypeGame,            MediaTypeGame "s",            false, 38925, 38926, 38927, 38928)));
+  mediaTypes.insert(std::make_pair(MediaTypeApp,              CMediaTypes::MediaTypeInfo(MediaTypeApp,             MediaTypeApp "s",             false, 38929, 38930, 38931, 38932)));
 #endif
   return mediaTypes;
 }

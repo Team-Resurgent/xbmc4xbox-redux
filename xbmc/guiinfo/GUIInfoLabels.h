@@ -482,6 +482,7 @@
 
 #define LIBRARY_HAS_PROGRAM         736
 #define LIBRARY_HAS_GAMES           737
+#define LIBRARY_HAS_APPS            738
 #define LIBRARY_IS_SCANNING_PROGRAM 739
 
 #define SYSTEM_PLATFORM_LINUX       741

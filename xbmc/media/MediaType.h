@@ -40,6 +40,7 @@ typedef std::string MediaType;
 // #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #define MediaTypeProgram          "program"
 #define MediaTypeGame             "game"
+#define MediaTypeApp              "app"
 // #endif
 
 class CMediaTypes
