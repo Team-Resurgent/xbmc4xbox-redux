@@ -226,6 +226,7 @@ public:
   bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 
   bool GetRecentlyAddedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit=0, int getDetails = ProgramDbDetailsNone);
+  bool GetRecentlyPlayedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit=0, int getDetails = ProgramDbDetailsNone);
 
   bool HasContent();
   bool HasContent(PROGRAMDB_CONTENT_TYPE type);

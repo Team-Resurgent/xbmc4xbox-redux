@@ -107,6 +107,7 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
       }
       break;
     case NODE_TYPE_RECENTLY_ADDED_GAMES:
+    case NODE_TYPE_RECENTLY_PLAYED_GAMES:
       {
         AddSortMethod(SortByNone, 552, LABEL_MASKS("%T", "%R"));  // Title, Rating | empty, empty
         SetSortMethod(SortByNone);

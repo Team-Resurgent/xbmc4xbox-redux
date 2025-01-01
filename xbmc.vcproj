@@ -2556,6 +2556,12 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeRecentlyAddedGames.h">
 					</File>
 					<File
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeRecentlyPlayedGames.cpp">
+					</File>
+					<File
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeRecentlyPlayedGames.h">
+					</File>
+					<File
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeRoot.cpp">
 						<FileConfiguration
 							Name="Debug|Xbox">

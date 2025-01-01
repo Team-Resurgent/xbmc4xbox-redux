@@ -1867,6 +1867,15 @@ bool CProgramDatabase::GetRecentlyAddedGamesNav(const std::string& strBaseDir, C
   return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
 }
 
+bool CProgramDatabase::GetRecentlyPlayedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit /* = 0 */, int getDetails /* = ProgramDbDetailsNone */)
+{
+  Filter filter;
+  filter.order = "lastPlayed desc, idGame desc";
+  filter.limit = PrepareSQL("%u", limit ? limit : g_advancedSettings.m_iProgramLibraryRecentlyAddedItems);
+  filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
+  return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
+}
+
 std::string CProgramDatabase::GetDeveloperById(int id)
 {
   return GetSingleValue("developer", "name", PrepareSQL("developer_id=%i", id));

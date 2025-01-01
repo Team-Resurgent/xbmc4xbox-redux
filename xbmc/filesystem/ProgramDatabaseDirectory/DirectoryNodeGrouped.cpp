@@ -109,6 +109,7 @@ std::string CDirectoryNodeGrouped::GetContentType(const CQueryParams &params) co
     case NODE_TYPE_NONE:
     case NODE_TYPE_OVERVIEW:
     case NODE_TYPE_RECENTLY_ADDED_GAMES:
+    case NODE_TYPE_RECENTLY_PLAYED_GAMES:
     case NODE_TYPE_ROOT:
     case NODE_TYPE_TITLE_GAMES:
     case NODE_TYPE_TITLE_APPS:

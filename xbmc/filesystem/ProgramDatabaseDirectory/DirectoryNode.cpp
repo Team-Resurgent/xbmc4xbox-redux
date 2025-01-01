@@ -28,6 +28,7 @@
 #include "DirectoryNodeGamesOverview.h"
 #include "DirectoryNodeAppsOverview.h"
 #include "DirectoryNodeRecentlyAddedGames.h"
+#include "DirectoryNodeRecentlyPlayedGames.h"
 #include "URL.h"
 #include "FileItem.h"
 #include "utils/StringUtils.h"
@@ -117,6 +118,8 @@ CDirectoryNode* CDirectoryNode::CreateNode(NODE_TYPE Type, const std::string& st
     return new CDirectoryNodeAppsOverview(strName, pParent);
   case NODE_TYPE_RECENTLY_ADDED_GAMES:
     return new CDirectoryNodeRecentlyAddedGames(strName,pParent);
+  case NODE_TYPE_RECENTLY_PLAYED_GAMES:
+    return new CDirectoryNodeRecentlyPlayedGames(strName,pParent);
   default:
     break;
   }
