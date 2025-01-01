@@ -10174,6 +10174,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       return item->GetVideoInfoTag()->m_strTitle;
     if (item->HasMusicInfoTag())
       return item->GetMusicInfoTag()->GetTitle();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_strTitle;
+#endif
     break;
   case LISTITEM_EPG_EVENT_TITLE:
 #ifndef _XBOX
@@ -10212,6 +10216,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
 #endif
     if (item->HasVideoInfoTag())
       return item->GetVideoInfoTag()->m_strOriginalTitle;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_strOriginalTitle;
+#endif
     break;
   case LISTITEM_PLAYCOUNT:
     {
@@ -10224,6 +10232,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         return StringUtils::Format("%i", item->GetVideoInfoTag()->m_playCount);
       else if (item->HasMusicInfoTag() && item->GetMusicInfoTag()->GetPlayCount() > 0)
         return StringUtils::Format("%i", item->GetMusicInfoTag()->GetPlayCount());
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->HasProgramInfoTag() && item->GetProgramInfoTag()->m_playCount > 0)
+        return StringUtils::Format("%i", item->GetProgramInfoTag()->m_playCount);
+#endif
       break;
     }
   case LISTITEM_LASTPLAYED:
@@ -10233,6 +10245,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         dateTime = item->GetVideoInfoTag()->m_lastPlayed;
       else if (item->HasMusicInfoTag())
         dateTime = item->GetMusicInfoTag()->GetLastPlayed();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->HasProgramInfoTag())
+        dateTime = item->GetProgramInfoTag()->m_lastPlayed;
+#endif
 
       if (dateTime.IsValid())
         return dateTime.GetAsLocalizedDate();
@@ -10305,6 +10321,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         year = StringUtils::Format("%i", item->GetVideoInfoTag()->GetYear());
       if (item->HasMusicInfoTag())
         year = item->GetMusicInfoTag()->GetYearString();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      if (item->HasProgramInfoTag() && item->GetProgramInfoTag()->HasYear())
+        year = StringUtils::Format("%i", item->GetProgramInfoTag()->GetYear());
+#endif
 #ifndef _XBOX
       if (item->HasEPGInfoTag() && item->GetEPGInfoTag()->Year() > 0)
         year = StringUtils::Format("%i", item->GetEPGInfoTag()->Year());
@@ -10331,6 +10351,17 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       if (dateTime.IsValid())
         return dateTime.GetAsLocalizedDate();
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (item->HasProgramInfoTag())
+    {
+      CDateTime dateTime;
+      if (item->GetProgramInfoTag()->m_releaseDate.IsValid())
+        dateTime = item->GetProgramInfoTag()->m_releaseDate;
+
+      if (dateTime.IsValid())
+        return dateTime.GetAsLocalizedDate();
+    }
+#endif
 #ifndef _XBOX
     else if (item->HasEPGInfoTag())
     {
@@ -10367,6 +10398,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       return StringUtils::Join(item->GetVideoInfoTag()->m_genre, g_advancedSettings.m_videoItemSeparator);
     if (item->HasMusicInfoTag())
       return StringUtils::Join(item->GetMusicInfoTag()->GetGenre(), g_advancedSettings.m_musicItemSeparator);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return StringUtils::Join(item->GetProgramInfoTag()->m_genre, g_advancedSettings.m_programItemSeparator);
+#endif
     break;
   case LISTITEM_FILENAME:
   case LISTITEM_FILE_EXTENSION:
@@ -10376,6 +10411,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         strFile = URIUtils::GetFileName(item->GetMusicInfoTag()->GetURL());
       else if (item->IsVideoDb() && item->HasVideoInfoTag())
         strFile = URIUtils::GetFileName(item->GetVideoInfoTag()->m_strFileNameAndPath);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->IsProgramDb() && item->HasProgramInfoTag())
+        strFile = URIUtils::GetFileName(item->GetProgramInfoTag()->m_strFileNameAndPath);
+#endif
       else
         strFile = URIUtils::GetFileName(item->GetPath());
 
@@ -10418,6 +10457,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       float r = 0.f;
       if (item->HasVideoInfoTag()) // movie rating
         r = item->GetVideoInfoTag()->GetRating().rating;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->HasProgramInfoTag()) // program rating
+        r = item->GetProgramInfoTag()->GetRating().rating;
+#endif
       if (r > 0.f)
         rating = StringUtils::FormatNumber(r);
       else if (item->HasMusicInfoTag() && item->GetMusicInfoTag()->GetRating() > 0.f) // song rating
@@ -10429,6 +10472,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       CRating r(0.f, 0);
       if (item->HasVideoInfoTag()) // video rating & votes
         r = item->GetVideoInfoTag()->GetRating();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->HasProgramInfoTag()) // program rating & votes
+        r = item->GetProgramInfoTag()->GetRating();
+#endif
       if (r.rating > 0.f)
       {
         std::string strRatingAndVotes;
@@ -10465,6 +10512,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       return StringUtils::FormatNumber(item->GetVideoInfoTag()->GetRating().votes);
     else if (item->HasMusicInfoTag())
       return StringUtils::FormatNumber(item->GetMusicInfoTag()->GetVotes());
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (item->HasProgramInfoTag())
+      return StringUtils::FormatNumber(item->GetProgramInfoTag()->GetRating().votes);
+#endif
     break;
   case LISTITEM_PROGRAM_COUNT:
     {
@@ -10535,6 +10586,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
 
       return item->GetVideoInfoTag()->m_strPlot;
     }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_strPlot;
+#endif
     break;
   case LISTITEM_PLOT_OUTLINE:
 #ifndef _XBOX
@@ -10706,6 +10761,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         path = item->GetMusicInfoTag()->GetURL();
       else if (item->IsVideoDb() && item->HasVideoInfoTag())
         path = item->GetVideoInfoTag()->m_strFileNameAndPath;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      else if (item->IsProgramDb() && item->HasProgramInfoTag())
+        path = item->GetProgramInfoTag()->m_strFileNameAndPath;
+#endif
       else
         path = item->GetPath();
       path = CURL(path).GetWithoutUserDetails();
@@ -10726,6 +10785,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
   case LISTITEM_MPAA:
     if (item->HasVideoInfoTag())
       return item->GetVideoInfoTag()->m_strMPAARating;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_strESRB;
+#endif
     break;
   case LISTITEM_CAST:
     if (item->HasVideoInfoTag())
@@ -10758,6 +10821,10 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
   case LISTITEM_TRAILER:
     if (item->HasVideoInfoTag())
       return item->GetVideoInfoTag()->m_strTrailer;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_strTrailer;
+#endif
     break;
   case LISTITEM_TOP250:
     if (item->HasVideoInfoTag())
@@ -11080,12 +11147,20 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
   case LISTITEM_DATE_ADDED:
     if (item->HasVideoInfoTag() && item->GetVideoInfoTag()->m_dateAdded.IsValid())
       return item->GetVideoInfoTag()->m_dateAdded.GetAsLocalizedDate();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag() && item->GetProgramInfoTag()->m_dateAdded.IsValid())
+      return item->GetProgramInfoTag()->m_dateAdded.GetAsLocalizedDate();
+#endif
     break;
   case LISTITEM_DBTYPE:
     if (item->HasVideoInfoTag())
       return item->GetVideoInfoTag()->m_type;
     if (item->HasMusicInfoTag())
       return item->GetMusicInfoTag()->GetType();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      return item->GetProgramInfoTag()->m_type;
+#endif
     break;
   case LISTITEM_DBID:
     if (item->HasVideoInfoTag())
@@ -11100,6 +11175,14 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
         if (dbId > -1)
           return StringUtils::Format("%i", dbId);
       }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (item->HasProgramInfoTag())
+      {
+        int dbId = item->GetProgramInfoTag()->m_iDbId;
+        if (dbId > -1)
+          return StringUtils::Format("%i", dbId);
+      }
+#endif
     break;
   case LISTITEM_APPEARANCES:
     if (item->HasVideoInfoTag())
