@@ -32,6 +32,10 @@
 #include "settings/AdvancedSettings.h"
 #include "music/MusicThumbLoader.h"
 #include "video/VideoThumbLoader.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramThumbLoader.h"
+#include "programs/ProgramDatabase.h"
+#endif
 #include "settings/Settings.h"
 
 #define NUM_ITEMS 10
@@ -325,6 +329,9 @@ bool CRecentlyAddedJob::UpdateTotal()
 
   CVideoDatabase videodatabase;
   CMusicDatabase musicdatabase;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  CProgramDatabase programdatabase;
+#endif
 
   musicdatabase.Open();
 
@@ -354,6 +361,13 @@ bool CRecentlyAddedJob::UpdateTotal()
   int TvShowsWatched  = atoi(videodatabase.GetSingleValue("tvshow_view"     , "sum(watchedcount = totalcount)").c_str());
   videodatabase.Close();
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  programdatabase.Open();
+  int gameTotals     = atoi(programdatabase.GetSingleValue("game_view"      , "count(1)").c_str());
+  int gamePlayed     = atoi(programdatabase.GetSingleValue("game_view"      , "count(playCount)").c_str());
+  programdatabase.Close();
+#endif
+
   home->SetProperty("TVShows.Count"         , tvShowCount);
   home->SetProperty("TVShows.Watched"       , TvShowsWatched);
   home->SetProperty("TVShows.UnWatched"     , tvShowCount - TvShowsWatched);
@@ -369,10 +383,71 @@ bool CRecentlyAddedJob::UpdateTotal()
   home->SetProperty("Music.SongsCount"      , MusSongTotals);
   home->SetProperty("Music.AlbumsCount"     , MusAlbumTotals);
   home->SetProperty("Music.ArtistsCount"    , MusArtistTotals);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  home->SetProperty("Games.Count"           , gameTotals);
+  home->SetProperty("Games.Played"          , gamePlayed);
+#endif
 
   return true;
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CRecentlyAddedJob::UpdateProgram()
+{
+  CGUIWindow* home = g_windowManager.GetWindow(WINDOW_HOME);
+
+  if ( home == nullptr )
+    return false;
+
+  CLog::Log(LOGDEBUG, "CRecentlyAddedJob::UpdatePrograms() - Running RecentlyAdded home screen update");
+
+  int            i = 0;
+  CFileItemList  items;
+  CProgramDatabase programdatabase;
+  CProgramThumbLoader loader;
+  loader.OnLoaderStart();
+
+  programdatabase.Open();
+
+  if (programdatabase.GetRecentlyAddedGamesNav("programdb://recentlyaddedgames/", items, NUM_ITEMS))
+  {
+    for (; i < items.Size(); ++i)
+    {
+      CFileItemPtr item = items.Get(i);
+      std::string   value = StringUtils::Format("%i", i + 1);
+      std::string   strRating = StringUtils::Format("%.1f", item->GetProgramInfoTag()->GetRating().rating);
+
+      home->SetProperty("LatestGame." + value + ".Title"       , item->GetLabel());
+      home->SetProperty("LatestGame." + value + ".Rating"      , strRating);
+      home->SetProperty("LatestGame." + value + ".Year"        , item->GetProgramInfoTag()->GetYear());
+      home->SetProperty("LatestGame." + value + ".Plot"        , item->GetProgramInfoTag()->m_strPlot);
+      home->SetProperty("LatestGame." + value + ".Path"        , item->GetProgramInfoTag()->m_strFileNameAndPath);
+      home->SetProperty("LatestGame." + value + ".Trailer"     , item->GetProgramInfoTag()->m_strTrailer);
+
+      if (!item->HasArt("thumb"))
+        loader.LoadItem(item.get());
+
+      home->SetProperty("LatestGame." + value + ".Thumb"       , item->HasArt("poster") ? item->GetArt("poster") : item->GetArt("thumb"));
+      home->SetProperty("LatestGame." + value + ".Fanart"      , item->GetArt("fanart"));
+    }
+  }
+  for (; i < NUM_ITEMS; ++i)
+  {
+    std::string value = StringUtils::Format("%i", i + 1);
+    home->SetProperty("LatestGame." + value + ".Title"       , "");
+    home->SetProperty("LatestGame." + value + ".Thumb"       , "");
+    home->SetProperty("LatestGame." + value + ".Rating"      , "");
+    home->SetProperty("LatestGame." + value + ".Year"        , "");
+    home->SetProperty("LatestGame." + value + ".Plot"        , "");
+    home->SetProperty("LatestGame." + value + ".Path"        , "");
+    home->SetProperty("LatestGame." + value + ".Trailer"     , "");
+    home->SetProperty("LatestGame." + value + ".Fanart"      , "");
+  }
+
+  programdatabase.Close();
+  return true;
+}
+#endif
 
 bool CRecentlyAddedJob::DoWork()
 {
@@ -382,6 +457,11 @@ bool CRecentlyAddedJob::DoWork()
 
   if (m_flag & Video)
     ret &= UpdateVideo();
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (m_flag & Program)
+    ret &= UpdateProgram();
+#endif
 
   if (m_flag & Totals)
     ret &= UpdateTotal();

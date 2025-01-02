@@ -36,7 +36,7 @@ CGUIWindowHome::CGUIWindowHome(void) : CGUIWindow(WINDOW_HOME, "Home.xml"),
                                        m_recentlyAddedRunning(false),
                                        m_cumulativeUpdateFlag(0)
 {
-  m_updateRA = (Audio | Video | Totals);
+  m_updateRA = (Audio | Video | Program | Totals);
   m_loadType = KEEP_IN_MEMORY;
 
   CAnnouncementManager::GetInstance().AddAnnouncer(this);
@@ -164,7 +164,7 @@ bool CGUIWindowHome::OnMessage(CGUIMessage& message)
   case GUI_MSG_NOTIFY_ALL:
     if (message.GetParam1() == GUI_MSG_WINDOW_RESET || message.GetParam1() == GUI_MSG_REFRESH_THUMBS)
     {
-      int updateRA = (message.GetSenderId() == GetID()) ? message.GetParam2() : (Video | Audio | Totals);
+      int updateRA = (message.GetSenderId() == GetID()) ? message.GetParam2() : (Video | Audio | Program | Totals);
 
       if (IsActive())
         AddRecentlyAddedJobs(updateRA);

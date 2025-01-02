@@ -25,6 +25,9 @@ enum ERecentlyAddedFlag
 {
   Audio = 0x1,
   Video = 0x2,
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  Program = 0x3,
+#endif
   Totals = 0x4
 };
 
@@ -35,6 +38,9 @@ public:
   static bool UpdateVideo();
   static bool UpdateMusic();
   static bool UpdateTotal();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  static bool UpdateProgram();
+#endif
   virtual bool DoWork();
 private:
   int m_flag;
