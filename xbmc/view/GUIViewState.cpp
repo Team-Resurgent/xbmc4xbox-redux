@@ -24,7 +24,6 @@
 #include "video/GUIViewStateVideo.h"
 #include "pictures/GUIViewStatePictures.h"
 #include "profiles/ProfilesManager.h"
-#include "programs/GUIViewStatePrograms.h"
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #include "programs/GUIViewStateProgram.h"
 #endif
@@ -109,8 +108,10 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
   if (items.GetPath() == "special://musicplaylists/")
     return new CGUIViewStateWindowMusicNav(items);
 
+#ifndef _XBOX
   if (url.IsProtocol("androidapp"))
     return new CGUIViewStateWindowPrograms(items);
+#endif
 
   if (windowId == WINDOW_MUSIC_NAV)
     return new CGUIViewStateWindowMusicNav(items);
@@ -134,9 +135,6 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
 
   if (windowId == WINDOW_PICTURES)
     return new CGUIViewStateWindowPictures(items);
-
-  if (windowId == WINDOW_PROGRAMS)
-    return new CGUIViewStateWindowPrograms(items);
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   if (windowId == WINDOW_PROGRAM_NAV)

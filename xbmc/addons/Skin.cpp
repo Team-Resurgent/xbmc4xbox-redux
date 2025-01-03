@@ -336,7 +336,7 @@ bool CSkinInfo::LoadStartupWindows(const cp_extension_t *ext)
 {
   m_startupWindows.clear();
   m_startupWindows.push_back(CStartupWindow(WINDOW_HOME, "513"));
-  m_startupWindows.push_back(CStartupWindow(WINDOW_PROGRAMS, "0"));
+  m_startupWindows.push_back(CStartupWindow(WINDOW_PROGRAM_NAV, "0"));
   m_startupWindows.push_back(CStartupWindow(WINDOW_PICTURES, "1"));
   m_startupWindows.push_back(CStartupWindow(WINDOW_MUSIC_NAV, "2"));
   m_startupWindows.push_back(CStartupWindow(WINDOW_VIDEO_NAV, "3"));

@@ -57,7 +57,6 @@
 #include "rendering/dx/GUIWindowTestPatternDX.h"
 #endif
 #include "settings/windows/GUIWindowSettingsScreenCalibration.h"
-#include "programs/GUIWindowPrograms.h"
 #include "GUIWindowGameSaves.h"
 #include "pictures/GUIWindowPictures.h"
 #include "windows/GUIWindowWeather.h"
@@ -155,7 +154,6 @@ void CGUIWindowManager::Initialize()
 void CGUIWindowManager::CreateWindows()
 {
   Add(new CGUIWindowHome);
-  Add(new CGUIWindowPrograms);
   Add(new CGUIWindowPictures);
   Add(new CGUIWindowFileManager);
   Add(new CGUIWindowSettings);
@@ -321,7 +319,6 @@ bool CGUIWindowManager::DestroyWindows()
     Delete(WINDOW_SKIN_SETTINGS);
 
     Delete(WINDOW_HOME);
-    Delete(WINDOW_PROGRAMS);
     Delete(WINDOW_PICTURES);
     Delete(WINDOW_GAMESAVES);
     Delete(WINDOW_WEATHER);

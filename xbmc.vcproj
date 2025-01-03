@@ -4899,28 +4899,10 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 					RelativePath=".\xbmc\programs\GUIViewStateProgram.h">
 				</File>
 				<File
-					RelativePath=".\xbmc\programs\GUIViewStatePrograms.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\programs\GUIViewStatePrograms.h">
-				</File>
-				<File
-					RelativePath=".\xbmc\programs\GUIWindowPrograms.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\programs\GUIWindowPrograms.h">
-				</File>
-				<File
 					RelativePath=".\xbmc\programs\ProgramDatabase.cpp">
 				</File>
 				<File
 					RelativePath=".\xbmc\programs\ProgramDatabase.h">
-				</File>
-				<File
-					RelativePath=".\xbmc\programs\ProgramDatabase2.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\programs\ProgramDatabase2.h">
 				</File>
 				<File
 					RelativePath=".\xbmc\programs\ProgramDbUrl.cpp">

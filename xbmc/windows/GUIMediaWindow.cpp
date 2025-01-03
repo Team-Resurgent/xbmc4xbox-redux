@@ -828,7 +828,7 @@ bool CGUIMediaWindow::Update(const std::string &strDirectory, bool updateFilterP
   {
     if (iWindow == WINDOW_PICTURES)
       showLabel = 997;
-    else if (iWindow == WINDOW_FILES || iWindow == WINDOW_PROGRAMS)
+    else if (iWindow == WINDOW_FILES)
       showLabel = 1026;
   }
   if (m_vecItems->IsPath("sources://video/"))

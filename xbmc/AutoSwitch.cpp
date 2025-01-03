@@ -68,7 +68,7 @@ int CAutoSwitch::GetView(const CFileItemList &vecItems)
     }
     break;
 
-  case WINDOW_PROGRAMS:
+  case WINDOW_PROGRAM_NAV:
     {
       iSortMethod = METHOD_BYTHUMBPERCENT;
       iPercent = 50;  // 50% of thumbs -> use thumbs.

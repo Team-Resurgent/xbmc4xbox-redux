@@ -307,7 +307,6 @@
 // Window ID defines to make the code a bit more readable
 #define WINDOW_INVALID                     9999
 #define WINDOW_HOME                       10000
-#define WINDOW_PROGRAMS                   10001
 #define WINDOW_PICTURES                   10002
 #define WINDOW_FILES                      10003
 #define WINDOW_SETTINGS_MENU              10004

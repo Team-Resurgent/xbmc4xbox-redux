@@ -38,9 +38,6 @@
 #include "URL.h"
 #ifdef _XBOX
 #include "Key.h"
-
-#define STRINGIZE_(x) #x
-#define STRINGIZE(x) STRINGIZE_(x)
 #endif
 
 namespace XFILE
@@ -216,9 +213,6 @@ std::string CFavouritesDirectory::GetExecutePath(const CFileItem &item, const st
 #ifndef _XBOX
   else if (item.IsAndroidApp() && item.GetPath().size() > 26) // androidapp://sources/apps/<foo>
     execute = StringUtils::Format("StartAndroidActivity(%s)", StringUtils::Paramify(item.GetPath().substr(26)).c_str());
-#else
-  else if (contextWindow == STRINGIZE(WINDOW_PROGRAMS))
-    execute = StringUtils::Format("RunXBE(%s)", StringUtils::Paramify(item.GetPath()).c_str());
 #endif
   else  // assume a media file
   {
