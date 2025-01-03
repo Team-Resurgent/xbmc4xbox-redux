@@ -32,6 +32,9 @@
 #include "settings/AdvancedSettings.h"
 #include "video/VideoInfoTag.h"
 #include "music/tags/MusicInfoTag.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramInfoTag.h"
+#endif
 #include "URL.h"
 #ifdef _XBOX
 #include "Key.h"
@@ -225,6 +228,12 @@ std::string CFavouritesDirectory::GetExecutePath(const CFileItem &item, const st
       execute = StringUtils::Format("PlayMedia(%s)", StringUtils::Paramify(item.GetMusicInfoTag()->GetURL()).c_str());
     else if (item.IsPicture())
       execute = StringUtils::Format("ShowPicture(%s)", StringUtils::Paramify(item.GetPath()).c_str());
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    else if (item.IsProgramDb() && item.HasProgramInfoTag())
+      execute = StringUtils::Format("RunXBE(%s)", StringUtils::Paramify(item.GetProgramInfoTag()->m_strFileNameAndPath).c_str());
+    else if (item.IsXBE())
+      execute = StringUtils::Format("RunXBE(%s)", StringUtils::Paramify(item.GetPath()).c_str());
+#endif
     else
       execute = StringUtils::Format("PlayMedia(%s)", StringUtils::Paramify(item.GetPath()).c_str());
   }
