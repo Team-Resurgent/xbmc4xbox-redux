@@ -34,6 +34,7 @@
 #include "settings/MediaSourceSettings.h"
 #include "settings/Settings.h"
 #include "URL.h"
+#include "Util.h"
 #include "utils/FileUtils.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
@@ -399,7 +400,9 @@ int CProgramDatabase::AddFile(const std::string& strFileNameAndPath)
     }
     m_pDS->close();
 
-    strSQL=PrepareSQL("insert into files (idFile, idPath, strFileName) values(NULL, %i, '%s')", idPath, strFileName.c_str());
+    unsigned int titleId = URIUtils::HasExtension(strFileNameAndPath, ".xbe") ? CUtil::GetXbeID(strFileNameAndPath) : 0;
+
+    strSQL=PrepareSQL("insert into files (idFile, idPath, strFileName, titleId) values(NULL, %i, '%s', %u)", idPath, strFileName.c_str(), titleId);
     m_pDS->exec(strSQL);
     idFile = (int)m_pDS->lastinsertid();
     return idFile;
@@ -2531,4 +2534,36 @@ bool CProgramDatabase::GetEmulators(const std::vector<std::string>& systems, CFi
   filter.AppendWhere(strWhere);
 
   return GetGamesByWhere("programdb://apps/titles/", filter, emulators);
+}
+
+bool CProgramDatabase::GetProgramByTitleId(const int idTitle, std::string& strPathAndFilename)
+{
+  std::string strSQL = "";
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    strSQL = PrepareSQL("select idPath, strFilename from files where titleId = %i", idTitle);
+    m_pDS->query(strSQL.c_str());
+    if (m_pDS->num_rows() > 0)
+    {
+      int idPath = m_pDS->fv("idPath").get_asInt();
+      std::string strFilename = m_pDS->fv("strFilename").get_asString();
+
+      strSQL = PrepareSQL("select strPath from path where idPath = %i", idPath);
+      m_pDS->query(strSQL.c_str());
+      if (m_pDS->num_rows() > 0)
+      {
+        std::string strPath = m_pDS->fv("strPath").get_asString();
+        strPathAndFilename = URIUtils::AddFileToFolder(strPath, strFilename);
+        return true;
+      }
+    }
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strSQL.c_str());
+  }
+  return false;
 }

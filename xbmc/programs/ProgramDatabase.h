@@ -293,6 +293,8 @@ public:
   // Emulators
   bool GetEmulators(const std::vector<std::string>& systems, CFileItemList& emulators);
 
+  bool GetProgramByTitleId(const int idTitle, std::string& strPathAndFilename);
+
 protected:
   int GetGameId(const std::string& strFilenameAndPath);
 

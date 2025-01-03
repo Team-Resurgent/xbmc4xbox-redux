@@ -33,7 +33,7 @@
 #include "utils/Variant.h"
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
-#include "programs/ProgramDatabase2.h"
+#include "programs/ProgramDatabase.h"
 #include "programs/launchers/ProgramLauncher.h"
 
 CGUIWindowInsignia::CGUIWindowInsignia(void)
@@ -78,11 +78,11 @@ bool CGUIWindowInsignia::OnAction(const CAction &action)
     if (sscanf(game->GetProperty("code").asString().c_str(), "%x", (uint32_t*)&xbeID) == 0)
       return false;
 
-    LEGACY_PROGRAMS::CProgramDatabase database;
+    CProgramDatabase database;
     database.Open();
 
     std::string gamePath;
-    database.GetXBEPathByTitleId(xbeID, gamePath);
+    database.GetProgramByTitleId(xbeID, gamePath);
     if (gamePath.empty())
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "Insignia", g_localizeStrings.Get(38903));
     else
