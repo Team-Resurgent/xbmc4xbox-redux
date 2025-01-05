@@ -845,6 +845,11 @@ int CProgramDatabase::SetDetailsForProgram(const std::string& strFilenameAndPath
     if (details.m_type == MediaTypeApp)
     {
       AddLinksToItem(idProgram, MediaTypeApp, "tag", details.m_tags);
+
+      // add ratings
+      details.m_iIdRating = AddRatings(idProgram, MediaTypeApp, details.m_ratings, details.GetDefaultRating());
+
+      SetArtForItem(idProgram, MediaTypeApp, artwork);
     }
     else
     {
@@ -856,14 +861,14 @@ int CProgramDatabase::SetDetailsForProgram(const std::string& strFilenameAndPath
       AddLinksToItem(idProgram, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
       AddLinksToItem(idProgram, MediaTypeGame, "platform", details.m_platform);
       AddLinksToItem(idProgram, MediaTypeGame, "tag", details.m_tags);
+
+      // add ratings
+      details.m_iIdRating = AddRatings(idProgram, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
+
+      SetArtForItem(idProgram, MediaTypeGame, artwork);
     }
 
-    // add ratings
-    details.m_iIdRating = AddRatings(idProgram, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
-
     // TODO: add support for unique IDs
-
-    SetArtForItem(idProgram, MediaTypeGame, artwork);
 
     // update our program table (we know it was added already above)
     // and insert the new row
@@ -954,6 +959,8 @@ void CProgramDatabase::DeleteTag(int idTag, PROGRAMDB_CONTENT_TYPE mediaType)
     std::string type;
     if (mediaType == PROGRAMDB_CONTENT_GAMES)
       type = MediaTypeGame;
+    if (mediaType == PROGRAMDB_CONTENT_APPS)
+      type = MediaTypeApp;
     else
       return;
 
@@ -1029,7 +1036,6 @@ CProgramInfoTag CProgramDatabase::GetDetailsForProgram(const dbiplus::sql_record
   GetDetailsFromDB(record, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbProgramOffsets, details);
 
   details.m_iDbId = idProgram;
-  details.m_type = MediaTypeGame;
 
   details.m_iFileId = record->at(PROGRAMDB_DETAILS_FILEID).get_asInt();
   details.m_strPath = record->at(PROGRAMDB_DETAILS_PROGRAM_PATH).get_asString();
@@ -1051,7 +1057,7 @@ CProgramInfoTag CProgramDatabase::GetDetailsForProgram(const dbiplus::sql_record
   if (getDetails)
   {
     if (getDetails & ProgramDbDetailsRating)
-      GetRatings(details.m_iDbId, MediaTypeGame, details.m_ratings);
+      GetRatings(details.m_iDbId, details.m_type, details.m_ratings);
 
     details.m_strPictureURL.Parse();
   }
@@ -1297,6 +1303,11 @@ void CProgramDatabase::UpdateProgramTitle(int idProgram, const std::string& strN
       CLog::Log(LOGINFO, "Changing Game:id:%i New Title:%s", idProgram, strNewProgramTitle.c_str());
       content = MediaTypeGame;
     }
+    else if (iType == PROGRAMDB_CONTENT_APPS)
+    {
+      CLog::Log(LOGINFO, "Changing Program:id:%i New Title:%s", idProgram, strNewProgramTitle.c_str());
+      content = MediaTypeApp;
+    }
 
     if (!content.empty())
     {
@@ -1536,23 +1547,20 @@ bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList&
     Filter extFilter = filter;
     if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
     {
+      strSQL = "select program_view.released, path.strPath, files.playCount from program_view ";
+      extFilter.AppendJoin("join files on files.idFile = program_view.idFile join path on files.idPath = path.idPath");
       if (idContent == PROGRAMDB_CONTENT_GAMES)
-      {
-        strSQL = "select program_view.released, path.strPath, files.playCount from program_view ";
-        extFilter.AppendJoin("join files on files.idFile = program_view.idFile join path on files.idPath = path.idPath");
-      }
+        extFilter.AppendWhere(PrepareSQL("c0%i = '%s'", PROGRAMDB_ID_TYPE, "game"));
       else
         return false;
     }
     else
     {
-      std::string group;
+      strSQL = "select program_view.released, count(1), count(files.playCount) from program_view ";
+      extFilter.AppendJoin("join files on files.idFile = program_view.idFile");
+      extFilter.AppendGroup("program_view.released");
       if (idContent == PROGRAMDB_CONTENT_GAMES)
-      {
-        strSQL = "select program_view.released, count(1), count(files.playCount) from program_view ";
-        extFilter.AppendJoin("join files on files.idFile = program_view.idFile");
-        extFilter.AppendGroup("program_view.released");
-      }
+        extFilter.AppendWhere(PrepareSQL("c0%i = '%s'", PROGRAMDB_ID_TYPE, "game"));
       else
         return false;
     }
@@ -1673,7 +1681,7 @@ bool CProgramDatabase::GetSortedPrograms(const MediaType &mediaType, const std::
   if (NULL == m_pDB.get() || NULL == m_pDS.get())
     return false;
 
-  if (mediaType != MediaTypeGame)
+  if (mediaType != MediaTypeGame && mediaType != MediaTypeApp)
     return false;
 
   SortDescription sorting = sortDescription;
@@ -1690,7 +1698,7 @@ bool CProgramDatabase::GetSortedPrograms(const MediaType &mediaType, const std::
     sorting.sortAttributes = (SortAttribute)(sortDescription.sortAttributes | SortAttributeIgnoreFolders);
 
   bool success = false;
-  if (mediaType == MediaTypeGame)
+  if (mediaType == MediaTypeGame || mediaType == MediaTypeApp)
     success = GetProgramsByWhere(strBaseDir, filter, items, sorting);
   else
     return false;
@@ -1821,7 +1829,7 @@ bool CProgramDatabase::GetProgramsByWhere(const std::string& strBaseDir, const F
     DatabaseResults results;
     results.reserve(iRowsFound);
 
-    if (!SortUtils::SortFromDataset(sortDescription, MediaTypeGame, m_pDS, results))
+    if (!SortUtils::SortFromDataset(sortDescription, MediaTypeProgram, m_pDS, results))
       return false;
 
     // get data from returned rows
@@ -2072,7 +2080,7 @@ ScraperPtr CProgramDatabase::GetScraperForPath(const std::string& strPath, SScan
     if (!scraper || scraper->Content() == CONTENT_NONE)
       return ScraperPtr();
 
-    if (scraper->Content() == CONTENT_PROGRAMS)
+    if (scraper->Content() == CONTENT_GAMES || scraper->Content() == CONTENT_APPS)
     {
       settings.recurse = settings.recurse - (iFound-1);
       settings.parent_name_root = settings.parent_name && (!settings.recurse || iFound > 1);
@@ -2113,7 +2121,7 @@ void CProgramDatabase::InvalidatePathHash(const std::string& strPath)
   SetPathHash(strPath,"");
   if (!info)
     return;
-  if (info->Content() == CONTENT_PROGRAMS && !foundDirectly && settings.parent_name_root) // if we scan by folder name we need to invalidate parent as well
+  if ((info->Content() == CONTENT_GAMES || info->Content() == CONTENT_APPS) && !foundDirectly && settings.parent_name_root) // if we scan by folder name we need to invalidate parent as well
   {
     std::string strParent;
     URIUtils::GetParentPath(strPath,strParent);
@@ -2141,7 +2149,7 @@ bool CProgramDatabase::SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int
       return false;
 
     std::string strTable, strField;
-    if (type == PROGRAMDB_CONTENT_GAMES)
+    if (type == PROGRAMDB_CONTENT_GAMES || type == PROGRAMDB_CONTENT_APPS)
     {
       strTable = "program";
       strField = "idProgram";

@@ -124,7 +124,7 @@ bool CProgramLibraryRefreshingJob::Work(CProgramDatabase &db)
     if (m_item->GetProgramInfoTag()->m_iDbId > 0)
     {
       int dbId = m_item->GetProgramInfoTag()->m_iDbId;
-      if (scraper->Content() == CONTENT_PROGRAMS)
+      if (scraper->Content() == CONTENT_GAMES || scraper->Content() == CONTENT_APPS)
         db.DeleteProgram(dbId);
     }
 
@@ -145,7 +145,7 @@ bool CProgramLibraryRefreshingJob::Work(CProgramDatabase &db)
     }
 
     // retrieve the updated information from the database
-    if (scraper->Content() == CONTENT_PROGRAMS)
+    if (scraper->Content() == CONTENT_GAMES || scraper->Content() == CONTENT_APPS)
       db.GetProgramInfo(m_item->GetPath(), *m_item->GetProgramInfoTag());
 
     // we're finally done

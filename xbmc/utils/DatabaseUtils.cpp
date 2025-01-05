@@ -67,6 +67,9 @@ MediaType DatabaseUtils::MediaTypeFromProgramContentType(int programContentType)
     case PROGRAMDB_CONTENT_GAMES:
       return MediaTypeGame;
 
+    case PROGRAMDB_CONTENT_APPS:
+      return MediaTypeApp;
+
     default:
       break;
   }
@@ -267,7 +270,7 @@ std::string DatabaseUtils::GetField(Field field, const MediaType &mediaType, Dat
       return result;
   }
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  else if (mediaType == MediaTypeGame)
+  else if (mediaType == MediaTypeProgram || mediaType == MediaTypeGame || mediaType == MediaTypeApp)
   {
     std::string result;
     if (field == FieldId) return "program_view.idProgram";
@@ -331,7 +334,7 @@ bool DatabaseUtils::GetSelectFields(const Fields &fields, const MediaType &media
   // add necessary fields to create the label
   if (mediaType == MediaTypeSong || mediaType == MediaTypeVideo || mediaType == MediaTypeVideoCollection ||
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-      mediaType == MediaTypeGame ||
+      mediaType == MediaTypeProgram || mediaType == MediaTypeGame || mediaType == MediaTypeApp ||
 #endif
       mediaType == MediaTypeMusicVideo || mediaType == MediaTypeMovie || mediaType == MediaTypeTvShow || mediaType == MediaTypeEpisode)
     sortFields.insert(FieldTitle);
@@ -478,7 +481,7 @@ bool DatabaseUtils::GetDatabaseResults(const MediaType &mediaType, const FieldLi
     result[FieldMediaType] = mediaType;
     if (mediaType == MediaTypeMovie || mediaType == MediaTypeVideoCollection ||
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-        mediaType == MediaTypeGame ||
+        mediaType == MediaTypeProgram || mediaType == MediaTypeGame || mediaType == MediaTypeApp ||
 #endif
         mediaType == MediaTypeTvShow || mediaType == MediaTypeMusicVideo)
       result[FieldLabel] = result.find(FieldTitle)->second.asString();
@@ -733,7 +736,7 @@ int DatabaseUtils::GetField(Field field, const MediaType &mediaType, bool asInde
     }
   }
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  else if (mediaType == MediaTypeGame)
+  else if (mediaType == MediaTypeProgram || mediaType == MediaTypeGame || mediaType == MediaTypeApp)
   {
     if (field == FieldId) return 0;
     else if (field == FieldTitle) index = PROGRAMDB_ID_TITLE;

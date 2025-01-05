@@ -28,16 +28,9 @@ namespace CONTEXTMENU
 class CProgramInfo : public CStaticContextMenuAction
 {
 public:
-  explicit CProgramInfo(MediaType mediaType);
+  CProgramInfo();
   bool IsVisible(const CFileItem& item) const;
   bool Execute(const CFileItemPtr& item) const;
-private:
-  const MediaType m_mediaType;
-};
-
-struct CGameInfo : CProgramInfo
-{
-  CGameInfo() : CProgramInfo(MediaTypeGame) {}
 };
 
 struct CLaunchCustom : IContextMenuItem

@@ -63,7 +63,8 @@ bool CProgramThumbLoader::LoadItemCached(CFileItem *pItem)
     FillLibraryArt(*pItem);
 
     if (!pItem->GetProgramInfoTag()->m_type.empty()          &&
-         pItem->GetProgramInfoTag()->m_type != MediaTypeGame)
+         pItem->GetProgramInfoTag()->m_type != MediaTypeGame &&
+         pItem->GetProgramInfoTag()->m_type != MediaTypeApp)
     {
       m_programDatabase->Close();
       return true; // nothing else to be done
@@ -99,7 +100,8 @@ bool CProgramThumbLoader::LoadItemLookup(CFileItem *pItem)
 
   if (pItem->HasProgramInfoTag()                          &&
      !pItem->GetProgramInfoTag()->m_type.empty()          &&
-      pItem->GetProgramInfoTag()->m_type != MediaTypeGame)
+      pItem->GetProgramInfoTag()->m_type != MediaTypeGame &&
+      pItem->GetProgramInfoTag()->m_type != MediaTypeApp)
     return false; // Nothing to do here
 
   m_programDatabase->Open();
@@ -161,7 +163,10 @@ bool CProgramThumbLoader::FillLibraryArt(CFileItem &item)
 std::vector<std::string> CProgramThumbLoader::GetArtTypes(const std::string &type)
 {
   std::vector<std::string> ret;
-  if (type == MediaTypeGame || type.empty())
+  if (type == MediaTypeProgram  ||
+      type == MediaTypeGame     ||
+      type == MediaTypeApp      ||
+      type.empty())
   {
     ret.push_back("alt_synopsis");
     ret.push_back("banner");

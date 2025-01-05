@@ -111,7 +111,8 @@ boost::shared_ptr<IAddon> CAddonBuilder::Build()
     case ADDON_SCRAPER_TVSHOWS:
     case ADDON_SCRAPER_LIBRARY:
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    case ADDON_SCRAPER_PROGRAMS:
+    case ADDON_SCRAPER_GAMES:
+    case ADDON_SCRAPER_APPS:
 #endif
       return boost::shared_ptr<CScraper>(CScraper::FromExtension(boost::move(m_props), m_extPoint).release(), deleter<CScraper>);
 #if defined(HAS_VISUALISATION)
@@ -166,7 +167,8 @@ AddonPtr CAddonBuilder::FromProps(AddonProps addonProps)
     case ADDON_SCRAPER_TVSHOWS:
     case ADDON_SCRAPER_LIBRARY:
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    case ADDON_SCRAPER_PROGRAMS:
+    case ADDON_SCRAPER_GAMES:
+    case ADDON_SCRAPER_APPS:
 #endif
       return AddonPtr(new CScraper(boost::move(addonProps)));
     case ADDON_SKIN:

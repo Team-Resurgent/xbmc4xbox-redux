@@ -199,6 +199,7 @@ void CGUIWindowProgramNav::GetContextButtons(int itemNumber, CContextButtons &bu
       {
         if (!g_application.IsProgramScanning() && item->IsProgramDb() && item->HasProgramInfoTag() &&
            (item->GetProgramInfoTag()->m_type == MediaTypeGame ||   // games
+            item->GetProgramInfoTag()->m_type == MediaTypeApp  ||   // apps
             item->GetProgramInfoTag()->m_type == "tag"))            // tags
         {
           buttons.Add(CONTEXT_BUTTON_EDIT, 16106);

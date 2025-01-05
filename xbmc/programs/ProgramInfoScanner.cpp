@@ -239,7 +239,7 @@ namespace PROGRAM
       return true;
 
     std::string hash, dbHash;
-    if (content == CONTENT_PROGRAMS)
+    if (content == CONTENT_GAMES || content == CONTENT_APPS)
     {
       if (m_handle)
         m_handle->SetTitle(StringUtils::Format(g_localizeStrings.Get(38911).c_str(), info->Name().c_str()));
@@ -409,7 +409,7 @@ namespace PROGRAM
       info2->ClearCache();
 
       INFO_RET ret = INFO_CANCELLED;
-      if (info2->Content() == CONTENT_PROGRAMS)
+      if (info2->Content() == CONTENT_GAMES || info2->Content() == CONTENT_APPS)
         ret = RetrieveInfoForProgram(pItem.get(), bDirNames, info2, useLocal, pURL, pDlgProgress);
       else
       {
@@ -508,16 +508,20 @@ namespace PROGRAM
     CLog::Log(LOGDEBUG, "ProgramInfoScanner: Adding new item to %s:%s", TranslateContent(content).c_str(), redactPath.c_str());
     long lResult = -1;
 
-    if (content == CONTENT_PROGRAMS)
+    if (content == CONTENT_GAMES || content == CONTENT_APPS)
     {
       // find local trailer first
       std::string strTrailer = pItem->FindTrailer();
       if (!strTrailer.empty())
         programDetails.m_strTrailer = strTrailer;
 
+      // set program type (default game)
+      programDetails.m_type = MediaTypeGame;
+      if (content == CONTENT_APPS)
+        programDetails.m_type = MediaTypeApp;
+
       lResult = m_database.SetDetailsForProgram(pItem->GetPath(), programDetails, art);
       programDetails.m_iDbId = lResult;
-      programDetails.m_type = MediaTypeGame;
     }
 
     m_database.Close();
@@ -532,7 +536,7 @@ namespace PROGRAM
     CGUIListItem::ArtMap art = pItem->GetArt();
 
     // get and cache thumb images
-    std::vector<std::string> artTypes = CProgramThumbLoader::GetArtTypes(MediaTypeGame);
+    std::vector<std::string> artTypes = CProgramThumbLoader::GetArtTypes(MediaTypeProgram);
 
     // find local art
     if (useLocal)

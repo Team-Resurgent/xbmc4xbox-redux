@@ -35,15 +35,17 @@
 namespace CONTEXTMENU
 {
 
-CProgramInfo::CProgramInfo(MediaType mediaType)
-    : CStaticContextMenuAction(19033), m_mediaType(mediaType) {}
+CProgramInfo::CProgramInfo()
+    : CStaticContextMenuAction(19033) {}
 
 bool CProgramInfo::IsVisible(const CFileItem& item) const
 {
   if (!item.HasProgramInfoTag())
     return false;
 
-  return item.GetProgramInfoTag()->m_type == m_mediaType;
+  return item.GetProgramInfoTag()->m_type == MediaTypeProgram ||
+         item.GetProgramInfoTag()->m_type == MediaTypeGame ||
+         item.GetProgramInfoTag()->m_type == MediaTypeApp;
 }
 
 bool CProgramInfo::Execute(const CFileItemPtr& item) const

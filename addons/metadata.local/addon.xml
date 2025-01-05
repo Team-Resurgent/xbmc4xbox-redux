@@ -21,7 +21,10 @@
   <extension point="xbmc.metadata.scraper.movies"
              language="multi"
              library="local.xml"/>
-  <extension point="xbmc.metadata.scraper.programs"
+  <extension point="xbmc.metadata.scraper.games"
+             language="multi"
+             library="local.xml"/>
+  <extension point="xbmc.metadata.scraper.apps"
              language="multi"
              library="local.xml"/>
   <extension point="xbmc.addon.metadata">

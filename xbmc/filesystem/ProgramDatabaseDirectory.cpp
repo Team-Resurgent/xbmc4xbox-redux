@@ -115,6 +115,8 @@ std::string CProgramDatabaseDirectory::GetIcon(const std::string &strDirectory)
     return "";
   case NODE_TYPE_GAMES_OVERVIEW: // Games
     return "DefaultGames.png";
+  case NODE_TYPE_APPS_OVERVIEW: // Apps
+    return "DefaultProgram.png";
   case NODE_TYPE_RECENTLY_ADDED_GAMES: // Recently Added Games
     return "DefaultRecentlyAddedMovies.png";
   case NODE_TYPE_RECENTLY_PLAYED_GAMES: // Recently Played Games

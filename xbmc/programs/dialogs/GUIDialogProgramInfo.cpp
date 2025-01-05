@@ -190,7 +190,7 @@ void CGUIDialogProgramInfo::SetProgram(const CFileItem *item)
         CProgramDatabase database;
         if(database.Open())
         {
-          database.SetSingleValue(PROGRAMDB_CONTENT_GAMES,
+          database.SetSingleValue(type == MediaTypeApp ? PROGRAMDB_CONTENT_APPS : PROGRAMDB_CONTENT_GAMES,
                                   m_programItem->GetProgramInfoTag()->m_iDbId,
                                   PROGRAMDB_ID_TRAILER,
                                   m_programItem->GetProgramInfoTag()->m_strTrailer);
@@ -303,7 +303,7 @@ int CGUIDialogProgramInfo::ManageProgramItem(const CFileItemPtr &item)
   int dbId = item->GetProgramInfoTag()->m_iDbId;
 
   CContextButtons buttons;
-  if (type == MediaTypeGame)
+  if (type == MediaTypeGame || type == MediaTypeApp)
   {
     buttons.Add(CONTEXT_BUTTON_EDIT, 16105);
     if (URIUtils::HasExtension(item->GetProgramInfoTag()->m_strFileNameAndPath, ".xbe"))
@@ -394,7 +394,7 @@ bool CGUIDialogProgramInfo::UpdateProgramItemTitle(const CFileItemPtr &pItem)
 
   CProgramInfoTag detail;
   std::string title;
-  if (mediaType == MediaTypeGame)
+  if (mediaType == MediaTypeGame || mediaType == MediaTypeApp)
   {
     database.GetProgramInfo("", detail, iDbId, ProgramDbDetailsNone);
     title = detail.m_strTitle;
@@ -463,6 +463,9 @@ bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &it
         heading = 38971;
         break;
 
+      case PROGRAMDB_CONTENT_APPS:
+        heading = 38974;
+
       default:
         return false;
     }
@@ -505,6 +508,7 @@ bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &it
   switch (type)
   {
     case PROGRAMDB_CONTENT_GAMES:
+    case PROGRAMDB_CONTENT_APPS:
       database.DeleteProgram(item->GetProgramInfoTag()->m_iDbId);
       break;
     default:
@@ -559,6 +563,12 @@ bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const 
   {
     mediaType = MediaTypeGame;
     baseDir += "games";
+    idColumn = "idProgram";
+  }
+  else if (type.compare(MediaTypeApp) == 0)
+  {
+    mediaType = MediaTypeApp;
+    baseDir += "apps";
     idColumn = "idProgram";
   }
 
@@ -668,6 +678,9 @@ std::string CGUIDialogProgramInfo::GetLocalizedProgramType(const std::string &st
 {
   if (CMediaTypes::IsMediaType(strType, MediaTypeGame))
     return g_localizeStrings.Get(38928);
+
+  if (CMediaTypes::IsMediaType(strType, MediaTypeApp))
+    return g_localizeStrings.Get(38932);
 
   return "";
 }

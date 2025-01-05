@@ -124,7 +124,7 @@ bool CGUIWindowProgramBase::ShowIGDB(CFileItemPtr item, const ScraperPtr &info2)
     m_database.Open();
 
     int dbId = item->HasProgramInfoTag() ? item->GetProgramInfoTag()->m_iDbId : -1;
-    if (info->Content() == CONTENT_PROGRAMS)
+    if (info->Content() == CONTENT_GAMES || info->Content() == CONTENT_APPS)
     {
       bHasInfo = m_database.GetProgramInfo(item->GetPath(), programDetails, dbId);
     }

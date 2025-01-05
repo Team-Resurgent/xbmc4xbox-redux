@@ -13975,7 +13975,11 @@ msgctxt "#38973"
 msgid "Recently played games"
 msgstr ""
 
-#empty strings from id 38974 to 38994
+msgctxt "#38974"
+msgid "Remove application from library"
+msgstr ""
+
+#empty strings from id 38975 to 38994
 
 msgctxt "#38995"
 msgid "Default emulator"

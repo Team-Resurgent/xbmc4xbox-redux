@@ -3526,6 +3526,8 @@ int CFileItem::GetVideoContentType() const
 int CFileItem::GetProgramContentType() const
 {
   PROGRAMDB_CONTENT_TYPE type = PROGRAMDB_CONTENT_GAMES;
+  if (HasProgramInfoTag() && GetProgramInfoTag()->m_type == MediaTypeApp)
+    type = PROGRAMDB_CONTENT_APPS;
 
   return type;
 }
