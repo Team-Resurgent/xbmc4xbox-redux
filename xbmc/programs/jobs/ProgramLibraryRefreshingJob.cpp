@@ -124,8 +124,8 @@ bool CProgramLibraryRefreshingJob::Work(CProgramDatabase &db)
     if (m_item->GetProgramInfoTag()->m_iDbId > 0)
     {
       int dbId = m_item->GetProgramInfoTag()->m_iDbId;
-      if (scraper->Content() == CONTENT_GAMES)
-        db.DeleteGame(dbId);
+      if (scraper->Content() == CONTENT_PROGRAMS)
+        db.DeleteProgram(dbId);
     }
 
     // finally download the information for the item
@@ -145,8 +145,8 @@ bool CProgramLibraryRefreshingJob::Work(CProgramDatabase &db)
     }
 
     // retrieve the updated information from the database
-    if (scraper->Content() == CONTENT_GAMES)
-      db.GetGameInfo(m_item->GetPath(), *m_item->GetProgramInfoTag());
+    if (scraper->Content() == CONTENT_PROGRAMS)
+      db.GetProgramInfo(m_item->GetPath(), *m_item->GetProgramInfoTag());
 
     // we're finally done
     MarkFinished();

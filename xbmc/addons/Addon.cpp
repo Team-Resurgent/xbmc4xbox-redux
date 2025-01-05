@@ -79,7 +79,7 @@ static const TypeMapping types[] =
    {"xbmc.metadata.scraper.tvshows",     ADDON_SCRAPER_TVSHOWS,     24014, "DefaultAddonTvInfo.png" },
    {"xbmc.metadata.scraper.library",     ADDON_SCRAPER_LIBRARY,     24083, "DefaultAddonInfoLibrary.png" },
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-   {"xbmc.metadata.scraper.games",       ADDON_SCRAPER_GAMES,       38801, "DefaultAddonGame.png" },
+   {"xbmc.metadata.scraper.programs",    ADDON_SCRAPER_PROGRAMS,    38801, "DefaultAddonProgram.png" },
 #endif
    {"xbmc.ui.screensaver",               ADDON_SCREENSAVER,         24008, "DefaultAddonScreensaver.png" },
    {"xbmc.player.musicviz",              ADDON_VIZ,                 24010, "DefaultAddonVisualization.png" },

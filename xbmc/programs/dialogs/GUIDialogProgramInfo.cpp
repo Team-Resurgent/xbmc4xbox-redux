@@ -396,7 +396,7 @@ bool CGUIDialogProgramInfo::UpdateProgramItemTitle(const CFileItemPtr &pItem)
   std::string title;
   if (mediaType == MediaTypeGame)
   {
-    database.GetGameInfo("", detail, iDbId, ProgramDbDetailsNone);
+    database.GetProgramInfo("", detail, iDbId, ProgramDbDetailsNone);
     title = detail.m_strTitle;
   }
 
@@ -432,7 +432,7 @@ bool CGUIDialogProgramInfo::CanDeleteProgramItem(const CFileItemPtr &item)
   CQueryParams params;
   CProgramDatabaseDirectory::GetQueryParams(item->GetPath(), params);
 
-  return params.GetGameId()   != -1;
+  return params.GetProgramId()   != -1;
 }
 
 bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &item, bool unavailable /* = false */)
@@ -505,7 +505,7 @@ bool CGUIDialogProgramInfo::DeleteProgramItemFromDatabase(const CFileItemPtr &it
   switch (type)
   {
     case PROGRAMDB_CONTENT_GAMES:
-      database.DeleteGame(item->GetProgramInfoTag()->m_iDbId);
+      database.DeleteProgram(item->GetProgramInfoTag()->m_iDbId);
       break;
     default:
       return false;
@@ -559,7 +559,7 @@ bool CGUIDialogProgramInfo::GetItemsForTag(const std::string &strHeading, const 
   {
     mediaType = MediaTypeGame;
     baseDir += "games";
-    idColumn = "idGame";
+    idColumn = "idProgram";
   }
 
   baseDir += "/titles/";

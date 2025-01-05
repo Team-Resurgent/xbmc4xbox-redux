@@ -363,8 +363,8 @@ bool CRecentlyAddedJob::UpdateTotal()
 
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   programdatabase.Open();
-  int gameTotals     = atoi(programdatabase.GetSingleValue("game_view"      , "count(1)").c_str());
-  int gamePlayed     = atoi(programdatabase.GetSingleValue("game_view"      , "count(playCount)").c_str());
+  int gameTotals     = atoi(programdatabase.GetSingleValue("program_view"      , "count(1)").c_str());
+  int gamePlayed     = atoi(programdatabase.GetSingleValue("program_view"      , "count(playCount)").c_str());
   programdatabase.Close();
 #endif
 

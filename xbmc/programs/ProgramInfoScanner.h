@@ -90,7 +90,7 @@ namespace PROGRAM
     virtual void Process();
     bool DoScan(const std::string& strDirectory);
 
-    INFO_RET RetrieveInfoForGame(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
+    INFO_RET RetrieveInfoForProgram(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
 
     /*! \brief Update the progress bar with the heading and line and check for cancellation
      \param progress CGUIDialogProgress bar

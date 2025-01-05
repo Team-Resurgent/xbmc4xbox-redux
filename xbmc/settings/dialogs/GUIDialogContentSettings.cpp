@@ -105,7 +105,7 @@ void CGUIDialogContentSettings::SetScanSettings(const PROGRAM::SScanSettings &sc
 bool CGUIDialogContentSettings::Show(ADDON::ScraperPtr& scraper, CONTENT_TYPE content /* = CONTENT_NONE */)
 {
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  if (content == CONTENT_GAMES)
+  if (content == CONTENT_PROGRAMS)
   {
     PROGRAM::SScanSettings dummy;
     return Show(scraper, dummy, content);
@@ -215,7 +215,7 @@ bool CGUIDialogContentSettings::Show(ADDON::ScraperPtr& scraper, PROGRAM::SScanS
       settings.noupdate = dialog->GetNoUpdating();
       scraper->SetPathSettings(content, "");
 
-      if (content == CONTENT_GAMES)
+      if (content == CONTENT_PROGRAMS)
       {
         if (dialog->GetUseDirectoryNames())
         {
@@ -297,7 +297,7 @@ void CGUIDialogContentSettings::OnSettingAction(const CSetting *setting)
       labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_TVSHOWS, true), CONTENT_TVSHOWS));
       labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_MUSICVIDEOS, true), CONTENT_MUSICVIDEOS));
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-      labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_GAMES, true), CONTENT_GAMES));
+      labels.push_back(std::make_pair(ADDON::TranslateContent(CONTENT_PROGRAMS, true), CONTENT_PROGRAMS));
 #endif
     }
     std::sort(labels.begin(), labels.end());
@@ -449,7 +449,7 @@ void CGUIDialogContentSettings::InitializeSettings()
     case CONTENT_MOVIES:
     case CONTENT_MUSICVIDEOS:
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    case CONTENT_GAMES:
+    case CONTENT_PROGRAMS:
 #endif
     {
       AddToggle(groupDetails, SETTING_USE_DIRECTORY_NAMES, m_content == CONTENT_MOVIES ? 20329 : 20330, 0, m_useDirectoryNames, false, m_showScanSettings);

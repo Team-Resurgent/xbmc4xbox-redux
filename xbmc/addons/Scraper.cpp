@@ -67,7 +67,7 @@ static const ContentMapping content[] =
    {"music",         CONTENT_ALBUMS,        132 },
    {"artists",       CONTENT_ARTISTS,       133 },
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-   {"games",         CONTENT_GAMES,       15016 },
+   {"programs",      CONTENT_PROGRAMS,    38924 },
 #endif
    {"movies",        CONTENT_MOVIES,      20342 },
    {"tvshows",       CONTENT_TVSHOWS,     20343 },
@@ -115,8 +115,8 @@ TYPE ScraperTypeFromContent(const CONTENT_TYPE &content)
   case CONTENT_TVSHOWS:
     return ADDON_SCRAPER_TVSHOWS;
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY    
-  case CONTENT_GAMES:
-    return ADDON_SCRAPER_GAMES;
+  case CONTENT_PROGRAMS:
+    return ADDON_SCRAPER_PROGRAMS;
 #endif
   default:
     return ADDON_UNKNOWN;
@@ -163,8 +163,8 @@ boost::movelib::unique_ptr<CScraper> CScraper::FromExtension(AddonProps props, c
       pathContent = CONTENT_TVSHOWS;
       break;
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    case ADDON_SCRAPER_GAMES:
-      pathContent = CONTENT_GAMES;
+    case ADDON_SCRAPER_PROGRAMS:
+      pathContent = CONTENT_PROGRAMS;
       break;
 #endif
     default:

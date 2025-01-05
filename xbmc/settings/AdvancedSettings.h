@@ -194,7 +194,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::vector<std::string> m_videoExcludeFromListingRegExps;
     std::vector<std::string> m_moviesExcludeFromScanRegExps;
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-    std::vector<std::string> m_gamesExcludeFromScanRegExps;
+    std::vector<std::string> m_programExcludeFromScanRegExps;
 #endif
     std::vector<std::string> m_tvshowExcludeFromScanRegExps;
     std::vector<std::string> m_audioExcludeFromListingRegExps;

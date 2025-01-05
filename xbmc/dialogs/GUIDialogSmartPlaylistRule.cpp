@@ -279,7 +279,7 @@ void CGUIDialogSmartPlaylistRule::OnBrowse()
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
     if (m_type == "games")
     {
-      programdatabase.GetGamesNav(basePath + "titles/", items);
+      programdatabase.GetProgramsNav(basePath + "titles/", items);
       iLabel = 38928;
     }
 #endif

@@ -547,7 +547,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   {
     TiXmlElement* pProgramExcludes = pElement->FirstChildElement("excludefromscan");
     if (pProgramExcludes)
-      GetCustomRegexps(pProgramExcludes, m_gamesExcludeFromScanRegExps);
+      GetCustomRegexps(pProgramExcludes, m_programExcludeFromScanRegExps);
   }
 
   pElement = pRootElement->FirstChildElement("programlibrary");
@@ -901,7 +901,7 @@ void CAdvancedSettings::Clear()
   m_videoCleanStringRegExps.clear();
   m_moviesExcludeFromScanRegExps.clear();
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  m_gamesExcludeFromScanRegExps.clear();
+  m_programExcludeFromScanRegExps.clear();
 #endif  
   m_tvshowExcludeFromScanRegExps.clear();
   m_videoExcludeFromListingRegExps.clear();

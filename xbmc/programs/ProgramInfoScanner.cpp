@@ -229,7 +229,7 @@ namespace PROGRAM
     CONTENT_TYPE content = info ? info->Content() : CONTENT_NONE;
 
     // exclude folders that match our exclude regexps
-    const std::vector<std::string> &regexps = g_advancedSettings.m_gamesExcludeFromScanRegExps;
+    const std::vector<std::string> &regexps = g_advancedSettings.m_programExcludeFromScanRegExps;
 
     if (IsExcluded(strDirectory, regexps))
       return true;
@@ -239,7 +239,7 @@ namespace PROGRAM
       return true;
 
     std::string hash, dbHash;
-    if (content == CONTENT_GAMES)
+    if (content == CONTENT_PROGRAMS)
     {
       if (m_handle)
         m_handle->SetTitle(StringUtils::Format(g_localizeStrings.Get(38911).c_str(), info->Name().c_str()));
@@ -399,7 +399,7 @@ namespace PROGRAM
         continue;
 
       // Discard all exclude files defined by regExExclude
-      if (IsExcluded(pItem->GetPath(), g_advancedSettings.m_gamesExcludeFromScanRegExps))
+      if (IsExcluded(pItem->GetPath(), g_advancedSettings.m_programExcludeFromScanRegExps))
         continue;
 
       if (m_handle)
@@ -409,8 +409,8 @@ namespace PROGRAM
       info2->ClearCache();
 
       INFO_RET ret = INFO_CANCELLED;
-      if (info2->Content() == CONTENT_GAMES)
-        ret = RetrieveInfoForGame(pItem.get(), bDirNames, info2, useLocal, pURL, pDlgProgress);
+      if (info2->Content() == CONTENT_PROGRAMS)
+        ret = RetrieveInfoForProgram(pItem.get(), bDirNames, info2, useLocal, pURL, pDlgProgress);
       else
       {
         CLog::Log(LOGERROR, "ProgramInfoScanner: Unknown content type %d (%s)", info2->Content(), CURL::GetRedacted(pItem->GetPath()).c_str());
@@ -445,7 +445,7 @@ namespace PROGRAM
     return FoundSomeInfo;
   }
 
-  CInfoScanner::INFO_RET CProgramInfoScanner::RetrieveInfoForGame(CFileItem *pItem, bool bDirNames, ScraperPtr &info2, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress)
+  CInfoScanner::INFO_RET CProgramInfoScanner::RetrieveInfoForProgram(CFileItem *pItem, bool bDirNames, ScraperPtr &info2, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress)
   {
     if (pItem->m_bIsFolder || !pItem->IsProgram() || pItem->IsNFO())
       return INFO_NOT_NEEDED;
@@ -453,7 +453,7 @@ namespace PROGRAM
     if (ProgressCancelled(pDlgProgress, 38941, pItem->GetLabel()))
       return INFO_CANCELLED;
 
-    if (m_database.HasGameInfo(pItem->GetPath()))
+    if (m_database.HasProgramInfo(pItem->GetPath()))
       return INFO_HAVE_ALREADY;
 
     if (m_handle)
@@ -508,14 +508,14 @@ namespace PROGRAM
     CLog::Log(LOGDEBUG, "ProgramInfoScanner: Adding new item to %s:%s", TranslateContent(content).c_str(), redactPath.c_str());
     long lResult = -1;
 
-    if (content == CONTENT_GAMES)
+    if (content == CONTENT_PROGRAMS)
     {
       // find local trailer first
       std::string strTrailer = pItem->FindTrailer();
       if (!strTrailer.empty())
         programDetails.m_strTrailer = strTrailer;
 
-      lResult = m_database.SetDetailsForGame(pItem->GetPath(), programDetails, art);
+      lResult = m_database.SetDetailsForProgram(pItem->GetPath(), programDetails, art);
       programDetails.m_iDbId = lResult;
       programDetails.m_type = MediaTypeGame;
     }
@@ -571,7 +571,11 @@ namespace PROGRAM
       std::string strPath = URIUtils::GetDirectory(item->GetPath());
 
       if (bGrabAny)
-      { // looking up by folder name - game.nfo takes priority - but not for stacked items (handled below)
+      { // looking up by folder name - program.nfo takes priority - but not for stacked items (handled below)
+        nfoFile = URIUtils::AddFileToFolder(strPath, "program.nfo");
+        if (CFile::Exists(nfoFile))
+          return nfoFile;
+
         nfoFile = URIUtils::AddFileToFolder(strPath, "game.nfo");
         if (CFile::Exists(nfoFile))
           return nfoFile;

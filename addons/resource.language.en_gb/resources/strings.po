@@ -13850,7 +13850,7 @@ msgid "Apply flicker filter setting to games"
 msgstr ""
 
 msgctxt "#38801"
-msgid "Games information"
+msgid "Programs information"
 msgstr ""
 
 msgctxt "#38901"

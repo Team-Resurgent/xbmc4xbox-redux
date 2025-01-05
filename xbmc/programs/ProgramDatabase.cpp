@@ -94,8 +94,8 @@ void CProgramDatabase::CreateTables()
   m_pDS->exec("CREATE TABLE platform (platform_id integer primary key, name TEXT)");
   m_pDS->exec("CREATE TABLE platform_link (platform_id integer, media_id integer, media_type TEXT)");
 
-  CLog::Log(LOGINFO, "create game table");
-  std::string columns = "CREATE TABLE game ( idGame integer primary key, idFile integer";
+  CLog::Log(LOGINFO, "create program table");
+  std::string columns = "CREATE TABLE program ( idProgram integer primary key, idFile integer";
 
   for (int i = 0; i < PROGRAMDB_MAX_COLUMNS; i++)
     columns += StringUtils::Format(",c%02d text", i);
@@ -142,10 +142,10 @@ void CProgramDatabase::CreateAnalytics()
   m_pDS->exec("CREATE INDEX ix_path2 ON path ( idParentPath )");
   m_pDS->exec("CREATE INDEX ix_files ON files ( idPath, strFilename(255) )");
 
-  m_pDS->exec("CREATE UNIQUE INDEX ix_game_file_1 ON game (idFile, idGame)");
-  m_pDS->exec("CREATE UNIQUE INDEX ix_game_file_2 ON game (idGame, idFile)");
+  m_pDS->exec("CREATE UNIQUE INDEX ix_program_file_1 ON program (idFile, idProgram)");
+  m_pDS->exec("CREATE UNIQUE INDEX ix_program_file_2 ON program (idProgram, idFile)");
 
-  m_pDS->exec("CREATE INDEX ixGameBasePath ON game ( c23(12) )");
+  m_pDS->exec("CREATE INDEX ixProgramBasePath ON program ( c23(12) )");
 
   m_pDS->exec("CREATE INDEX ix_art ON art(media_id, media_type(20), type(20))");
 
@@ -161,17 +161,17 @@ void CProgramDatabase::CreateAnalytics()
   CreateLinkIndex("platform");
 
   CLog::Log(LOGINFO, "%s - creating triggers", __FUNCTION__);
-  m_pDS->exec("CREATE TRIGGER delete_game AFTER DELETE ON game FOR EACH ROW BEGIN "
-              "DELETE FROM developer_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM publisher_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM genre_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM descriptor_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM generalfeature_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM onlinefeature_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM platform_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM art WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM tag_link WHERE media_id=old.idGame AND media_type='game'; "
-              "DELETE FROM rating WHERE media_id=old.idGame AND media_type='game'; "
+  m_pDS->exec("CREATE TRIGGER delete_program AFTER DELETE ON program FOR EACH ROW BEGIN "
+              "DELETE FROM developer_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM publisher_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM genre_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM descriptor_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM generalfeature_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM onlinefeature_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM platform_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM art WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM tag_link WHERE media_id=old.idProgram AND media_type='program'; "
+              "DELETE FROM rating WHERE media_id=old.idProgram AND media_type='program'; "
               "END");
   m_pDS->exec("CREATE TRIGGER delete_tag AFTER DELETE ON tag_link FOR EACH ROW BEGIN "
               "DELETE FROM tag WHERE tag_id=old.tag_id AND tag_id NOT IN (SELECT DISTINCT tag_id FROM tag_link); "
@@ -182,9 +182,9 @@ void CProgramDatabase::CreateAnalytics()
 
 void CProgramDatabase::CreateViews()
 {
-  CLog::Log(LOGINFO, "create game_view");
-  std::string gameview = PrepareSQL("CREATE VIEW game_view AS SELECT"
-                                      "  game.*,"
+  CLog::Log(LOGINFO, "create program_view");
+  std::string programview = PrepareSQL("CREATE VIEW program_view AS SELECT"
+                                      "  program.*,"
                                       "  files.strFileName AS strFileName,"
                                       "  path.strPath AS strPath,"
                                       "  files.playCount AS playCount,"
@@ -193,15 +193,15 @@ void CProgramDatabase::CreateViews()
                                       "  rating.rating AS rating, "
                                       "  rating.votes AS votes, "
                                       "  rating.rating_type AS rating_type "
-                                      "FROM game"
+                                      "FROM program"
                                       "  JOIN files ON"
-                                      "    files.idFile=game.idFile"
+                                      "    files.idFile=program.idFile"
                                       "  JOIN path ON"
                                       "    path.idPath=files.idPath"
                                       "  LEFT JOIN rating ON"
-                                      "    rating.rating_id=game.c%02d",
+                                      "    rating.rating_id=program.c%02d",
                                       PROGRAMDB_ID_RATING_ID);
-  m_pDS->exec(gameview);
+  m_pDS->exec(programview);
 }
 
 //********************************************************************************************************************************
@@ -241,9 +241,9 @@ bool CProgramDatabase::GetPaths(std::set<std::string> &paths)
 
     paths.clear();
 
-    // grab all paths with game content set
+    // grab all paths with program content set
     if (!m_pDS->query("select strPath,noUpdate from path"
-                      " where (strContent = 'games')"
+                      " where (strContent = 'programs')"
                       " and strPath NOT like 'multipath://%%'"
                       " order by strPath"))
       return false;
@@ -513,13 +513,13 @@ int CProgramDatabase::GetFileId(const CFileItem &item)
 }
 
 //********************************************************************************************************************************
-int CProgramDatabase::GetGameId(const std::string& strFilenameAndPath)
+int CProgramDatabase::GetProgramId(const std::string& strFilenameAndPath)
 {
   try
   {
     if (NULL == m_pDB.get()) return -1;
     if (NULL == m_pDS.get()) return -1;
-    int idGame = -1;
+    int idProgram = -1;
 
     // needed for query parameters
     int idFile = GetFileId(strFilenameAndPath);
@@ -530,7 +530,7 @@ int CProgramDatabase::GetGameId(const std::string& strFilenameAndPath)
       std::string strFile;
       SplitPath(strFilenameAndPath,strPath,strFile);
 
-      // have to join gameinfo table for correct results
+      // have to join programinfo table for correct results
       idPath = GetPathId(strPath);
       if (idPath < 0 && strPath != strFilenameAndPath)
         return -1;
@@ -541,17 +541,17 @@ int CProgramDatabase::GetGameId(const std::string& strFilenameAndPath)
 
     std::string strSQL;
     if (idFile == -1)
-      strSQL=PrepareSQL("select idGame from game join files on files.idFile=game.idFile where files.idPath=%i",idPath);
+      strSQL=PrepareSQL("select idProgram from program join files on files.idFile=program.idFile where files.idPath=%i",idPath);
     else
-      strSQL=PrepareSQL("select idGame from game where idFile=%i", idFile);
+      strSQL=PrepareSQL("select idProgram from program where idFile=%i", idFile);
 
     CLog::Log(LOGDEBUG, "%s (%s), query = %s", __FUNCTION__, CURL::GetRedacted(strFilenameAndPath).c_str(), strSQL.c_str());
     m_pDS->query(strSQL);
     if (m_pDS->num_rows() > 0)
-      idGame = m_pDS->fv("idGame").get_asInt();
+      idProgram = m_pDS->fv("idProgram").get_asInt();
     m_pDS->close();
 
-    return idGame;
+    return idProgram;
   }
   catch (...)
   {
@@ -561,26 +561,26 @@ int CProgramDatabase::GetGameId(const std::string& strFilenameAndPath)
 }
 
 //********************************************************************************************************************************
-int CProgramDatabase::AddGame(const std::string& strFilenameAndPath)
+int CProgramDatabase::AddProgram(const std::string& strFilenameAndPath)
 {
   try
   {
     if (NULL == m_pDB.get()) return -1;
     if (NULL == m_pDS.get()) return -1;
 
-    int idGame = GetGameId(strFilenameAndPath);
-    if (idGame < 0)
+    int idProgram = GetProgramId(strFilenameAndPath);
+    if (idProgram < 0)
     {
       int idFile = AddFile(strFilenameAndPath);
       if (idFile < 0)
         return -1;
       UpdateFileDateAdded(idFile, strFilenameAndPath);
-      std::string strSQL=PrepareSQL("insert into game (idGame, idFile) values (NULL, %i)", idFile);
+      std::string strSQL=PrepareSQL("insert into program (idProgram, idFile) values (NULL, %i)", idFile);
       m_pDS->exec(strSQL);
-      idGame = (int)m_pDS->lastinsertid();
+      idProgram = (int)m_pDS->lastinsertid();
     }
 
-    return idGame;
+    return idProgram;
   }
   catch (...)
   {
@@ -717,14 +717,14 @@ void CProgramDatabase::AddTagToItem(int media_id, int tag_id, const std::string 
   AddToLinkTable(media_id, type, "tag", tag_id);
 }
 
-bool CProgramDatabase::HasGameInfo(const std::string& strFilenameAndPath)
+bool CProgramDatabase::HasProgramInfo(const std::string& strFilenameAndPath)
 {
   try
   {
     if (NULL == m_pDB.get()) return false;
     if (NULL == m_pDS.get()) return false;
-    int idGame = GetGameId(strFilenameAndPath);
-    return (idGame > 0); // index of zero is also invalid
+    int idProgram = GetProgramId(strFilenameAndPath);
+    return (idProgram > 0); // index of zero is also invalid
   }
   catch (...)
   {
@@ -742,18 +742,18 @@ void CProgramDatabase::RemoveTagFromItem(int media_id, int tag_id, const std::st
 }
 
 //********************************************************************************************************************************
-bool CProgramDatabase::GetGameInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idGame /* = -1 */, int getDetails /* = ProgramDbDetailsAll */)
+bool CProgramDatabase::GetProgramInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idProgram /* = -1 */, int getDetails /* = ProgramDbDetailsAll */)
 {
   try
   {
-    if (idGame < 0)
-      idGame = GetGameId(strFilenameAndPath);
-    if (idGame < 0) return false;
+    if (idProgram < 0)
+      idProgram = GetProgramId(strFilenameAndPath);
+    if (idProgram < 0) return false;
 
-    std::string sql = PrepareSQL("select * from game_view where idGame=%i", idGame);
+    std::string sql = PrepareSQL("select * from program_view where idProgram=%i", idProgram);
     if (!m_pDS->query(sql))
       return false;
-    details = GetDetailsForGame(m_pDS, getDetails);
+    details = GetDetailsForProgram(m_pDS, getDetails);
     return !details.IsEmpty();
   }
   catch (...)
@@ -808,28 +808,28 @@ std::string CProgramDatabase::GetValueString(const CProgramInfoTag &details, int
   return StringUtils::Join(conditions, ",");
 }
 
-int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details,
-    const std::map<std::string, std::string> &artwork, int idGame /* = -1 */)
+int CProgramDatabase::SetDetailsForProgram(const std::string& strFilenameAndPath, CProgramInfoTag& details,
+    const std::map<std::string, std::string> &artwork, int idProgram /* = -1 */)
 {
   try
   {
     BeginTransaction();
 
-    if (idGame < 0)
-      idGame = GetGameId(strFilenameAndPath);
+    if (idProgram < 0)
+      idProgram = GetProgramId(strFilenameAndPath);
 
-    if (idGame > -1)
-      DeleteGame(idGame, true); // true to keep the table entry
+    if (idProgram > -1)
+      DeleteProgram(idProgram, true); // true to keep the table entry
     else
     {
-      // only add a new game if we don't already have a valid idGame
-      // (DeleteGame is called with bKeepId == true so the game won't
-      // be removed from the game table)
-      idGame = AddGame(strFilenameAndPath);
-      if (idGame < 0)
+      // only add a new program if we don't already have a valid idProgram
+      // (DeleteProgram is called with bKeepId == true so the program won't
+      // be removed from the program table)
+      idProgram = AddProgram(strFilenameAndPath);
+      if (idProgram < 0)
       {
         RollbackTransaction();
-        return idGame;
+        return idProgram;
       }
     }
 
@@ -844,39 +844,39 @@ int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, C
 
     if (details.m_type == MediaTypeApp)
     {
-      AddLinksToItem(idGame, MediaTypeApp, "tag", details.m_tags);
+      AddLinksToItem(idProgram, MediaTypeApp, "tag", details.m_tags);
     }
     else
     {
-      AddLinksToItem(idGame, MediaTypeGame, "developer", details.m_developer);
-      AddLinksToItem(idGame, MediaTypeGame, "publisher", details.m_publisher);
-      AddLinksToItem(idGame, MediaTypeGame, "genre", details.m_genre);
-      AddLinksToItem(idGame, MediaTypeGame, "descriptor", details.m_descriptor);
-      AddLinksToItem(idGame, MediaTypeGame, "generalfeature", details.m_generalFeature);
-      AddLinksToItem(idGame, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
-      AddLinksToItem(idGame, MediaTypeGame, "platform", details.m_platform);
-      AddLinksToItem(idGame, MediaTypeGame, "tag", details.m_tags);
+      AddLinksToItem(idProgram, MediaTypeGame, "developer", details.m_developer);
+      AddLinksToItem(idProgram, MediaTypeGame, "publisher", details.m_publisher);
+      AddLinksToItem(idProgram, MediaTypeGame, "genre", details.m_genre);
+      AddLinksToItem(idProgram, MediaTypeGame, "descriptor", details.m_descriptor);
+      AddLinksToItem(idProgram, MediaTypeGame, "generalfeature", details.m_generalFeature);
+      AddLinksToItem(idProgram, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
+      AddLinksToItem(idProgram, MediaTypeGame, "platform", details.m_platform);
+      AddLinksToItem(idProgram, MediaTypeGame, "tag", details.m_tags);
     }
 
     // add ratings
-    details.m_iIdRating = AddRatings(idGame, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
+    details.m_iIdRating = AddRatings(idProgram, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
 
     // TODO: add support for unique IDs
 
-    SetArtForItem(idGame, MediaTypeGame, artwork);
+    SetArtForItem(idProgram, MediaTypeGame, artwork);
 
-    // update our game table (we know it was added already above)
+    // update our program table (we know it was added already above)
     // and insert the new row
-    std::string sql = "UPDATE game SET " + GetValueString(details, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbGameOffsets);
+    std::string sql = "UPDATE program SET " + GetValueString(details, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbProgramOffsets);
     if (details.HasReleaseDate())
       sql += PrepareSQL(", released = '%s'", details.GetReleaseDate().GetAsDBDate().c_str());
     else
       sql += PrepareSQL(", released = '%i'", details.GetYear());
-    sql += PrepareSQL(" where idGame=%i", idGame);
+    sql += PrepareSQL(" where idProgram=%i", idProgram);
     m_pDS->exec(sql);
     CommitTransaction();
 
-    return idGame;
+    return idProgram;
   }
   catch (...)
   {
@@ -887,16 +887,16 @@ int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, C
 }
 
 //********************************************************************************************************************************
-void CProgramDatabase::DeleteGame(const std::string& strFilenameAndPath, bool bKeepId /* = false */)
+void CProgramDatabase::DeleteProgram(const std::string& strFilenameAndPath, bool bKeepId /* = false */)
 {
-  int idGame = GetGameId(strFilenameAndPath);
-  if (idGame > -1)
-    DeleteGame(idGame, bKeepId);
+  int idProgram = GetProgramId(strFilenameAndPath);
+  if (idProgram > -1)
+    DeleteProgram(idProgram, bKeepId);
 }
 
-void CProgramDatabase::DeleteGame(int idGame, bool bKeepId /* = false */)
+void CProgramDatabase::DeleteProgram(int idProgram, bool bKeepId /* = false */)
 {
-  if (idGame < 0)
+  if (idProgram < 0)
     return;
 
   try
@@ -906,17 +906,17 @@ void CProgramDatabase::DeleteGame(int idGame, bool bKeepId /* = false */)
 
     BeginTransaction();
 
-    // keep the game table entry
+    // keep the program table entry
     // so we can update the data in place
     // the ancilliary tables are still purged
     if (!bKeepId)
     {
-      int idFile = GetDbId(PrepareSQL("SELECT idFile FROM game WHERE idGame=%i", idGame));
+      int idFile = GetDbId(PrepareSQL("SELECT idFile FROM program WHERE idProgram=%i", idProgram));
       std::string path = GetSingleValue(PrepareSQL("SELECT strPath FROM path JOIN files ON files.idPath=path.idPath WHERE files.idFile=%i", idFile));
       if (!path.empty())
         InvalidatePathHash(path);
 
-      std::string strSQL = PrepareSQL("delete from game where idGame=%i", idGame);
+      std::string strSQL = PrepareSQL("delete from program where idProgram=%i", idProgram);
       m_pDS->exec(strSQL);
     }
 
@@ -1009,14 +1009,14 @@ void CProgramDatabase::GetDetailsFromDB(const dbiplus::sql_record* const record,
   }
 }
 
-CProgramInfoTag CProgramDatabase::GetDetailsForGame(boost::movelib::unique_ptr<Dataset> &pDS, int getDetails /* = ProgramDbDetailsNone */)
+CProgramInfoTag CProgramDatabase::GetDetailsForProgram(boost::movelib::unique_ptr<Dataset> &pDS, int getDetails /* = ProgramDbDetailsNone */)
 {
-  return GetDetailsForGame(pDS->get_sql_record(), getDetails);
+  return GetDetailsForProgram(pDS->get_sql_record(), getDetails);
 }
 
-DWORD gameTime = 0;
+DWORD programTime = 0;
 
-CProgramInfoTag CProgramDatabase::GetDetailsForGame(const dbiplus::sql_record* const record, int getDetails /* = ProgramDbDetailsNone */)
+CProgramInfoTag CProgramDatabase::GetDetailsForProgram(const dbiplus::sql_record* const record, int getDetails /* = ProgramDbDetailsNone */)
 {
   CProgramInfoTag details;
 
@@ -1024,29 +1024,29 @@ CProgramInfoTag CProgramDatabase::GetDetailsForGame(const dbiplus::sql_record* c
     return details;
 
   DWORD time = XbmcThreads::SystemClockMillis();
-  int idGame = record->at(0).get_asInt();
+  int idProgram = record->at(0).get_asInt();
 
-  GetDetailsFromDB(record, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbGameOffsets, details);
+  GetDetailsFromDB(record, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbProgramOffsets, details);
 
-  details.m_iDbId = idGame;
+  details.m_iDbId = idProgram;
   details.m_type = MediaTypeGame;
 
   details.m_iFileId = record->at(PROGRAMDB_DETAILS_FILEID).get_asInt();
-  details.m_strPath = record->at(PROGRAMDB_DETAILS_GAME_PATH).get_asString();
-  std::string strFileName = record->at(PROGRAMDB_DETAILS_GAME_FILE).get_asString();
+  details.m_strPath = record->at(PROGRAMDB_DETAILS_PROGRAM_PATH).get_asString();
+  std::string strFileName = record->at(PROGRAMDB_DETAILS_PROGRAM_FILE).get_asString();
   ConstructPath(details.m_strFileNameAndPath,details.m_strPath,strFileName);
-  details.m_playCount = record->at(PROGRAMDB_DETAILS_GAME_PLAYCOUNT).get_asInt();
-  details.m_lastPlayed.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_GAME_LASTPLAYED).get_asString());
-  details.m_dateAdded.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_GAME_DATEADDED).get_asString());
-  details.SetRating(record->at(PROGRAMDB_DETAILS_GAME_RATING).get_asFloat(),
-                    record->at(PROGRAMDB_DETAILS_GAME_VOTES).get_asInt(),
-                    record->at(PROGRAMDB_DETAILS_GAME_RATING_TYPE).get_asString(), true);
-  std::string releaseDateString = record->at(PROGRAMDB_DETAILS_GAME_RELEASEDATE).get_asString();
+  details.m_playCount = record->at(PROGRAMDB_DETAILS_PROGRAM_PLAYCOUNT).get_asInt();
+  details.m_lastPlayed.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_PROGRAM_LASTPLAYED).get_asString());
+  details.m_dateAdded.SetFromDBDateTime(record->at(PROGRAMDB_DETAILS_PROGRAM_DATEADDED).get_asString());
+  details.SetRating(record->at(PROGRAMDB_DETAILS_PROGRAM_RATING).get_asFloat(),
+                    record->at(PROGRAMDB_DETAILS_PROGRAM_VOTES).get_asInt(),
+                    record->at(PROGRAMDB_DETAILS_PROGRAM_RATING_TYPE).get_asString(), true);
+  std::string releaseDateString = record->at(PROGRAMDB_DETAILS_PROGRAM_RELEASEDATE).get_asString();
   if (releaseDateString.size() == 4)
-    details.SetYear(record->at(PROGRAMDB_DETAILS_GAME_RELEASEDATE).get_asInt());
+    details.SetYear(record->at(PROGRAMDB_DETAILS_PROGRAM_RELEASEDATE).get_asInt());
   else
     details.SetReleaseDateFromDBDate(releaseDateString);
-  gameTime += XbmcThreads::SystemClockMillis() - time; time = XbmcThreads::SystemClockMillis();
+  programTime += XbmcThreads::SystemClockMillis() - time; time = XbmcThreads::SystemClockMillis();
 
   if (getDetails)
   {
@@ -1191,15 +1191,15 @@ void CProgramDatabase::RemoveContentForPath(const std::string& strPath, CGUIDial
         progress->Progress();
       }
 
-      std::string strSQL = PrepareSQL("select files.strFilename from files join game on game.idFile=files.idFile where files.idPath=%i", i.first);
+      std::string strSQL = PrepareSQL("select files.strFilename from files join program on program.idFile=files.idFile where files.idPath=%i", i.first);
       m_pDS2->query(strSQL);
       while (!m_pDS2->eof())
       {
-        std::string strGamePath;
+        std::string strProgramPath;
         std::string strFileName = m_pDS2->fv("files.strFilename").get_asString();
-        ConstructPath(strGamePath, i.second, strFileName);
-        if (HasGameInfo(strGamePath))
-          DeleteGame(strGamePath);
+        ConstructPath(strProgramPath, i.second, strFileName);
+        if (HasProgramInfo(strProgramPath))
+          DeleteProgram(strProgramPath);
         m_pDS2->next();
       }
       m_pDS2->close();
@@ -1359,15 +1359,15 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
       std::string view, view_id, media_type, extraField, extraJoin;
       if (idContent == PROGRAMDB_CONTENT_GAMES)
       {
-        view       = MediaTypeGame;
-        view_id    = "idGame";
+        view       = MediaTypeProgram;
+        view_id    = "idProgram";
         media_type = MediaTypeGame;
         extraField = "files.playCount";
       }
       else if (idContent == PROGRAMDB_CONTENT_APPS)
       {
-        view       = MediaTypeGame;
-        view_id    = "idGame";
+        view       = MediaTypeProgram;
+        view_id    = "idProgram";
         media_type = MediaTypeApp;
         extraField = "";
       }
@@ -1388,16 +1388,16 @@ bool CProgramDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList
       std::string view, view_id, media_type, extraField, extraJoin;
       if (idContent == PROGRAMDB_CONTENT_GAMES)
       {
-        view       = MediaTypeGame;
-        view_id    = "idGame";
+        view       = MediaTypeProgram;
+        view_id    = "idProgram";
         media_type = MediaTypeGame;
         extraField = "count(1), count(files.playCount)";
         extraJoin  = PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str());
       }
       else if (idContent == PROGRAMDB_CONTENT_APPS)
       {
-        view       = MediaTypeGame;
-        view_id    = "idGame";
+        view       = MediaTypeProgram;
+        view_id    = "idProgram";
         media_type = MediaTypeApp;
         extraField = "count(1)";
         extraJoin  = PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str());
@@ -1538,8 +1538,8 @@ bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList&
     {
       if (idContent == PROGRAMDB_CONTENT_GAMES)
       {
-        strSQL = "select game_view.released, path.strPath, files.playCount from game_view ";
-        extFilter.AppendJoin("join files on files.idFile = game_view.idFile join path on files.idPath = path.idPath");
+        strSQL = "select program_view.released, path.strPath, files.playCount from program_view ";
+        extFilter.AppendJoin("join files on files.idFile = program_view.idFile join path on files.idPath = path.idPath");
       }
       else
         return false;
@@ -1549,9 +1549,9 @@ bool CProgramDatabase::GetYearsNav(const std::string& strBaseDir, CFileItemList&
       std::string group;
       if (idContent == PROGRAMDB_CONTENT_GAMES)
       {
-        strSQL = "select game_view.released, count(1), count(files.playCount) from game_view ";
-        extFilter.AppendJoin("join files on files.idFile = game_view.idFile");
-        extFilter.AppendGroup("game_view.released");
+        strSQL = "select program_view.released, count(1), count(files.playCount) from program_view ";
+        extFilter.AppendJoin("join files on files.idFile = program_view.idFile");
+        extFilter.AppendGroup("program_view.released");
       }
       else
         return false;
@@ -1691,7 +1691,7 @@ bool CProgramDatabase::GetSortedPrograms(const MediaType &mediaType, const std::
 
   bool success = false;
   if (mediaType == MediaTypeGame)
-    success = GetGamesByWhere(strBaseDir, filter, items, sorting);
+    success = GetProgramsByWhere(strBaseDir, filter, items, sorting);
   else
     return false;
 
@@ -1725,7 +1725,7 @@ bool CProgramDatabase::GetItems(const std::string &strBaseDir, PROGRAMDB_CONTENT
 {
   if ((StringUtils::EqualsNoCase(itemType, "games") && mediaType == PROGRAMDB_CONTENT_GAMES) ||
       (StringUtils::EqualsNoCase(itemType, "apps") && mediaType == PROGRAMDB_CONTENT_APPS))
-    return GetGamesByWhere(strBaseDir, filter, items, sortDescription);
+    return GetProgramsByWhere(strBaseDir, filter, items, sortDescription);
   else if (StringUtils::EqualsNoCase(itemType, "developers"))
     return GetDevelopersNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "publishers"))
@@ -1772,7 +1772,7 @@ std::string CProgramDatabase::GetItemById(const std::string &itemType, int id)
   return "";
 }
 
-bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList& items,
+bool CProgramDatabase::GetProgramsNav(const std::string& strBaseDir, CFileItemList& items,
                                   const SortDescription &sortDescription /* = SortDescription() */, int getDetails /* = ProgramDbDetailsNone */)
 {
   CProgramDbUrl programUrl;
@@ -1781,14 +1781,14 @@ bool CProgramDatabase::GetGamesNav(const std::string& strBaseDir, CFileItemList&
 
   Filter filter;
   filter.where = PrepareSQL("c0%i = '%s'", PROGRAMDB_ID_TYPE, programUrl.GetType() == "apps" ? "app" : "game");
-  return GetGamesByWhere(programUrl.ToString(), filter, items, sortDescription, getDetails);
+  return GetProgramsByWhere(programUrl.ToString(), filter, items, sortDescription, getDetails);
 }
 
-bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription /* = SortDescription() */, int getDetails /* = ProgramDbDetailsNone */)
+bool CProgramDatabase::GetProgramsByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription /* = SortDescription() */, int getDetails /* = ProgramDbDetailsNone */)
 {
   try
   {
-    gameTime = 0;
+    programTime = 0;
 
     if (NULL == m_pDB.get()) return false;
     if (NULL == m_pDS.get()) return false;
@@ -1802,7 +1802,7 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
 
     int total = -1;
 
-    std::string strSQL = "select %s from game_view ";
+    std::string strSQL = "select %s from program_view ";
     std::string strSQLExtra;
     if (!CDatabase::BuildSQL(strSQLExtra, extFilter, strSQLExtra))
       return false;
@@ -1833,19 +1833,19 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
       unsigned int targetRow = (unsigned int)i.find(FieldRow)->second.asInteger();
       const dbiplus::sql_record* const record = data.at(targetRow);
 
-      CProgramInfoTag game = GetDetailsForGame(record, getDetails);
+      CProgramInfoTag program = GetDetailsForProgram(record, getDetails);
       if (CProfilesManager::Get().GetMasterProfile().getLockMode() == LOCK_MODE_EVERYONE ||
           g_passwordManager.bMasterUser                                   ||
-          g_passwordManager.IsDatabasePathUnlocked(game.m_strPath, *CMediaSourceSettings::Get().GetSources("program")))
+          g_passwordManager.IsDatabasePathUnlocked(program.m_strPath, *CMediaSourceSettings::Get().GetSources("program")))
       {
-        CFileItemPtr pItem(new CFileItem(game));
+        CFileItemPtr pItem(new CFileItem(program));
 
         CProgramDbUrl itemUrl = programUrl;
-        std::string path = StringUtils::Format("%i", game.m_iDbId);
+        std::string path = StringUtils::Format("%i", program.m_iDbId);
         itemUrl.AppendPath(path);
         pItem->SetPath(itemUrl.ToString());
 
-        pItem->SetOverlayImage(CGUIListItem::ICON_OVERLAY_UNWATCHED,game.m_playCount > 0);
+        pItem->SetOverlayImage(CGUIListItem::ICON_OVERLAY_UNWATCHED,program.m_playCount > 0);
         items.Add(pItem);
       }
     }
@@ -1864,19 +1864,19 @@ bool CProgramDatabase::GetGamesByWhere(const std::string& strBaseDir, const Filt
 bool CProgramDatabase::GetRecentlyAddedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit /* = 0 */, int getDetails /* = ProgramDbDetailsNone */)
 {
   Filter filter;
-  filter.order = "dateAdded desc, idGame desc";
+  filter.order = "dateAdded desc, idProgram desc";
   filter.limit = PrepareSQL("%u", limit ? limit : g_advancedSettings.m_iVideoLibraryRecentlyAddedItems);
   filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
-  return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
+  return GetProgramsByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
 }
 
 bool CProgramDatabase::GetRecentlyPlayedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit /* = 0 */, int getDetails /* = ProgramDbDetailsNone */)
 {
   Filter filter;
-  filter.order = "lastPlayed desc, idGame desc";
+  filter.order = "lastPlayed desc, idProgram desc";
   filter.limit = PrepareSQL("%u", limit ? limit : g_advancedSettings.m_iProgramLibraryRecentlyAddedItems);
   filter.where = PrepareSQL("c0%i = 'game'", PROGRAMDB_ID_TYPE);
-  return GetGamesByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
+  return GetProgramsByWhere(strBaseDir, filter, items, SortDescription(), getDetails);
 }
 
 std::string CProgramDatabase::GetDeveloperById(int id)
@@ -1934,9 +1934,9 @@ bool CProgramDatabase::HasContent(PROGRAMDB_CONTENT_TYPE type)
 
     std::string sql;
     if (type == PROGRAMDB_CONTENT_GAMES)
-      sql = PrepareSQL("select count(1) from game where c0%i = 'game'", PROGRAMDB_ID_TYPE);
+      sql = PrepareSQL("select count(1) from program where c0%i = 'game'", PROGRAMDB_ID_TYPE);
     else if (type == PROGRAMDB_CONTENT_APPS)
-      sql = PrepareSQL("select count(1) from game where c0%i = 'app'", PROGRAMDB_ID_TYPE);
+      sql = PrepareSQL("select count(1) from program where c0%i = 'app'", PROGRAMDB_ID_TYPE);
     m_pDS->query( sql );
 
     if (!m_pDS->eof())
@@ -2072,7 +2072,7 @@ ScraperPtr CProgramDatabase::GetScraperForPath(const std::string& strPath, SScan
     if (!scraper || scraper->Content() == CONTENT_NONE)
       return ScraperPtr();
 
-    if (scraper->Content() == CONTENT_GAMES)
+    if (scraper->Content() == CONTENT_PROGRAMS)
     {
       settings.recurse = settings.recurse - (iFound-1);
       settings.parent_name_root = settings.parent_name && (!settings.recurse || iFound > 1);
@@ -2113,7 +2113,7 @@ void CProgramDatabase::InvalidatePathHash(const std::string& strPath)
   SetPathHash(strPath,"");
   if (!info)
     return;
-  if (info->Content() == CONTENT_GAMES && !foundDirectly && settings.parent_name_root) // if we scan by folder name we need to invalidate parent as well
+  if (info->Content() == CONTENT_PROGRAMS && !foundDirectly && settings.parent_name_root) // if we scan by folder name we need to invalidate parent as well
   {
     std::string strParent;
     URIUtils::GetParentPath(strPath,strParent);
@@ -2143,8 +2143,8 @@ bool CProgramDatabase::SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int
     std::string strTable, strField;
     if (type == PROGRAMDB_CONTENT_GAMES)
     {
-      strTable = "game";
-      strField = "idGame";
+      strTable = "program";
+      strField = "idProgram";
     }
 
     if (strTable.empty())
@@ -2229,33 +2229,33 @@ bool CProgramDatabase::GetFilter(CDbUrl &programUrl, Filter &filter, SortDescrip
 
   if (type == "games")
   {
-    AppendIdLinkFilter("developer", "developer", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("developer", "developer", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("developer", "developer", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("developer", "developer", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("publisher", "publisher", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("publisher", "publisher", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("publisher", "publisher", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("publisher", "publisher", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("genre", "genre", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("genre", "genre", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("genre", "genre", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("descriptor", "descriptor", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("descriptor", "descriptor", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("descriptor", "descriptor", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("descriptor", "descriptor", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("generalfeature", "generalfeature", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("generalfeature", "generalfeature", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("generalfeature", "generalfeature", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("generalfeature", "generalfeature", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("onlinefeature", "onlinefeature", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("onlinefeature", "onlinefeature", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("onlinefeature", "onlinefeature", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("onlinefeature", "onlinefeature", "program", "program", "idProgram", options, filter);
 
-    AppendIdLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("platform", "platform", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("platform", "platform", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("platform", "platform", "program", "program", "idProgram", options, filter);
 
     CVariant::const_iterator_map option = options.find("year");
     if (option != options.end())
-      filter.AppendWhere(PrepareSQL("game_view.released like '%i%%'", (int)option->second.asInteger()));
+      filter.AppendWhere(PrepareSQL("program_view.released like '%i%%'", (int)option->second.asInteger()));
 
-    AppendIdLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
-    AppendLinkFilter("tag", "tag", "game", "game", "idGame", options, filter);
+    AppendIdLinkFilter("tag", "tag", "program", "program", "idProgram", options, filter);
+    AppendLinkFilter("tag", "tag", "program", "program", "idProgram", options, filter);
   }
   else if (type == "apps")
     return true;
@@ -2533,7 +2533,7 @@ bool CProgramDatabase::GetEmulators(const std::vector<std::string>& systems, CFi
                                  : PrepareSQL("OR c%02d LIKE '%%%s%%'", PROGRAMDB_ID_SYSTEN, (*it).c_str());
   filter.AppendWhere(strWhere);
 
-  return GetGamesByWhere("programdb://apps/titles/", filter, emulators);
+  return GetProgramsByWhere("programdb://apps/titles/", filter, emulators);
 }
 
 bool CProgramDatabase::GetProgramByTitleId(const int idTitle, std::string& strPathAndFilename)

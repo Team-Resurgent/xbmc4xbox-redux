@@ -30,7 +30,7 @@ namespace XFILE
     public:
       CQueryParams();
       long GetContentType() const { return m_idContent; }
-      long GetGameId() const { return m_idGame; }
+      long GetProgramId() const { return m_idProgram; }
       long GetYear() const { return m_idYear; }
       long GetDeveloperId() const { return m_idDeveloper; }
       long GetPublisherId() const { return m_idPublisher; }
@@ -47,7 +47,7 @@ namespace XFILE
       friend class CDirectoryNode;
     private:
       long m_idContent;
-      long m_idGame;
+      long m_idProgram;
       long m_idDeveloper;
       long m_idPublisher;
       long m_idGenre;

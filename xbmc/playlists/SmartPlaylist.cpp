@@ -903,7 +903,7 @@ std::string CSmartPlaylistRule::FormatWhereClause(const std::string &negate, con
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   else if (strType == "games")
   {
-    table = "game_view";
+    table = "program_view";
 
     if (m_field == FieldGenre)
       query = negate + FormatLinkQuery("genre", "genre", MediaTypeGame, GetField(FieldId, strType), parameter);

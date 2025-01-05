@@ -1,4 +1,3 @@
-#pragma once
 /*
  *      Copyright (C) 2005-2013 Team XBMC
  *      http://xbmc.org
@@ -19,18 +18,30 @@
  *
  */
 
-#include "DirectoryNode.h"
+#include "DirectoryNodeTitlePrograms.h"
+#include "QueryParams.h"
+#include "programs/ProgramDatabase.h"
 
-namespace XFILE
+using namespace XFILE::PROGRAMDATABASEDIRECTORY;
+
+CDirectoryNodeTitlePrograms::CDirectoryNodeTitlePrograms(const std::string& strName, CDirectoryNode* pParent)
+  : CDirectoryNode(NODE_TYPE_TITLE_GAMES, strName, pParent)
 {
-  namespace PROGRAMDATABASEDIRECTORY
-  {
-    class CDirectoryNodeTitleGames : public CDirectoryNode
-    {
-    public:
-      CDirectoryNodeTitleGames(const std::string& strEntryName, CDirectoryNode* pParent);
-    protected:
-      virtual bool GetContent(CFileItemList& items) const;
-    };
-  }
+
+}
+
+bool CDirectoryNodeTitlePrograms::GetContent(CFileItemList& items) const
+{
+  CProgramDatabase programdatabase;
+  if (!programdatabase.Open())
+    return false;
+
+  CQueryParams params;
+  CollectQueryParams(params);
+
+  bool bSuccess=programdatabase.GetProgramsNav(BuildPath(), items);
+
+  programdatabase.Close();
+
+  return bSuccess;
 }

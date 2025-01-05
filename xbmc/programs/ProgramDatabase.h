@@ -38,7 +38,7 @@ namespace dbiplus
 }
 struct SDbTableOffsets;
 
-typedef std::vector<CProgramInfoTag> VECGAMES;
+typedef std::vector<CProgramInfoTag> VECPROGRAMS;
 
 namespace PROGRAM
 {
@@ -53,19 +53,19 @@ enum ProgramDbDetails
 };
 
 // these defines are based on how many columns we have and which column certain data is going to be in
-// when we do GetDetailsForGame()
+// when we do GetDetailsForProgram()
 #define PROGRAMDB_MAX_COLUMNS 24
 #define PROGRAMDB_DETAILS_FILEID      1
 
-#define PROGRAMDB_DETAILS_GAME_RELEASEDATE         PROGRAMDB_MAX_COLUMNS + 2
-#define PROGRAMDB_DETAILS_GAME_FILE              PROGRAMDB_MAX_COLUMNS + 3
-#define PROGRAMDB_DETAILS_GAME_PATH              PROGRAMDB_MAX_COLUMNS + 4
-#define PROGRAMDB_DETAILS_GAME_PLAYCOUNT         PROGRAMDB_MAX_COLUMNS + 5
-#define PROGRAMDB_DETAILS_GAME_LASTPLAYED        PROGRAMDB_MAX_COLUMNS + 6
-#define PROGRAMDB_DETAILS_GAME_DATEADDED         PROGRAMDB_MAX_COLUMNS + 7
-#define PROGRAMDB_DETAILS_GAME_RATING            PROGRAMDB_MAX_COLUMNS + 8
-#define PROGRAMDB_DETAILS_GAME_VOTES             PROGRAMDB_MAX_COLUMNS + 9
-#define PROGRAMDB_DETAILS_GAME_RATING_TYPE       PROGRAMDB_MAX_COLUMNS + 10
+#define PROGRAMDB_DETAILS_PROGRAM_RELEASEDATE         PROGRAMDB_MAX_COLUMNS + 2
+#define PROGRAMDB_DETAILS_PROGRAM_FILE              PROGRAMDB_MAX_COLUMNS + 3
+#define PROGRAMDB_DETAILS_PROGRAM_PATH              PROGRAMDB_MAX_COLUMNS + 4
+#define PROGRAMDB_DETAILS_PROGRAM_PLAYCOUNT         PROGRAMDB_MAX_COLUMNS + 5
+#define PROGRAMDB_DETAILS_PROGRAM_LASTPLAYED        PROGRAMDB_MAX_COLUMNS + 6
+#define PROGRAMDB_DETAILS_PROGRAM_DATEADDED         PROGRAMDB_MAX_COLUMNS + 7
+#define PROGRAMDB_DETAILS_PROGRAM_RATING            PROGRAMDB_MAX_COLUMNS + 8
+#define PROGRAMDB_DETAILS_PROGRAM_VOTES             PROGRAMDB_MAX_COLUMNS + 9
+#define PROGRAMDB_DETAILS_PROGRAM_RATING_TYPE       PROGRAMDB_MAX_COLUMNS + 10
 
 #define PROGRAMDB_TYPE_UNUSED 0
 #define PROGRAMDB_TYPE_STRING 1
@@ -111,7 +111,7 @@ typedef enum // this enum MUST match the offset struct further down!! and make s
   PROGRAMDB_ID_MAX
 } PROGRAMDB_IDS;
 
-const struct SDbTableOffsets DbGameOffsets[] =
+const struct SDbTableOffsets DbProgramOffsets[] =
 {
   { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_type) },
   { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strTitle) },
@@ -148,7 +148,7 @@ public:
   virtual bool Open();
   virtual bool CommitTransaction();
 
-  int AddGame(const std::string& strFilenameAndPath);
+  int AddProgram(const std::string& strFilenameAndPath);
 
   /*! \brief Update the last played time of program
    Updates the last played date
@@ -158,7 +158,7 @@ public:
 
   void UpdateProgramTitle(int idProgram, const std::string& strNewProgramTitle, PROGRAMDB_CONTENT_TYPE iType=PROGRAMDB_CONTENT_GAMES);
 
-  bool HasGameInfo(const std::string& strFilenameAndPath);
+  bool HasProgramInfo(const std::string& strFilenameAndPath);
 
   std::string GetDeveloperById(int id);
   std::string GetPublisherById(int id);
@@ -169,19 +169,19 @@ public:
   std::string GetPlatformById(int id);
   std::string GetTagById(int id);
 
-  bool GetGameInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idGame = -1, int getDetails = ProgramDbDetailsAll);
+  bool GetProgramInfo(const std::string& strFilenameAndPath, CProgramInfoTag& details, int idProgram = -1, int getDetails = ProgramDbDetailsAll);
 
   int GetPathId(const std::string& strPath);
 
-  int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
+  int SetDetailsForProgram(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idProgram = -1);
 
   bool SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, int dbField, const std::string &strValue);
   bool SetSingleValue(PROGRAMDB_CONTENT_TYPE type, int dbId, Field dbField, const std::string &strValue);
   bool SetSingleValue(const std::string &table, const std::string &fieldName, const std::string &strValue,
                       const std::string &conditionName = "", int conditionValue = -1);
 
-  void DeleteGame(int idMovie, bool bKeepId = false);
-  void DeleteGame(const std::string& strFilenameAndPath, bool bKeepId = false);
+  void DeleteProgram(int idMovie, bool bKeepId = false);
+  void DeleteProgram(const std::string& strFilenameAndPath, bool bKeepId = false);
   void RemoveContentForPath(const std::string& strPath,CGUIDialogProgress *progress = NULL);
   void DeleteTag(int idTag, PROGRAMDB_CONTENT_TYPE mediaType);
 
@@ -223,7 +223,7 @@ public:
   bool GetYearsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter());
   bool GetTagsNav(const std::string& strBaseDir, CFileItemList& items, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
 
-  bool GetGamesNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
+  bool GetProgramsNav(const std::string& strBaseDir, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 
   bool GetRecentlyAddedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit=0, int getDetails = ProgramDbDetailsNone);
   bool GetRecentlyPlayedGamesNav(const std::string& strBaseDir, CFileItemList& items, unsigned int limit=0, int getDetails = ProgramDbDetailsNone);
@@ -256,7 +256,7 @@ public:
   void UpdateFileDateAdded(int idFile, const std::string& strFileNameAndPathh, const CDateTime& dateAdded = CDateTime());
 
   // smart playlists and main retrieval work in these functions
-  bool GetGamesByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
+  bool GetProgramsByWhere(const std::string& strBaseDir, const Filter &filter, CFileItemList& items, const SortDescription &sortDescription = SortDescription(), int getDetails = ProgramDbDetailsNone);
 
   // retrieve sorted and limited items
   bool GetSortedPrograms(const MediaType &mediaType, const std::string& strBaseDir, const SortDescription &sortDescription, CFileItemList& items, const Filter &filter = Filter());
@@ -296,7 +296,7 @@ public:
   bool GetProgramByTitleId(const int idTitle, std::string& strPathAndFilename);
 
 protected:
-  int GetGameId(const std::string& strFilenameAndPath);
+  int GetProgramId(const std::string& strFilenameAndPath);
 
   /*! \brief Get the id of this fileitem
    Works for both programdb:// items and normal fileitems
@@ -320,8 +320,8 @@ protected:
 
   void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
 
-  CProgramInfoTag GetDetailsForGame(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int getDetails = ProgramDbDetailsNone);
-  CProgramInfoTag GetDetailsForGame(const dbiplus::sql_record* const record, int getDetails = ProgramDbDetailsNone);
+  CProgramInfoTag GetDetailsForProgram(boost::movelib::unique_ptr<dbiplus::Dataset> &pDS, int getDetails = ProgramDbDetailsNone);
+  CProgramInfoTag GetDetailsForProgram(const dbiplus::sql_record* const record, int getDetails = ProgramDbDetailsNone);
   bool GetNavCommon(const std::string& strBaseDir, CFileItemList& items, const char *type, int idContent=-1, const Filter &filter = Filter(), bool countOnly = false);
   void GetRatings(int media_id, const std::string &media_type, RatingMap &ratings);
 

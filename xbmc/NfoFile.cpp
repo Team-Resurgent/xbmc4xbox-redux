@@ -93,7 +93,7 @@ CNfoFile::NFOResult CNfoFile::Create(const std::string& strPath,
     }
   }
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
-  else if (m_type == ADDON_SCRAPER_GAMES)
+  else if (m_type == ADDON_SCRAPER_PROGRAMS)
   {
     // check if it's an XML file with the info we need
     CProgramInfoTag details;

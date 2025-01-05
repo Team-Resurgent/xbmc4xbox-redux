@@ -2604,10 +2604,10 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeRoot.h">
 					</File>
 					<File
-						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeTitleGames.cpp">
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeTitlePrograms.cpp">
 					</File>
 					<File
-						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeTitleGames.h">
+						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\DirectoryNodeTitlePrograms.h">
 					</File>
 					<File
 						RelativePath=".\xbmc\filesystem\ProgramDatabaseDirectory\QueryParams.cpp">

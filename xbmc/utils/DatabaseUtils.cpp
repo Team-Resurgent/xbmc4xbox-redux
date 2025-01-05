@@ -270,29 +270,29 @@ std::string DatabaseUtils::GetField(Field field, const MediaType &mediaType, Dat
   else if (mediaType == MediaTypeGame)
   {
     std::string result;
-    if (field == FieldId) return "game_view.idGame";
-    else if (field == FieldTitle) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_TITLE);
-    else if (field == FieldPlot) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_PLOT);
-    else if (field == FieldVotes) return "game_view.votes";
-    else if (field == FieldRating) return "game_view.rating";
-    else if (field == FieldYear) return "game_view.released";
-    else if (field == FieldSystem) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_SYSTEN);
-    else if (field == FieldExclusive) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_EXCLUSIVE);
-    else if (field == FieldMPAA) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_ESRB);
-    else if (field == FieldDeveloper) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_DEVELOPER);
-    else if (field == FieldPublisher) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_PUBLISHER);
-    else if (field == FieldGenre) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_GENRE);
-    else if (field == FieldDescriptor) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_DESCRIPTOR);
-    else if (field == FieldGeneralFeature) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_GENERALFEATURE);
-    else if (field == FieldOnlineFeature) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_ONLINEFEATURE);
-    else if (field == FieldPlatform) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_PLATFORM);
-    else if (field == FieldOriginalTitle) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_ORIGINALTITLE);
-    else if (field == FieldTrailer) result = StringUtils::Format("game_view.c%02d", PROGRAMDB_ID_TRAILER);
-    else if (field == FieldFilename) return "game_view.strFilename";
-    else if (field == FieldPath) return "game_view.strPath";
-    else if (field == FieldPlaycount) return "game_view.playCount";
-    else if (field == FieldLastPlayed) return "game_view.lastPlayed";
-    else if (field == FieldDateAdded) return "game_view.dateAdded";
+    if (field == FieldId) return "program_view.idProgram";
+    else if (field == FieldTitle) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_TITLE);
+    else if (field == FieldPlot) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_PLOT);
+    else if (field == FieldVotes) return "program_view.votes";
+    else if (field == FieldRating) return "program_view.rating";
+    else if (field == FieldYear) return "program_view.released";
+    else if (field == FieldSystem) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_SYSTEN);
+    else if (field == FieldExclusive) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_EXCLUSIVE);
+    else if (field == FieldMPAA) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_ESRB);
+    else if (field == FieldDeveloper) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_DEVELOPER);
+    else if (field == FieldPublisher) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_PUBLISHER);
+    else if (field == FieldGenre) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_GENRE);
+    else if (field == FieldDescriptor) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_DESCRIPTOR);
+    else if (field == FieldGeneralFeature) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_GENERALFEATURE);
+    else if (field == FieldOnlineFeature) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_ONLINEFEATURE);
+    else if (field == FieldPlatform) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_PLATFORM);
+    else if (field == FieldOriginalTitle) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_ORIGINALTITLE);
+    else if (field == FieldTrailer) result = StringUtils::Format("program_view.c%02d", PROGRAMDB_ID_TRAILER);
+    else if (field == FieldFilename) return "program_view.strFilename";
+    else if (field == FieldPath) return "program_view.strPath";
+    else if (field == FieldPlaycount) return "program_view.playCount";
+    else if (field == FieldLastPlayed) return "program_view.lastPlayed";
+    else if (field == FieldDateAdded) return "program_view.dateAdded";
 
     if (!result.empty())
       return result;
@@ -738,9 +738,9 @@ int DatabaseUtils::GetField(Field field, const MediaType &mediaType, bool asInde
     if (field == FieldId) return 0;
     else if (field == FieldTitle) index = PROGRAMDB_ID_TITLE;
     else if (field == FieldPlot) index = PROGRAMDB_ID_PLOT;
-    else if (field == FieldVotes) return PROGRAMDB_DETAILS_GAME_VOTES;
-    else if (field == FieldRating) return PROGRAMDB_DETAILS_GAME_RATING;
-    else if (field == FieldYear) return PROGRAMDB_DETAILS_GAME_RELEASEDATE;
+    else if (field == FieldVotes) return PROGRAMDB_DETAILS_PROGRAM_VOTES;
+    else if (field == FieldRating) return PROGRAMDB_DETAILS_PROGRAM_RATING;
+    else if (field == FieldYear) return PROGRAMDB_DETAILS_PROGRAM_RELEASEDATE;
     else if (field == FieldSystem) return PROGRAMDB_ID_SYSTEN;
     else if (field == FieldExclusive) return PROGRAMDB_ID_EXCLUSIVE;
     else if (field == FieldMPAA) index = PROGRAMDB_ID_ESRB;
@@ -753,11 +753,11 @@ int DatabaseUtils::GetField(Field field, const MediaType &mediaType, bool asInde
     else if (field == FieldPlatform) return PROGRAMDB_ID_PLATFORM;
     else if (field == FieldOriginalTitle) return PROGRAMDB_ID_ORIGINALTITLE;
     else if (field == FieldTrailer) index = PROGRAMDB_ID_TRAILER;
-    else if (field == FieldFilename) index = PROGRAMDB_DETAILS_GAME_FILE;
-    else if (field == FieldPath) return PROGRAMDB_DETAILS_GAME_PATH;
-    else if (field == FieldPlaycount) return PROGRAMDB_DETAILS_GAME_PLAYCOUNT;
-    else if (field == FieldLastPlayed) return PROGRAMDB_DETAILS_GAME_LASTPLAYED;
-    else if (field == FieldDateAdded) return PROGRAMDB_DETAILS_GAME_DATEADDED;
+    else if (field == FieldFilename) index = PROGRAMDB_DETAILS_PROGRAM_FILE;
+    else if (field == FieldPath) return PROGRAMDB_DETAILS_PROGRAM_PATH;
+    else if (field == FieldPlaycount) return PROGRAMDB_DETAILS_PROGRAM_PLAYCOUNT;
+    else if (field == FieldLastPlayed) return PROGRAMDB_DETAILS_PROGRAM_LASTPLAYED;
+    else if (field == FieldDateAdded) return PROGRAMDB_DETAILS_PROGRAM_DATEADDED;
 
     if (index < 0)
       return index;
