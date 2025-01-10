@@ -76,6 +76,7 @@ namespace PROGRAM
     bool RetrieveProgramInfo(CFileItemList& items, bool bDirNames, CONTENT_TYPE content, bool useLocal = true, CScraperUrl *pURL = NULL, CGUIDialogProgress* pDlgProgress = NULL);
 
     static void ApplyThumbToFolder(const std::string &folder, const std::string &imdbThumb);
+    static bool DownloadFailed(CGUIDialogProgress* pDlgProgress);
     CNfoFile::NFOResult CheckForNFOFile(CFileItem* pItem, bool bGrabAny, ADDON::ScraperPtr& scraper, CScraperUrl& scrUrl);
 
     /*! \brief Retrieve any artwork associated with an item
@@ -99,6 +100,15 @@ namespace PROGRAM
      \return true if the user has cancelled the scanner, false otherwise
      */
     bool ProgressCancelled(CGUIDialogProgress* progress, int heading, const std::string &line1);
+
+    /*! \brief Find a url for the given program using the given scraper
+     \param programName name of the program to lookup
+     \param scraper scraper to use for the lookup
+     \param url [out] returned url from the scraper
+     \param progress CGUIDialogProgress bar
+     \return >0 on success, <0 on failure (cancellation), and 0 on no info found
+     */
+    int FindProgram(const std::string &programName, const ADDON::ScraperPtr &scraper, CScraperUrl &url, CGUIDialogProgress *progress);
 
     static int GetPathHash(const CFileItemList &items, std::string &hash);
 

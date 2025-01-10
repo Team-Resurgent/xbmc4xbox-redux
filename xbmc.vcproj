@@ -4911,6 +4911,12 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 					RelativePath=".\xbmc\programs\ProgramDbUrl.h">
 				</File>
 				<File
+					RelativePath=".\xbmc\programs\ProgramInfoDownloader.cpp">
+				</File>
+				<File
+					RelativePath=".\xbmc\programs\ProgramInfoDownloader.h">
+				</File>
+				<File
 					RelativePath=".\xbmc\programs\ProgramInfoScanner.cpp">
 				</File>
 				<File

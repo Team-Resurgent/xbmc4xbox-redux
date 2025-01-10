@@ -21,6 +21,7 @@
 #include "ProgramInfoScanner.h"
 
 #include "dialogs/GUIDialogExtendedProgressBar.h"
+#include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "filesystem/DirectoryCache.h"
 #include "filesystem/File.h"
@@ -28,6 +29,7 @@
 #include "GUIInfoManager.h"
 #include "guilib/GUIWindowManager.h"
 #include "GUIUserMessages.h"
+#include "messaging/helpers/DialogHelper.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "TextureCache.h"
@@ -38,9 +40,11 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "ProgramThumbLoader.h"
+#include "ProgramInfoDownloader.h"
 
 using namespace XFILE;
 using namespace ADDON;
+using namespace KODI::MESSAGING;
 
 namespace PROGRAM
 {
@@ -473,7 +477,17 @@ namespace PROGRAM
         return INFO_ERROR;
       return INFO_ADDED;
     }
-    // TODO: add support for online scrapers
+    if (result == CNfoFile::URL_NFO || result == CNfoFile::COMBINED_NFO)
+      pURL = &scrUrl;
+
+    CScraperUrl url;
+    int retVal = 0;
+    if (pURL && !pURL->m_url.empty())
+      url = *pURL;
+    else if ((retVal = FindProgram(pItem->GetProgramName(bDirNames), info2, url, pDlgProgress)) <= 0)
+      return retVal < 0 ? INFO_CANCELLED : INFO_NOT_FOUND;
+
+    // TODO: add fetching of program details
 
     //! @todo This is not strictly correct as we could fail to download information here or error, or be cancelled
     return INFO_NOT_FOUND;
@@ -731,6 +745,19 @@ namespace PROGRAM
     return result;
   }
 
+  bool CProgramInfoScanner::DownloadFailed(CGUIDialogProgress* pDialog)
+  {
+    if (g_advancedSettings.m_bProgramScannerIgnoreErrors)
+      return true;
+
+    if (pDialog)
+    {
+      CGUIDialogOK::ShowAndGetInput(20448, 20449);
+      return false;
+    }
+    return HELPERS::ShowYesNoDialogText(20448, 20450) == HELPERS::YES;
+  }
+
   bool CProgramInfoScanner::ProgressCancelled(CGUIDialogProgress* progress, int heading, const std::string &line1)
   {
     if (progress)
@@ -742,5 +769,23 @@ namespace PROGRAM
       return progress->IsCanceled();
     }
     return m_bStop;
+  }
+
+  int CProgramInfoScanner::FindProgram(const std::string &programName, const ScraperPtr &scraper, CScraperUrl &url, CGUIDialogProgress *progress)
+  {
+    PROGRAMLIST programlist;
+    CProgramInfoDownloader igdb(scraper);
+    int returncode = igdb.FindProgram(programName, programlist, progress);
+    if (returncode < 0 || (returncode == 0 && (m_bStop || !DownloadFailed(progress))))
+    { // scraper reported an error, or we had an error and user wants to cancel the scan
+      m_bStop = true;
+      return -1; // cancelled
+    }
+    if (returncode > 0 && programlist.size())
+    {
+      url = programlist[0];
+      return 1;  // found a program
+    }
+    return 0;    // didn't find anything
   }
 }
