@@ -646,11 +646,6 @@ namespace PROGRAM
         nfoFile = URIUtils::ReplaceExtension(item->GetPath(), ".nfo");
         if (CFile::Exists(nfoFile))
           return nfoFile;
-
-        // look inside X4G resources folder
-        nfoFile = URIUtils::AddFileToFolder(strPath, "_resources", "default.xml");
-        if (CFile::Exists(nfoFile))
-          return nfoFile;
       }
 
       // already an .nfo file?
