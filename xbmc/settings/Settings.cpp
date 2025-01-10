@@ -562,11 +562,6 @@ void CSettings::InitializeDefaults()
   #endif
 #endif
 
-#if defined(HAS_WEB_SERVER)
-  if (CUtil::CanBindPrivileged())
-    ((CSettingInt*)m_settingsManager->GetSetting("services.webserverport"))->SetDefault(80);
-#endif
-
 #if defined(_XBOX)
   // actual values are set inside OnSettingsLoaded() callback
   CLog::Log(LOGNOTICE, "Getting hardware information now...");
@@ -814,10 +809,6 @@ void CSettings::InitializeISettingCallbacks()
   m_settingsManager->RegisterCallback(&g_Mouse, settingSet);
 
   settingSet.clear();
-  settingSet.insert("services.webserver");
-  settingSet.insert("services.webserverport");
-  settingSet.insert("services.webserverusername");
-  settingSet.insert("services.webserverpassword");
   settingSet.insert("services.zeroconf");
   settingSet.insert("services.airplay");
   settingSet.insert("services.useairplaypassword");

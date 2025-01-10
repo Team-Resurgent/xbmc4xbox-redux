@@ -24,7 +24,6 @@
   <addon>skin.estuary</addon>
   <addon>visualization.milkdrop</addon>
   <addon>weather.xbmc.builtin</addon>
-  <addon>webinterface.default</addon>
   <addon>xbmc.addon</addon>
   <addon>xbmc.core</addon>
   <addon>xbmc.debug</addon>

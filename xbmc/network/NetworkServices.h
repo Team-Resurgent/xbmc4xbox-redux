@@ -25,9 +25,6 @@
 #ifdef HAS_TIME_SERVER
 class CSNTPClient;
 #endif
-#ifdef HAS_WEB_SERVER
-class CWebServer;
-#endif // HAS_WEB_SERVER
 #ifdef HAS_FTP_SERVER
 class CXBFileZilla;
 #endif
@@ -48,10 +45,6 @@ public:
   bool StopTimeServer();
   bool IsTimeServerUpdateNeeded();
   void UpdateTimeServer();
-
-  bool StartWebserver();
-  bool IsWebserverRunning();
-  bool StopWebserver();
 
   bool StartFtpServer();
   bool StartFtpEmergencyRecoveryMode();
@@ -92,9 +85,6 @@ private:
 
 #ifdef HAS_TIME_SERVER
  CSNTPClient* m_sntpclient;
-#endif
-#ifdef HAS_WEB_SERVER
-  CWebServer* m_webserver;
 #endif
 #ifdef HAS_FTP_SERVER
   CXBFileZilla* m_filezilla;

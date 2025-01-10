@@ -48,7 +48,6 @@
 #define HAS_XBOX_AUDIO
 #define HAS_AUDIO_PASS_THROUGH
 #define HAS_FTP_SERVER
-#define HAS_WEB_SERVER
 #define HAS_TIME_SERVER
 #define HAS_VISUALISATION
 #define HAS_KARAOKE
@@ -83,7 +82,6 @@
 #undef HAS_XBOX_AUDIO
 #undef HAS_AUDIO_PASS_THROUGH
 #undef HAS_FTP_SERVER
-#undef HAS_WEB_SERVER
 #undef SPYCE_SUPPORT
 #undef HAS_TIME_SERVER
 #undef HAS_VISUALISATION
@@ -153,4 +151,3 @@ WINBASEAPI BOOL WINAPI QueryPerformanceFrequencyXbox(LARGE_INTEGER *lpFrequency)
 
 #define DEFAULT_SKIN          "skin.estuary"
 #define DEFAULT_WEATHER_ADDON "weather.xbmc.builtin"
-#define DEFAULT_WEB_INTERFACE "webinterface.default"

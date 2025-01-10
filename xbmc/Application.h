@@ -408,7 +408,6 @@ protected:
 
   PlayBackRet PlayStack(const CFileItem& item, bool bRestart);
   bool ProcessMouse();
-  bool ProcessHTTPApiButtons();
   bool ProcessKeyboard();
   bool ProcessRemote(float frameTime);
   bool ProcessGamepad(float frameTime);
@@ -419,7 +418,6 @@ protected:
 
   void CheckForDebugButtonCombo();
   float NavigationIdleTime();
-  void CheckForTitleChange();
   static bool AlwaysProcess(const CAction& action);
 
   void SaveCurrentFileSettings();

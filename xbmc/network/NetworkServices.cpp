@@ -40,11 +40,6 @@
 
 using namespace KODI::MESSAGING::HELPERS;
 
-#ifdef HAS_WEB_SERVER
-#include "libGoAhead/WebServer.h"
-#include "libGoAhead/XBMChttp.h"
-#endif // HAS_WEB_SERVER
-
 #ifdef HAS_FTP_SERVER
 #include "libFileZilla/XBFileZilla.h"
 #endif
@@ -74,9 +69,6 @@ using namespace UPNP;
 
 CNetworkServices::CNetworkServices()
   :
-#ifdef HAS_WEB_SERVER
-  m_webserver(NULL),
-#endif // HAS_WEB_SERVER
   m_sntpclient(NULL),
   m_filezilla(NULL)
 {
@@ -87,9 +79,6 @@ CNetworkServices::~CNetworkServices()
 #ifdef HAS_TIME_SERVER
   delete m_sntpclient;
 #endif
-#ifdef HAS_WEB_SERVER
-  delete m_webserver;
-#endif // HAS_WEB_SERVER
 #ifdef HAS_FTP_SERVER
   delete m_filezilla;
 #endif
@@ -107,28 +96,6 @@ bool CNetworkServices::OnSettingChanging(const CSetting *setting)
     return false;
 
   const std::string &settingId = setting->GetId();
-#ifdef HAS_WEB_SERVER
-  if (settingId == "services.webserver" ||
-      settingId == "services.webserverport")
-  {
-    if (IsWebserverRunning() && !StopWebserver())
-      return false;
-
-    if (CSettings::GetInstance().GetBool("services.webserver"))
-    {
-      if (!StartWebserver())
-      {
-        CGUIDialogOK::ShowAndGetInput(g_localizeStrings.Get(33101), "", g_localizeStrings.Get(33100), "");
-        return false;
-      }
-    }
-  }
-  else if (settingId == "services.esport" ||
-           settingId == "services.webserverport")
-    return ValidatePort(((CSettingInt*)setting)->GetValue());
-  else
-#endif // HAS_WEB_SERVER
-
 #ifdef HAS_FTP_SERVER
   if (settingId == "services.ftpserveruser" || settingId == "services.ftpserverpassword")
     return SetFTPServerUserPass();
@@ -249,17 +216,6 @@ void CNetworkServices::OnSettingChanged(const CSetting *setting)
   }
   else
 #endif
-#ifdef HAS_WEB_SERVER
-  if (settingId == "services.webserverusername" ||
-      settingId == "services.webserverpassword")
-  {
-    if (settingId == "services.webserverusername")
-      m_webserver->SetUserName(((CSettingString*)setting)->GetValue().c_str());
-    else if(settingId == "services.webserverpassword")
-      m_webserver->SetPassword(((CSettingString*)setting)->GetValue().c_str());
-  }
-  else
-#endif // HAS_WEB_SERVER
   if (settingId == "smb.winsserver" ||
       settingId == "smb.workgroup")
   {
@@ -276,8 +232,6 @@ void CNetworkServices::OnSettingChanged(const CSetting *setting)
 void CNetworkServices::Start()
 {
   StartTimeServer();
-  if (CSettings::GetInstance().GetBool("services.webserver") && !StartWebserver())
-    CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Warning, g_localizeStrings.Get(33101), g_localizeStrings.Get(33100));
   StartFtpServer();
   StartUPnP();
   if (CSettings::GetInstance().GetBool("services.esenabled") && !StartEventServer())
@@ -290,7 +244,6 @@ void CNetworkServices::Stop(bool bWait)
   if (bWait)
   {
     StopTimeServer();
-    StopWebserver();
     StopFtpServer();
     StopRss();
   }
@@ -350,72 +303,6 @@ bool CNetworkServices::IsTimeServerUpdateNeeded()
 void CNetworkServices::UpdateTimeServer()
 {
   m_sntpclient->Update();
-}
-
-bool CNetworkServices::StartWebserver()
-{
-#ifdef HAS_WEB_SERVER
-  if (!g_application.getNetwork().IsAvailable())
-    return false;
-
-  if (!CSettings::GetInstance().GetBool("services.webserver"))
-    return false;
-
-  int webPort = CSettings::GetInstance().GetInt("services.webserverport");
-  if (!ValidatePort(webPort))
-  {
-    CLog::Log(LOGERROR, "Cannot start Web Server on port %i", webPort);
-    return false;
-  }
-
-  if (IsWebserverRunning())
-    return true;
-
-  CLog::Log(LOGNOTICE, "Webserver: Starting...");
-  CSectionLoader::Load("LIBHTTP");
-  m_webserver = new CWebServer();
-  if(!m_webserver->Start(webPort, false))
-  {
-    delete m_webserver;
-    m_webserver = NULL;
-    return false;
-  }
-
-  if (m_webserver)
-  {
-    m_webserver->SetUserName(CSettings::GetInstance().GetString("services.webserverusername").c_str());
-    m_webserver->SetPassword(CSettings::GetInstance().GetString("services.webserverpassword").c_str());
-  }
-  if (m_webserver && m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; StartUp;1");
-  return true;
-#endif // HAS_WEB_SERVER
-  return false;
-}
-
-bool CNetworkServices::IsWebserverRunning()
-{
-#ifdef HAS_WEB_SERVER
-  return m_webserver != NULL;
-#endif // HAS_WEB_SERVER
-  return false;
-}
-
-bool CNetworkServices::StopWebserver()
-{
-#ifdef HAS_WEB_SERVER
-  if (!IsWebserverRunning())
-    return true;
-
-  CLog::Log(LOGNOTICE, "Webserver: Stopping...");
-  m_webserver->Stop();
-  delete m_webserver;
-  m_webserver = NULL;
-  CSectionLoader::Unload("LIBHTTP");
-  CLog::Log(LOGNOTICE, "Webserver: Stopped...");
-  return true;
-#endif // HAS_WEB_SERVER
-  return false;
 }
 
 bool CNetworkServices::StartFtpServer()

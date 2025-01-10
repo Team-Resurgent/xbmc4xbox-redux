@@ -3719,43 +3719,6 @@
 				</Filter>
 			</Filter>
 			<Filter
-				Name="libGoAhead"
-				Filter="">
-				<File
-					RelativePath="..\..\lib\libGoAhead\includes.h">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\SpyceModule.cpp">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\SpyceModule.h">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\WebServer.cpp">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\WebServer.h">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMCConfiguration.cpp">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMCConfiguration.h">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMChttp.cpp">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMChttp.h">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMCweb.cpp">
-				</File>
-				<File
-					RelativePath="..\..\lib\libGoAhead\XBMCweb.h">
-				</File>
-			</Filter>
-			<Filter
 				Name="sqlite"
 				Filter="">
 				<File

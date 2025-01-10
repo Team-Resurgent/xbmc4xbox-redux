@@ -205,10 +205,6 @@
 #include "pictures/GUIWindowSlideShow.h"
 #include "windows/GUIWindowLoginScreen.h"
 
-#ifdef HAS_WEB_SERVER
-#include "libGoAhead/XBMChttp.h"
-#endif
-
 #ifdef HAS_XBOX_HARDWARE
 #ifdef HAS_XFONT
 #include <xfont.h>  // for textout functions
@@ -254,7 +250,6 @@ using namespace KODI::MESSAGING::HELPERS;
   #pragma comment (lib,"lib/libsmb/libsmbd.lib")      // SECTIONNAME=LIBSMB
  #endif
  #ifdef _XBOX
-  #pragma comment (lib,"lib/libGoAhead/goaheadd.lib") // SECTIONNAME=LIBHTTP
   #pragma comment (lib,"lib/sqLite/libSQLite3d.lib")
   #pragma comment (lib,"lib/libshout/libshoutd.lib" )
   #pragma comment (lib,"lib/libcdio/libcdiod.lib" )
@@ -262,7 +257,6 @@ using namespace KODI::MESSAGING::HELPERS;
   #pragma comment (lib,"lib/libfribidi/libfribidid.lib")
   #pragma comment (lib,"lib/libpcre/libpcred.lib")
  #else
-  #pragma comment (lib,"../../lib/libGoAhead/goahead_win32d.lib") // SECTIONNAME=LIBHTTP
   #pragma comment (lib,"../../lib/sqLite/libSQLite3_win32d.lib")
   #pragma comment (lib,"../../lib/libcdio/libcdio_win32d.lib" )
   #pragma comment (lib,"../../lib/libiconv/libiconvd.lib")
@@ -277,14 +271,12 @@ using namespace KODI::MESSAGING::HELPERS;
   #pragma comment (lib,"lib/libsmb/libsmb.lib")
  #endif
  #ifdef _XBOX
-  #pragma comment (lib,"lib/libGoAhead/goahead.lib")
   #pragma comment (lib,"lib/sqLite/libSQLite3.lib")
   #pragma comment (lib,"lib/libcdio/libcdio.lib")
   #pragma comment (lib,"lib/libiconv/libiconv.lib")
   #pragma comment (lib,"lib/libfribidi/libfribidi.lib")
   #pragma comment (lib,"lib/libpcre/libpcre.lib")
  #else
-  #pragma comment (lib,"../../lib/libGoAhead/goahead_win32.lib")
   #pragma comment (lib,"../../lib/sqLite/libSQLite3_win32.lib")
   #pragma comment (lib,"../../lib/libshout/libshout_win32.lib" )
   #pragma comment (lib,"../../lib/libcdio/libcdio_win32.lib" )
@@ -327,7 +319,6 @@ CApplication::CApplication(void)
   m_bSpinDown = false;
   m_bNetworkSpinDown = false;
   m_dwSpinDownTime = timeGetTime();
-  m_pXbmcHttp = NULL;
   m_prevMedia="";
 #ifdef HAS_XBOX_HARDWARE
   XSetProcessQuantumLength(5); //default=20msec
@@ -2165,14 +2156,6 @@ bool CApplication::OnKey(CKey& key)
 
 bool CApplication::OnAction(CAction &action)
 {
-  // Let's tell the outside world about this action, ignoring mouse moves
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=2 && action.GetID() != ACTION_MOUSE_MOVE)
-  {
-    CStdString tmp;
-    tmp.Format("%i",action.GetID());
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnAction:"+tmp+";2");
-  }
-
   // special case for switching between GUI & fullscreen mode.
   if (action.GetID() == ACTION_SHOW_GUI)
   { // Switch to fullscreen mode if we can
@@ -2924,7 +2907,6 @@ void CApplication::FrameMove(bool processEvents, bool processGUI)
     ReadInput();
     // process input actions
     ProcessMouse();
-    ProcessHTTPApiButtons();
     ProcessKeyboard();
     ProcessRemote(frameTime);
     ProcessGamepad(frameTime);
@@ -3252,75 +3234,6 @@ bool CApplication::ProcessMouse()
   return OnAction(newmouseaction);
 }
 
-void  CApplication::CheckForTitleChange()
-{ 
-  if (CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-  {
-    if (IsPlayingVideo())
-    {
-      const CVideoInfoTag* tagVal = g_infoManager.GetCurrentMovieTag();
-      if (m_pXbmcHttp && tagVal && !(tagVal->m_strTitle.empty()))
-      {
-        CStdString msg=m_pXbmcHttp->GetOpenTag()+"MovieTitle:"+tagVal->m_strTitle.c_str()+m_pXbmcHttp->GetCloseTag();
-        if (m_prevMedia!=msg && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-        {
-          CApplicationMessenger::Get().HttpApi("broadcastlevel; MediaChanged:"+msg+";1");
-          m_prevMedia=msg;
-        }
-      }
-    }
-    else if (IsPlayingAudio())
-    {
-      const CMusicInfoTag* tagVal=g_infoManager.GetCurrentSongTag();
-      if (m_pXbmcHttp && tagVal)
-      {
-        CStdString msg="";
-        if (!tagVal->GetTitle().empty())
-          msg=m_pXbmcHttp->GetOpenTag()+"AudioTitle:"+tagVal->GetTitle().c_str()+m_pXbmcHttp->GetCloseTag();
-        if (!tagVal->GetArtist().empty())
-          msg+=m_pXbmcHttp->GetOpenTag()+"AudioArtist:"+StringUtils::Join(tagVal->GetArtist(), g_advancedSettings.m_musicItemSeparator).c_str()+m_pXbmcHttp->GetCloseTag();
-        if (m_prevMedia!=msg)
-        {
-          CApplicationMessenger::Get().HttpApi("broadcastlevel; MediaChanged:"+msg+";1");
-          m_prevMedia=msg;
-        }
-      }
-    }
-  }
-}
-
-bool CApplication::ProcessHTTPApiButtons()
-{
-  if (m_pXbmcHttp)
-  {
-    // copy key from webserver, and reset it in case we're called again before
-    // whatever happens in OnKey()
-    CKey keyHttp(m_pXbmcHttp->GetKey());
-    m_pXbmcHttp->ResetKey();
-    if (keyHttp.GetButtonCode() != KEY_INVALID)
-    {
-      if (keyHttp.GetButtonCode() == KEY_VMOUSE) //virtual mouse
-      {
-        int actionID = ACTION_MOUSE_MOVE;
-        if (keyHttp.GetLeftTrigger() == 1)
-          actionID = ACTION_MOUSE_LEFT_CLICK;
-        else if (keyHttp.GetLeftTrigger() == 2)
-          actionID = ACTION_MOUSE_RIGHT_CLICK;
-        else if (keyHttp.GetLeftTrigger() == 3)
-          actionID = ACTION_MOUSE_MIDDLE_CLICK;
-        else if (keyHttp.GetRightTrigger() == 1)
-          actionID = ACTION_MOUSE_DOUBLE_CLICK;
-        CAction action(actionID, keyHttp.GetLeftThumbX(), keyHttp.GetLeftThumbY());
-        OnAction(action);
-      }
-      else
-        OnKey(keyHttp);
-      return true;
-    }
-  }
-  return false;
-}
-
 bool CApplication::ProcessEventServer(float frameTime)
 {
 #ifdef HAS_EVENT_SERVER
@@ -3582,15 +3495,6 @@ void CApplication::Stop(bool bLCDStop)
   try
   {
     SaveFileState(true);
-
-    if (m_pXbmcHttp)
-    {
-      if(CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-        CApplicationMessenger::Get().HttpApi("broadcastlevel; ShutDown;1");
-
-      m_pXbmcHttp->shuttingDown=true;
-      //Sleep(100);
-    }
 
     CLog::Log(LOGNOTICE, "Storing total System Uptime");
     g_sysinfo.SetTotalUptime(g_sysinfo.GetTotalUptime() + (int)(CTimeUtils::GetFrameTime() / 60000));
@@ -4202,9 +4106,6 @@ void CApplication::OnPlayBackEnded()
   // informs python script currently running playback has ended
   // (does nothing if python is not loaded)
   g_pythonParser.OnPlayBackEnded();
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnPlayBackEnded;1");
 
   CLog::Log(LOGDEBUG, "%s - Playback has finished", __FUNCTION__);
 
@@ -4224,10 +4125,6 @@ void CApplication::OnPlayBackStarted()
   // (does nothing if python is not loaded)
   g_pythonParser.OnPlayBackStarted();
 
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnPlayBackStarted;1");
-
   CLog::Log(LOGDEBUG, "%s - Playback has started", __FUNCTION__);
 
   CGUIMessage msg(GUI_MSG_PLAYBACK_STARTED, 0, 0);
@@ -4243,10 +4140,6 @@ void CApplication::OnQueueNextItem()
   // informs python script currently running that we are requesting the next track
   // (does nothing if python is not loaded)
   g_pythonParser.OnQueueNextItem(); // currently unimplemented
-
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-  CApplicationMessenger::Get().HttpApi("broadcastlevel; OnQueueNextItem;1");
 
   CLog::Log(LOGDEBUG, "Player has asked for the next item");
 
@@ -4266,10 +4159,6 @@ void CApplication::OnPlayBackStopped()
   // (does nothing if python is not loaded)
   g_pythonParser.OnPlayBackStopped();
 
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnPlayBackStopped;1");
-
   CLog::Log(LOGDEBUG, "%s - Playback was stopped", __FUNCTION__);
 
   CGUIMessage msg( GUI_MSG_PLAYBACK_STOPPED, 0, 0 );
@@ -4280,20 +4169,12 @@ void CApplication::OnPlayBackPaused()
 {
   g_pythonParser.OnPlayBackPaused();
 
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnPlayBackPaused;1");
-
   CLog::Log(LOGDEBUG, "%s - Playback was paused", __FUNCTION__);
 }
 
 void CApplication::OnPlayBackResumed()
 {
   g_pythonParser.OnPlayBackResumed();
-
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-    CApplicationMessenger::Get().HttpApi("broadcastlevel; OnPlayBackResumed;1");
 
   CLog::Log(LOGDEBUG, "%s - Playback was resumed", __FUNCTION__);
 }
@@ -4302,28 +4183,12 @@ void CApplication::OnPlayBackSpeedChanged(int iSpeed)
 {
   g_pythonParser.OnPlayBackSpeedChanged(iSpeed);
 
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-  {
-    CStdString tmp;
-    tmp.Format("broadcastlevel; OnPlayBackSpeedChanged:%i;1",iSpeed);
-    CApplicationMessenger::Get().HttpApi(tmp);
-  }
-
   CLog::Log(LOGDEBUG, "%s - Playback speed changed", __FUNCTION__);
 }
 
 void CApplication::OnPlayBackSeek(int iTime, int seekOffset)
 {
   g_pythonParser.OnPlayBackSeek(iTime, seekOffset);
-
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-  {
-    CStdString tmp;
-    tmp.Format("broadcastlevel; OnPlayBackSeek:%i;1",iTime);
-    CApplicationMessenger::Get().HttpApi(tmp);
-  }
 
   CLog::Log(LOGDEBUG, "%s - Playback skip", __FUNCTION__);
 //  g_infoManager.SetDisplayAfterSeek(2500, seekOffset/1000);
@@ -4332,14 +4197,6 @@ void CApplication::OnPlayBackSeek(int iTime, int seekOffset)
 void CApplication::OnPlayBackSeekChapter(int iChapter)
 {
   g_pythonParser.OnPlayBackSeekChapter(iChapter);
-
-  // Let's tell the outside world as well
-  if (m_pXbmcHttp && CSettings::GetInstance().GetInt("services.httpapibroadcastlevel")>=1)
-  {
-    CStdString tmp;
-    tmp.Format("broadcastlevel; OnPlayBackSkeekChapter:%i;1",iChapter);
-    CApplicationMessenger::Get().HttpApi(tmp);
-  }
 
   CLog::Log(LOGDEBUG, "%s - Playback skip", __FUNCTION__);
 }
@@ -5358,9 +5215,6 @@ void CApplication::ProcessSlow()
   // update upnp server/renderer states
   if(UPNP::CUPnP::IsInstantiated())
     UPNP::CUPnP::GetInstance()->UpdateState();
-
-  //Check to see if current playing Title has changed and whether we should broadcast the fact
-  CheckForTitleChange();
 }
 
 // Global Idle Time in Seconds
