@@ -345,6 +345,8 @@ namespace PROGRAM
     if (m_handle && !url.strTitle.empty())
       m_handle->SetText(url.strTitle);
 
+    url.m_url.front().m_url += StringUtils::Format("&programPath=%s", pItem->GetPath().c_str());
+
     CProgramInfoDownloader igdb(scraper);
     bool ret = igdb.GetDetails(url, programDetails, pDialog);
 
