@@ -1182,6 +1182,10 @@ private:
 
       CVideoInfoTag* GetVideoInfoTag();
       const CVideoInfoTag* GetVideoInfoTag() const;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+      CProgramInfoTag* GetProgramInfoTag();
+      const CProgramInfoTag* GetProgramInfoTag() const;
+#endif
     };
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
