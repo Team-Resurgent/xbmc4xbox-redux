@@ -32,6 +32,9 @@
 class CAlbum;
 class CArtist;
 class CVideoInfoTag;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+class CProgramInfoTag;
+#endif
 
 namespace MUSIC_GRABBER
 {
@@ -144,6 +147,9 @@ public:
 
   std::vector<CScraperUrl> FindMovie(XFILE::CCurlFile &fcurl,
     const std::string &sMovie, bool fFirst);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  std::vector<CScraperUrl> FindProgram(const std::string &sProgram, bool fFirst);
+#endif
   std::vector<MUSIC_GRABBER::CMusicAlbumInfo> FindAlbum(XFILE::CCurlFile &fcurl,
     const std::string &sAlbum, const std::string &sArtist = "");
   std::vector<MUSIC_GRABBER::CMusicArtistInfo> FindArtist(
@@ -152,6 +158,9 @@ public:
 
   bool GetVideoDetails(XFILE::CCurlFile &fcurl, const CScraperUrl &scurl,
     bool fMovie/*else episode*/, CVideoInfoTag &video);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  bool GetProgramDetails(const CScraperUrl &scurl, CProgramInfoTag &program);
+#endif
   bool GetAlbumDetails(XFILE::CCurlFile &fcurl, const CScraperUrl &scurl,
     CAlbum &album);
   bool GetArtistDetails(XFILE::CCurlFile &fcurl, const CScraperUrl &scurl,

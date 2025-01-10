@@ -39,6 +39,9 @@
 #include "utils/StringUtils.h"
 #include "music/MusicDatabase.h"
 #include "video/VideoDatabase.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramDatabase.h"
+#endif
 #include "music/Album.h"
 #include "music/Artist.h"
 #include "Util.h"
@@ -821,6 +824,15 @@ void DetailsFromFileItem<CVideoInfoTag>(const CFileItem& item, CVideoInfoTag& ta
     tag = *item.GetVideoInfoTag();
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+template<>
+void DetailsFromFileItem<CProgramInfoTag>(const CFileItem& item, CProgramInfoTag& tag)
+{
+  if (item.HasProgramInfoTag())
+    tag = *item.GetProgramInfoTag();
+}
+#endif
+
 template<class T>
 static bool PythonDetails(const std::string& ID,
                           const std::string& key,
@@ -980,6 +992,35 @@ std::vector<CScraperUrl> CScraper::FindMovie(XFILE::CCurlFile &fcurl,
 
   return vcscurl;
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+// fetch list of matching programs sorted by relevance (may be empty);
+// throws CScraperError on error; first called with fFirst set, then unset if first try fails
+std::vector<CScraperUrl> CScraper::FindProgram(const std::string &sMovie, bool fFirst)
+{
+  // prepare parameters for URL creation
+  std::string sTitle, sTitleYear, sYear;
+  CUtil::CleanString(sMovie, sTitle, sTitleYear, sYear, true/*fRemoveExt*/, fFirst);
+
+  CLog::Log(LOGDEBUG, "%s: Searching for '%s' using %s scraper "
+    "(path: '%s', content: '%s', version: '%s')", __FUNCTION__, sTitle.c_str(),
+    Name().c_str(), Path().c_str(),
+    ADDON::TranslateContent(Content()).c_str(), Version().asString().c_str());
+
+  std::vector<CScraperUrl> vcscurl;
+  if (IsNoop() || !m_isPython)
+    return vcscurl;
+
+  if (!fFirst)
+    StringUtils::Replace(sTitle, '-',' ');
+
+  std::map<std::string, std::string> additionals;
+  additionals.insert(std::make_pair("title", sTitle));
+  if (!sYear.empty())
+    additionals.insert(std::make_pair("year", sYear));
+  return PythonFind<CScraperUrl>(ID(), additionals);
+}
+#endif
 
 // find album by artist, using fcurl for web fetches
 // returns a list of albums (empty if no match or failure)
@@ -1315,6 +1356,23 @@ bool CScraper::GetVideoDetails(XFILE::CCurlFile &fcurl,
   }
   return fRet;
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+// takes URL; returns true and populates program details on success, false otherwise
+bool CScraper::GetProgramDetails(const CScraperUrl &scurl, CProgramInfoTag &program)
+{
+  if (!m_isPython)
+    return false;
+
+  CLog::Log(LOGDEBUG, "%s: Reading %s '%s' using %s scraper "
+    "(file: '%s', content: '%s', version: '%s')", __FUNCTION__,
+    MediaTypeProgram, scurl.m_url[0].m_url.c_str(), Name().c_str(), Path().c_str(),
+    ADDON::TranslateContent(Content()).c_str(), Version().asString().c_str());
+
+  program.Reset();
+  return PythonDetails(ID(), "url", scurl.m_url.front().m_url, "getdetails", program);
+}
+#endif
 
 // takes a URL; returns true and populates album on success, false otherwise
 bool CScraper::GetAlbumDetails(CCurlFile &fcurl, const CScraperUrl &scurl, CAlbum &album)
