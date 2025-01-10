@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "threads/Thread.h"
+#include "ProgramInfoTag.h"
 #include "addons/Scraper.h"
 
 // forward declarations
@@ -52,6 +53,8 @@ public:
    */
   int FindProgram(const std::string& strProgram, PROGRAMLIST& programlist, CGUIDialogProgress *pProgress = NULL);
 
+  bool GetDetails(const CScraperUrl& url, CProgramInfoTag &programDetails, CGUIDialogProgress *pProgress = NULL);
+
   static void ShowErrorDialog(const ADDON::CScraperError &sce);
 
 protected:
@@ -61,6 +64,8 @@ protected:
 
   std::string         m_strProgram;
   PROGRAMLIST         m_programList;
+  CProgramInfoTag     m_programDetails;
+  CScraperUrl         m_url;
   LOOKUP_STATE        m_state;
   int                 m_found;
   ADDON::ScraperPtr   m_info;

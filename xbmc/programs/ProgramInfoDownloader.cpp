@@ -82,6 +82,20 @@ void CProgramInfoDownloader::Process()
     m_state = DO_NOTHING;
     return;
   }
+
+  if (m_url.m_url.empty())
+  {
+    // empty url when it's not supposed to be..
+    // this might happen if the previously scraped item was removed from the site (see ticket #10537)
+    CLog::Log(LOGERROR, "%s: Error getting details for %s due to an empty url", __FUNCTION__, m_strProgram.c_str());
+  }
+  else if (m_state == GET_DETAILS)
+  {
+    if (!GetDetails(m_url, m_programDetails))
+      CLog::Log(LOGERROR, "%s: Error getting details from %s", __FUNCTION__,m_url.m_url[0].m_url.c_str());
+  }
+  m_found = 1;
+  m_state = DO_NOTHING;
 }
 
 int CProgramInfoDownloader::FindProgram(const std::string &strProgram,
@@ -121,6 +135,40 @@ int CProgramInfoDownloader::FindProgram(const std::string &strProgram,
     success = InternalFindProgram(strProgram, programList, false);
   }
   return success;
+}
+
+bool CProgramInfoDownloader::GetDetails(const CScraperUrl &url,
+                                      CProgramInfoTag &programDetails,
+                                      CGUIDialogProgress *pProgress /* = NULL */)
+{
+  m_url = url;
+  m_programDetails = programDetails;
+
+  // fill in the defaults
+  programDetails.Reset();
+  if (pProgress)
+  { // threaded version
+    m_state = GET_DETAILS;
+    m_found = 0;
+    if (IsRunning())
+      StopThread();
+    Create();
+    while (!m_found)
+    {
+      pProgress->Progress();
+      if (pProgress->IsCanceled())
+      {
+        CloseThread();
+        return false;
+      }
+      Sleep(1);
+    }
+    programDetails = m_programDetails;
+    CloseThread();
+    return true;
+  }
+  else  // unthreaded
+    return m_info->GetProgramDetails(url, programDetails);
 }
 
 void CProgramInfoDownloader::CloseThread()

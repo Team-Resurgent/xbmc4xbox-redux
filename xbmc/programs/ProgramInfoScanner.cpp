@@ -338,6 +338,36 @@ namespace PROGRAM
     return !m_bStop;
   }
 
+  bool CProgramInfoScanner::GetDetails(CFileItem *pItem, CScraperUrl &url, const ScraperPtr& scraper, CNfoFile *nfoFile, CGUIDialogProgress* pDialog /* = NULL */)
+  {
+    CProgramInfoTag programDetails;
+
+    if (m_handle && !url.strTitle.empty())
+      m_handle->SetText(url.strTitle);
+
+    CProgramInfoDownloader igdb(scraper);
+    bool ret = igdb.GetDetails(url, programDetails, pDialog);
+
+    if (ret)
+    {
+      if (nfoFile)
+        nfoFile->GetDetails(programDetails,NULL,true);
+
+      if (m_handle && url.strTitle.empty())
+        m_handle->SetText(programDetails.m_strTitle);
+
+      if (pDialog)
+      {
+        pDialog->SetLine(1, programDetails.m_strTitle);
+        pDialog->Progress();
+      }
+
+      *pItem->GetProgramInfoTag() = programDetails;
+      return true;
+    }
+    return false; // no info found, or cancelled
+  }
+
   void CProgramInfoScanner::ApplyThumbToFolder(const std::string &folder, const std::string &strThumb)
   {
     // copy icon to folder also;
@@ -487,7 +517,20 @@ namespace PROGRAM
     else if ((retVal = FindProgram(pItem->GetProgramName(bDirNames), info2, url, pDlgProgress)) <= 0)
       return retVal < 0 ? INFO_CANCELLED : INFO_NOT_FOUND;
 
-    // TODO: add fetching of program details
+    CLog::Log(LOGDEBUG,
+              "ProgramInfoScanner: Fetching url '%s' using %s scraper (content: '%s')",
+              url.m_url[0].m_url.c_str(), info2->Name().c_str(),
+              TranslateContent(info2->Content()).c_str());
+
+    if (GetDetails(pItem, url, info2,
+                   (result == CNfoFile::COMBINED_NFO
+                    || result == CNfoFile::PARTIAL_NFO) ? &m_nfoReader : NULL,
+                   pDlgProgress))
+    {
+      if (AddProgram(pItem, info2->Content(), bDirNames, useLocal) < 0)
+        return INFO_ERROR;
+      return INFO_ADDED;
+    }
 
     //! @todo This is not strictly correct as we could fail to download information here or error, or be cancelled
     return INFO_NOT_FOUND;
