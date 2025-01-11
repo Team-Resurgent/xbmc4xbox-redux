@@ -9,6 +9,7 @@
   <addon>metadata.generic.albums</addon>
   <addon>metadata.generic.artists</addon>
   <addon>metadata.local</addon>
+  <addon>metadata.programs.xbmc4gamers</addon>
   <addon>metadata.musicvideos.theaudiodb.com</addon>
   <addon>metadata.movies.themoviedb.org</addon>
   <addon>metadata.themoviedb.org.python</addon>
