@@ -70,9 +70,6 @@ struct SDirData
 #define MAX_OPEN_DIRS 10
 static SDirData vecDirsOpen[MAX_OPEN_DIRS];
 bool bVecDirsInited = false;
-#ifdef HAS_VIDEO_PLAYBACK
-extern void update_cache_dialog(const char* tmp);
-#endif
 
 struct _env
 {
@@ -320,9 +317,6 @@ extern "C"
     _vsnprintf(tmp, 2048, format, va);
     va_end(va);
     tmp[2048 - 1] = 0;
-#if defined(HAS_VIDEO_PLAYBACK) && defined(HAS_XBOX_HARDWARE)
-    update_cache_dialog(tmp);
-#endif
     CLog::Log(LOGDEBUG, "  msg: %s", tmp);
     
     return strlen(tmp);
