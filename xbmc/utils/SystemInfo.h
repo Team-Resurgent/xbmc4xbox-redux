@@ -84,7 +84,6 @@ public:
   // info specific to xbox
   CStdString xboxBios;
   CStdString xboxModChip;
-  CStdString mplayerversion;
   CStdString xboxversion;
   CStdString avpackinfo;
   CStdString xboxserial;
@@ -149,7 +148,6 @@ public:
 #ifdef _XBOX
   static CStdString SmartXXModCHIP();
   static CStdString GetAVPackInfo();
-  static CStdString GetMPlayerVersion();
   CStdString GetUnits(int iFrontPort);
   CStdString GetXBOXSerial();
   CStdString GetXBProduceInfo();

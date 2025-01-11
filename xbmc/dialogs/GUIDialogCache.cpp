@@ -28,8 +28,6 @@
 #include "threads/SingleLock.h"
 #include "utils/Variant.h"
 
-extern "C" void mplayer_exit_player(void);
-
 using namespace KODI::MESSAGING;
 
 CGUIDialogCache::CGUIDialogCache(DWORD dwDelay, const std::string& strHeader, const std::string& strMsg) : CThread("GUIDialogCache"),
@@ -150,9 +148,6 @@ void CGUIDialogCache::Process()
         if(m_pDlg->IsCanceled())
         {
           bSentCancel = true;
-#ifdef _XBOX
-          mplayer_exit_player(); 
-#endif
         }
         else if( !m_pDlg->IsDialogRunning() && m_endtime.IsTimePast()
               && !g_windowManager.IsWindowActive(WINDOW_DIALOG_YES_NO) )

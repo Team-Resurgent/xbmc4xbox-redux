@@ -1027,7 +1027,7 @@ HRESULT CApplication::Create(HWND hWnd)
   }
 #endif
 
-  //Check for X+Y - if pressed, set debug log mode and mplayer debuging on
+  //Check for X+Y - if pressed, set debug log mode
   CheckForDebugButtonCombo();
 
 #ifdef HAS_XBOX_HARDWARE
@@ -4015,6 +4015,7 @@ PlayBackRet CApplication::PlayFile(CFileItem item, const std::string& player, bo
   m_eForcedNextPlayer = EPC_NONE;
 
 #ifdef HAS_KARAOKE
+  // Is this still the case after removing MPlayer?
   //We have to stop parsing a cdg before mplayer is deallocated
   // WHY do we have to do this????
   if(m_pCdgParser)

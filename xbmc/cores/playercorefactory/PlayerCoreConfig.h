@@ -68,11 +68,6 @@ public:
     IPlayer* pPlayer;
     switch(m_eCore)
     {
-#ifdef HAS_XBOX_HARDWARE
-      case EPC_MPLAYER: pPlayer = new CMPlayer(callback); break;
-#else
-      case EPC_MPLAYER: pPlayer = new CDVDPlayer(callback); break;
-#endif
       case EPC_DVDPLAYER: pPlayer = new CDVDPlayer(callback); break;
       case EPC_PAPLAYER: pPlayer = new PAPlayer(callback); break;
 #ifdef HAS_MODPLAYER

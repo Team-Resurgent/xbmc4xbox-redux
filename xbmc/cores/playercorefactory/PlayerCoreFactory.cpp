@@ -21,9 +21,7 @@
 #include "system.h"
 #include "PlayerCoreFactory.h"
 #include "../dvdplayer/DVDPlayer.h"
-#ifdef HAS_XBOX_HARDWARE
-#include "../mplayer/mplayer.h"
-#else
+#ifndef HAS_XBOX_HARDWARE
 #include "../DummyVideoPlayer.h"
 #endif
 #ifdef HAS_MODPLAYER
@@ -322,10 +320,6 @@ bool CPlayerCoreFactory::LoadConfiguration(const std::string &file, bool clear)
     dvdplayer->m_bPlaysAudio = dvdplayer->m_bPlaysVideo = true;
     m_vecCoreConfigs.push_back(dvdplayer);
 
-    CPlayerCoreConfig* mplayer = new CPlayerCoreConfig("MPlayer", EPC_MPLAYER, NULL);
-    mplayer->m_bPlaysAudio = mplayer->m_bPlaysVideo = true;
-    m_vecCoreConfigs.push_back(mplayer);
-
     CPlayerCoreConfig* paplayer = new CPlayerCoreConfig("PAPlayer", EPC_PAPLAYER, NULL);
     paplayer->m_bPlaysAudio = true;
     m_vecCoreConfigs.push_back(paplayer);
@@ -359,7 +353,6 @@ bool CPlayerCoreFactory::LoadConfiguration(const std::string &file, bool clear)
 
       EPLAYERCORES eCore = EPC_NONE;
       if (type == "dvdplayer") eCore = EPC_DVDPLAYER;
-      if (type == "mplayer" ) eCore = EPC_MPLAYER;
       if (type == "paplayer" ) eCore = EPC_PAPLAYER;
       if (type == "modplayer" ) eCore = EPC_MODPLAYER;
 

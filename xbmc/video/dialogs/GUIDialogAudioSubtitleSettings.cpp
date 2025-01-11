@@ -64,10 +64,6 @@
 
 using namespace std;
 
-#ifdef HAS_VIDEO_PLAYBACK
-extern void xbox_audio_switch_channel(int iAudioStream, bool bAudioOnAllSpeakers); // lowlevel audio
-#endif
-
 CGUIDialogAudioSubtitleSettings::CGUIDialogAudioSubtitleSettings()
   : CGUIDialogSettingsManualBase(WINDOW_DIALOG_AUDIO_OSD_SETTINGS, "DialogSettings.xml"),
     m_outputmode(0)
@@ -159,9 +155,6 @@ void CGUIDialogAudioSubtitleSettings::OnSettingChanged(const CSetting *setting)
         videoSettings.m_AudioStream = -1 - m_audioStream;
         // call monkeyh1's code here...
         bool bAudioOnAllSpeakers = (CSettings::GetInstance().GetInt("audiooutput.mode") == AUDIO_DIGITAL) && CMediaSettings::Get().GetCurrentVideoSettings().m_OutputToAllSpeakers;
-#if defined(HAS_VIDEO_PLAYBACK) && defined(HAS_XBOX_HARDWARE)
-        xbox_audio_switch_channel(m_audioStream, bAudioOnAllSpeakers);
-#endif
         return;
       }
     }
@@ -264,9 +257,6 @@ void CGUIDialogAudioSubtitleSettings::OnSettingAction(const CSetting *setting)
           // get player state, needed for dvd's
           CStdString state = g_application.m_pPlayer->GetPlayerState();
 
-          if (g_application.GetCurrentPlayer() == EPC_MPLAYER)
-              g_application.m_pPlayer->CloseFile(); // to conserve memory if unraring
-
           if (XFILE::CFile::Copy(strPath,"special://temp/subtitle"+strExt+".keep"))
           {
             CStdString strPath2;
@@ -305,18 +295,6 @@ void CGUIDialogAudioSubtitleSettings::OnSettingAction(const CSetting *setting)
             }
             CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleOn = true;
 
-            if (g_application.GetCurrentPlayer() == EPC_MPLAYER)
-            {
-              CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleCached = false;
-              // reopen the file
-              if ( g_application.PlayFile(g_application.CurrentFileItem(), "", true) && g_application.m_pPlayer )
-              {
-                // and seek to the position
-                g_application.m_pPlayer->SetPlayerState(state);
-                g_application.SeekTime(time);
-              }
-            }
-            else
             {
               CStdString strSub("special://temp/subtitle.sub");
               CStdString strIdx("special://temp/subtitle.idx");

@@ -105,7 +105,6 @@
 #define REPLAY_GAIN_TRACK 2
 
 // Player types
-#define PLAYER_MPLAYER    0
 #define PLAYER_DVDPLAYER  1
 #define PLAYER_PAPLAYER   2
 
@@ -168,7 +167,6 @@
 
 // enum PlayerTypes
 // {
-//   PLAYER_MPLAYER  = 0,
 //   PLAYER_DVDPLAYER,
 //   PLAYER_PAPLAYER
 // };

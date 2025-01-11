@@ -1160,7 +1160,6 @@ const infomap system_labels[] =  {{ "hasnetwork",       SYSTEM_ETHERNET_LINK_ACT
                                   { "hddcyclecount",    SYSTEM_HDD_CYCLECOUNT },
                                   { "dvdinfomodel",     SYSTEM_DVD_MODEL },
                                   { "dvdinfofirmware",  SYSTEM_DVD_FIRMWARE },
-                                  { "mplayerversion",   SYSTEM_MPLAYER_VERSION },
                                   { "xboxversion",      SYSTEM_XBOX_VERSION },
                                   { "xboxproduceinfo",  SYSTEM_XBOX_PRODUCE_INFO },
                                   { "xboxserial",       SYSTEM_XBOX_SERIAL },
@@ -6534,7 +6533,6 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
   case SYSTEM_HDD_LOCKKEY:
   case SYSTEM_HDD_CYCLECOUNT:
   case SYSTEM_HDD_BOOTDATE:
-  case SYSTEM_MPLAYER_VERSION:
 #endif
   case SYSTEM_VIDEO_ENCODER_INFO:
   case NETWORK_MAC_ADDRESS:

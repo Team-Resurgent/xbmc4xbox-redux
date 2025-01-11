@@ -25,7 +25,7 @@ Keymappings while playing video:
     small step back (-8 seconds)                controller: back            remote    : back
     toggle zoom/stretch/normal                  controller: start           remote    : select
     bring up OSD                                controller: Y               remote    : menu
-    toggle mplayer OSD display (playtime)       controller: white           remote    : ?
+    toggle DVDPlayer OSD display (playtime)     controller: white           remote    : ?
     toggle subtitles on/off                     controller: ? (use OSD)     remote    : title
     show codec info                             controller: black           remote    : info
     take a screenshot                           controller: click L thumbst.

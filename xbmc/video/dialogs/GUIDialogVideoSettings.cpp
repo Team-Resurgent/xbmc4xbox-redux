@@ -285,13 +285,6 @@ void CGUIDialogVideoSettings::InitializeSettings()
     AddPercentageSlider(groupVideoPlayback, SETTING_VIDEO_GAMMA, 466, 0, static_cast<int>(videoSettings.m_Gamma), 14047, 1, 466, usePopup);
   AddSpinner(groupSaveAsDefault, SETTING_VIDEO_FLICKER, 13100, 0, CSettings::GetInstance().GetInt("videoplayer.flicker"), 0, 1, 5, -1, 351);
   AddToggle(groupSaveAsDefault, SETTING_VIDEO_SOFTEN, 215, 0, CSettings::GetInstance().GetBool("videoplayer.soften"));
-  if (g_application.GetCurrentPlayer() == EPC_MPLAYER)
-  {
-    AddSlider(groupVideoPlayback, SETTING_VIDEO_FILM_GRAIN, 14058, 0, videoSettings.m_FilmGrain, "%f", 0.0f, 1.0f, 10.0f);
-    AddToggle(groupVideoPlayback, SETTING_VIDEO_NON_INTERLEAVED, 306, videoSettings.m_NonInterleaved, 0);
-    AddToggle(groupVideoPlayback, SETTING_VIDEO_NO_CACHE, 431, videoSettings.m_NoCache, 0);
-    AddButton(groupSaveAsDefault, SETTING_VIDEO_FORCE_INDEX, 12009, 0);
-  }
 #endif
 
   // general settings

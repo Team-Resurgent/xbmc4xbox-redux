@@ -1076,8 +1076,6 @@ std::string CSettings::GetPlayerName(const int& player) const
 {
   if (player == PLAYER_PAPLAYER)
     return "paplayer";
-  if (player == PLAYER_MPLAYER)
-    return "mplayer";
   if (player == PLAYER_DVDPLAYER)
     return "dvdplayer";
 

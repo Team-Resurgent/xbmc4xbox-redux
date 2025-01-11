@@ -455,21 +455,9 @@ void GUIFontManager::SettingOptionsFontsFiller(const CSetting *setting, std::vec
       }
     }
   }
-
-#ifdef _XBOX
-  // Find mplayer fonts...
-  XFILE::CDirectory::GetDirectory("special://xbmc/system/players/mplayer/font/", items);
-  for (int i = 0; i < items.Size(); ++i)
-  {
-    CFileItemPtr pItem = items[i];
-    if (pItem->m_bIsFolder)
-    {
-      if (strcmpi(pItem->GetLabel().c_str(), ".svn") == 0) continue;
-      list.push_back(make_pair(pItem->GetLabel(), pItem->GetLabel()));
-    }
-  }
 }
 
+#ifdef _XBOX
 void GUIFontManager::SettingOptionsSubtitleHeightsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
 {
   if (CUtil::IsUsingTTFSubtitles())
@@ -478,35 +466,5 @@ void GUIFontManager::SettingOptionsSubtitleHeightsFiller(const CSetting *setting
     for (int i = pSettingInt->GetMinimum(); i <= pSettingInt->GetMaximum(); i += pSettingInt->GetStep())
       list.push_back(std::make_pair(StringUtils::Format("%i", i), i));
   }
-  else
-  {
-    if (CSettings::GetInstance().GetString("subtitles.font").size())
-    {
-      //find font sizes...
-      CFileItemList items;
-      CStdString strPath = "special://xbmc/system/players/mplayer/font/";
-      strPath += CSettings::GetInstance().GetString("subtitles.font");
-      strPath += "/";
-      XFILE::CDirectory::GetDirectory(strPath, items);
-      int iCurrentSize = 0;
-
-      bool found = false;
-      for (int i = 0; i < items.Size(); ++i)
-      {
-        CFileItemPtr pItem = items[i];
-        if (pItem->m_bIsFolder)
-        {
-          if (strcmpi(pItem->GetLabel().c_str(), ".svn") == 0) continue;
-          iCurrentSize = atoi(pItem->GetLabel().c_str());
-          if (iCurrentSize == current)
-            found = true;
-          list.push_back(std::make_pair(StringUtils::Format("%i", iCurrentSize), iCurrentSize));
-        }
-      }
-
-      if (!found)
-        current = iCurrentSize;
-    }
-  }
-#endif
 }
+#endif

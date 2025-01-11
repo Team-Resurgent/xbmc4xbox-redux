@@ -15633,12 +15633,7 @@ msgctxt "#38788"
 msgid "DVDPlayer"
 msgstr ""
 
-#: system/settings/settings.xml
-msgctxt "#38789"
-msgid "MPlayer"
-msgstr ""
-
-#empty string with id 38790
+#empty strings from id 38789 to 38790
 
 msgctxt "#38791"
 msgid "Apply flicker filter setting to games"

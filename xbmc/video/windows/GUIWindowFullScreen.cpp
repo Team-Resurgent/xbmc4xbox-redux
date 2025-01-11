@@ -238,11 +238,6 @@ bool CGUIWindowFullScreen::OnAction(const CAction &action)
       int label = CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleOn?305:1223;
       CGUIDialogKaiToast::QueueNotification(g_localizeStrings.Get(287),
                                                           g_localizeStrings.Get(label));
-      if (g_application.GetCurrentPlayer() == EPC_MPLAYER && !CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleCached && CMediaSettings::Get().GetCurrentVideoSettings().m_SubtitleOn) 
-      { 
-        g_application.Restart(true); // cache subtitles 
-        Close(); 
-      }
     }
     return true;
     break;
@@ -850,8 +845,8 @@ void CGUIWindowFullScreen::RenderFullScreen()
 
 void CGUIWindowFullScreen::RenderTTFSubtitles()
 {
-  //if ( g_application.GetCurrentPlayer() == EPC_MPLAYER && CUtil::IsUsingTTFSubtitles() && g_application.m_pPlayer->GetSubtitleVisible() && m_subsLayout)
-  if ((g_application.GetCurrentPlayer() == EPC_MPLAYER || g_application.GetCurrentPlayer() == EPC_DVDPLAYER) &&
+  //if ( CUtil::IsUsingTTFSubtitles() && g_application.m_pPlayer->GetSubtitleVisible() && m_subsLayout)
+  if (g_application.GetCurrentPlayer() == EPC_DVDPLAYER &&
       CUtil::IsUsingTTFSubtitles() && g_application.m_pPlayer->GetSubtitleVisible())
   {
     CSingleLock lock (m_fontLock);

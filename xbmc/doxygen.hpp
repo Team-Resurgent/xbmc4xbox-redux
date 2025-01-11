@@ -44,7 +44,6 @@
 	keymap.xml          ->  e:\\apps\\xbmc\\system\\keymap.xml \n
 	FileZilla Server.xml->  e:\\apps\\xbmc\\system\\FileZilla Server.xml \n
 	release/default.xbe ->  e:\\apps\\xbmc\\default.xbe \n
-	mplayer/            ->  e:\\apps\\xbmc\\mplayer        (copy all files & subdirs) \n
 	skin/               ->  e:\\apps\\xbmc\\skin           (copy all files & subdirs) \n
 	language/           ->  e:\\apps\\xbmc\\language       (copy all files & subdirs) \n
 	weather/            ->  e:\\apps\\xbmc\\weather        (copy all files & subdirs) \n

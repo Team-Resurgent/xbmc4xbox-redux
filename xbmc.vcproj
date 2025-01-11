@@ -4612,9 +4612,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
-				RelativePath=".\xbmc\cores\mplayer\Ac97DirectSound.h">
-			</File>
-			<File
 				RelativePath=".\xbmc\utils\AlarmClock.h">
 			</File>
 			<File
@@ -4634,12 +4631,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 			</File>
 			<File
 				RelativePath=".\xbmc\ArtistDirectory.h">
-			</File>
-			<File
-				RelativePath=".\xbmc\cores\mplayer\AsyncDirectSound.h">
-			</File>
-			<File
-				RelativePath=".\xbmc\cores\mplayer\audio.h">
 			</File>
 			<File
 				RelativePath=".\xbmc\utils\AutoPtrHandle.h">
@@ -4804,9 +4795,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				RelativePath=".\xbmc\utils\HttpHeader.h">
 			</File>
 			<File
-				RelativePath=".\xbmc\cores\mplayer\IAudioCallback.h">
-			</File>
-			<File
 				RelativePath=".\xbmc\FileSystem\IDirectory.h">
 			</File>
 			<File
@@ -4850,9 +4838,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 			</File>
 			<File
 				RelativePath=".\xbmc\utils\JSONVariantWriter.h">
-			</File>
-			<File
-				RelativePath=".\xbmc\cores\mplayer\keycodes.h">
 			</File>
 			<File
 				RelativePath=".\xbmc\utils\LangCodeExpander.h">
@@ -5020,9 +5005,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 				RelativePath=".\xbmc\input\XBIRRemote.h">
 			</File>
 			<File
-				RelativePath=".\xbmc\cores\mplayer\xbox_video.h">
-			</File>
-			<File
 				RelativePath=".\xbmc\XBTimeZone.h">
 			</File>
 			<File
@@ -5057,6 +5039,18 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 			Name="cores"
 			Filter="">
 			<File
+				RelativePath=".\xbmc\cores\Ac97DirectSound.cpp">
+			</File>
+			<File
+				RelativePath=".\xbmc\cores\Ac97DirectSound.h">
+			</File>
+			<File
+				RelativePath=".\xbmc\cores\AsyncDirectSound.cpp">
+			</File>
+			<File
+				RelativePath=".\xbmc\cores\AsyncDirectSound.h">
+			</File>
+			<File
 				RelativePath=".\xbmc\cores\ModPlayer.cpp">
 			</File>
 			<File
@@ -5065,40 +5059,6 @@ bundler xbelogo\saveimage.rdf -o xbelogo\saveimage.xbx
 			<File
 				RelativePath=".\xbmc\cores\ssrc.h">
 			</File>
-			<Filter
-				Name="mplayer"
-				Filter="">
-				<File
-					RelativePath=".\xbmc\cores\mplayer\Ac97DirectSound.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\AsyncDirectSound.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\audio.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\DllMPlayer.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\DllMPlayer.h">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\MPlayer.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\MPlayer.h">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\ResampleDirectSound.cpp">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\ResampleDirectSound.h">
-				</File>
-				<File
-					RelativePath=".\xbmc\cores\mplayer\xbox_video.cpp">
-				</File>
-			</Filter>
 			<Filter
 				Name="dvdplayer"
 				Filter="">
