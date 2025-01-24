@@ -29,6 +29,7 @@
 #include "utils/URIUtils.h"
 #include "utils/StringUtils.h"
 #include "guilib/GUIKeyboardFactory.h"
+#include "guilib/GUIWindowManager.h"
 #include "programs/dialogs/GUIDialogProgramInfo.h"
 
 using namespace XFILE;
@@ -291,6 +292,11 @@ bool CGUIWindowProgramNav::OnClick(int iItem, const std::string &player)
     }
 
     Refresh(true);
+    return true;
+  }
+  else if (item->GetPath() == "insignia://")
+  {
+    g_windowManager.ActivateWindow(WINDOW_INSIGNIA, "insignia://");
     return true;
   }
 

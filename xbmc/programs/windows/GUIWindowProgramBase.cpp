@@ -355,6 +355,20 @@ bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileI
     items.Add(newPlaylist);
   }
 
+  if (items.IsVirtualDirectoryRoot())
+  {
+    CProgramInfoTag tag;
+
+    tag.SetFileNameAndPath("insignia://");
+    tag.SetTitle(g_localizeStrings.Get(38901));
+    tag.SetPlot(g_localizeStrings.Get(38902));
+    CFileItemPtr pItem(new CFileItem(tag));
+    pItem->SetIconImage("insignia/logo.png");
+    pItem->SetLabelPreformated(true);
+    pItem->SetSpecialSort(SortSpecialOnBottom);
+    items.Add(pItem);
+  }
+
   if (URIUtils::IsDOSPath(strDirectory))
   { // listing programs by sources (ex. F:\Games\)
     for (int i = 0; i < items.Size(); ++i)

@@ -2889,6 +2889,7 @@ bool CFileItem::SkipLocalArt() const
   return (m_strPath.empty()
        || StringUtils::StartsWithNoCase(m_strPath, "newsmartplaylist://")
        || StringUtils::StartsWithNoCase(m_strPath, "newplaylist://")
+       || StringUtils::StartsWithNoCase(m_strPath, "insignia://")
        || m_bIsShareOrDrive
        || IsInternetStream()
        || URIUtils::IsUPnP(m_strPath)
