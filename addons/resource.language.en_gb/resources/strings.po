@@ -13809,7 +13809,7 @@ msgstr ""
 #: MyPrograms.xml
 #: MyGameSaves.xml
 msgctxt "#38779"
-msgid "Game saves"
+msgid "Manage Xbox save games"
 msgstr ""
 
 #empty strings from id 38780 to 38783

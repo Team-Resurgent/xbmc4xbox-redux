@@ -316,6 +316,11 @@ bool CGUIWindowProgramNav::OnClick(int iItem, const std::string &player)
     g_windowManager.ActivateWindow(WINDOW_INSIGNIA, "insignia://");
     return true;
   }
+  else if (item->GetPath() == "gamesaves://")
+  {
+    g_windowManager.ActivateWindow(WINDOW_GAMESAVES, "gamesaves://");
+    return true;
+  }
 
   return CGUIWindowProgramBase::OnClick(iItem, player);
 }

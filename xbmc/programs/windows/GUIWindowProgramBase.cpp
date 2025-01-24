@@ -359,6 +359,16 @@ bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileI
   {
     CProgramInfoTag tag;
 
+    tag.SetFileNameAndPath("gamesaves://");
+    tag.SetTitle(g_localizeStrings.Get(38772));
+    tag.SetPlot(g_localizeStrings.Get(38779));
+    CFileItemPtr pItem2(new CFileItem(tag));
+    pItem2->SetIconImage("DefaultGames.png");
+    pItem2->SetLabelPreformated(true);
+    pItem2->SetSpecialSort(SortSpecialOnBottom);
+    items.Add(pItem2);
+
+    tag.Reset();
     tag.SetFileNameAndPath("insignia://");
     tag.SetTitle(g_localizeStrings.Get(38901));
     tag.SetPlot(g_localizeStrings.Get(38902));
