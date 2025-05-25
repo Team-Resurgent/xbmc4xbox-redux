@@ -46,4 +46,11 @@ struct CLaunchCustom : IContextMenuItem
   bool IsVisible(const CFileItem& item) const;
   bool Execute(const CFileItemPtr& _item) const;
 };
+
+struct CScriptLaunch : IContextMenuItem
+{
+  std::string GetLabel(const CFileItem& item) const;
+  bool IsVisible(const CFileItem& item) const;
+  bool Execute(const CFileItemPtr& _item) const;
+};
 }
