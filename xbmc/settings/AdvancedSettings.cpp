@@ -266,6 +266,9 @@ void CAdvancedSettings::Initialize()
   m_musicArtistSeparators.push_back(" feat. ");
   m_musicArtistSeparators.push_back(" ft. ");
   m_videoItemSeparator = " / ";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programItemSeparator = " / ";
+#endif
   m_iMusicLibraryDateAdded = 1; // prefer mtime over ctime and current time
 
   m_bVideoLibraryHideAllItems = false;
@@ -549,6 +552,7 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   {
     XMLUtils::GetBoolean(pElement, "cleanonupdate", m_bProgramLibraryCleanOnUpdate);
     XMLUtils::GetBoolean(pElement, "usefasthash", m_bProgramLibraryUseFastHash);
+    XMLUtils::GetString(pElement, "itemseparator", m_programItemSeparator);
   }
 #endif
 

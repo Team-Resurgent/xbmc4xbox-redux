@@ -249,6 +249,9 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     CStdString m_musicItemSeparator;
     std::vector<std::string> m_musicArtistSeparators;
     CStdString m_videoItemSeparator;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    std::string m_programItemSeparator;
+#endif
     std::vector<CStdString> m_musicTagsFromFileFilters;
     bool m_musicUseArtistSortName;
 
