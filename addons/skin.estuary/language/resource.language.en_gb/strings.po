@@ -770,3 +770,8 @@ msgstr ""
 msgctxt "#31208"
 msgid "Patches"
 msgstr ""
+
+#: /xml/Home.xml
+msgctxt "#31209"
+msgid "Add program sources and set the appropriate content type in order to populate your program libraries."
+msgstr ""

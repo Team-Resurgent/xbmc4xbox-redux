@@ -43,6 +43,24 @@
 					<effect type="slide" end="0,20" time="180" tween="sine" delay="80" />
 				</animation>
 				<include>OpenClose_Right</include>
+				<control type="group" id="3000">
+					<visible>String.IsEqual(Container(9000).ListItem.Property(id),games)</visible>
+					<include content="Visible_Right_Delayed">
+						<param name="id" value="games"/>
+					</include>
+					<include content="WidgetRecentlyAddedGames" condition="Library.HasContent(games)">
+						<param name="widget_header" value="$LOCALIZE[38972]"/>
+						<param name="widget_target" value="programs"/>
+						<param name="list_id" value="3100"/>
+					</include>
+					<include content="ImageWidget" condition="!Library.HasContent(games)">
+						<param name="text_label" value="$LOCALIZE[31104]" />
+						<param name="button_label" value="$LOCALIZE[31110]" />
+						<param name="button_onclick" value="ActivateWindow(programs,files,return)"/>
+						<param name="button_id" value="3500"/>
+						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoGameButton)"/>
+					</include>
+				</control>
 				<control type="group" id="5000">
 					<visible>String.IsEqual(Container(9000).ListItem.Property(id),movies)</visible>
 					<include content="Visible_Right_Delayed">
@@ -132,6 +150,35 @@
 						<param name="button_id" value="11300"/>
 						<param name="visible" value="!Integer.IsGreater(Container(11001).NumItems,0)"/>
 						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoVideosButton)"/>
+					</include>
+				</control>
+				<control type="group" id="17000">
+					<visible>String.IsEqual(Container(9000).ListItem.Property(id),program)</visible>
+					<include content="Visible_Right_Delayed">
+						<param name="id" value="program"/>
+					</include>
+					<control type="grouplist" id="17001">
+						<include>WidgetGroupListCommon</include>
+						<include content="WidgetListCategories">
+							<param name="content_path" value="library://program/"/>
+							<param name="widget_header" value="$LOCALIZE[31148]"/>
+							<param name="widget_target" value="programs"/>
+							<param name="list_id" value="17900"/>
+						</include>
+						<include content="WidgetListCategories">
+							<param name="content_path" value="sources://program/"/>
+							<param name="widget_header" value="$LOCALIZE[20094]"/>
+							<param name="widget_target" value="programs"/>
+							<param name="list_id" value="17100"/>
+						</include>
+					</control>
+					<include content="ImageWidget">
+						<param name="text_label" value="$LOCALIZE[31209]" />
+						<param name="button_label" value="$LOCALIZE[31110]" />
+						<param name="button_onclick" value="ActivateWindow(programs,root)"/>
+						<param name="button_id" value="17300"/>
+						<param name="visible" value="!Integer.IsGreater(Container(11001).NumItems,0)"/>
+						<param name="button2_onclick" value="Skin.SetBool(HomeMenuNoProgramsButton)"/>
 					</include>
 				</control>
 				<control type="group" id="14000">
@@ -415,6 +462,15 @@
 					</itemlayout>
 					<content>
 						<item>
+							<label>$LOCALIZE[38928]</label>
+							<onclick condition="Library.HasContent(games)">ActivateWindow(Programs,programdb://games/titles/,return)</onclick>
+							<onclick condition="!Library.HasContent(games)">ActivateWindow(Programs,sources://program/,return)</onclick>
+							<property name="menu_id">$NUMBER[3000]</property>
+							<thumb>icons/sidemenu/games.png</thumb>
+							<property name="id">games</property>
+							<visible>!Skin.HasSetting(HomeMenuNoGameButton)</visible>
+						</item>
+						<item>
 							<label>$LOCALIZE[342]</label>
 							<onclick condition="Library.HasContent(movies)">ActivateWindow(Videos,videodb://movies/titles/,return)</onclick>
 							<onclick condition="!Library.HasContent(movies)">ActivateWindow(Videos,sources://video/,return)</onclick>
@@ -458,10 +514,11 @@
 						</item>
 						<item>
 							<label>$LOCALIZE[350]</label>
-							<property name="menu_id">$NUMBER[9000]</property>
+							<property name="menu_id">$NUMBER[17000]</property>
 							<onclick>ActivateWindow(Programs)</onclick>
 							<thumb>icons/sidemenu/programs.png</thumb>
-							<property name="id">programs</property>
+							<property name="id">program</property>
+							<visible>!Skin.HasSetting(HomeMenuNoProgramButton)</visible>
 						</item>
 						<item>
 							<label>$LOCALIZE[1]</label>

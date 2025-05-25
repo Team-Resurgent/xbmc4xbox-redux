@@ -649,6 +649,159 @@
 			</control>
 		</definition>
 	</include>
+	<include name="WidgetRecentlyAddedGames">
+		<definition>
+			<include content="CategoryLabel">
+				<param name="label">$PARAM[widget_header]</param>
+				<param name="list_id" value="$PARAM[list_id]"/>
+			</include>
+			<control type="panel" id="$PARAM[list_id]">
+				<left>0</left>
+				<top>115</top>
+				<right>0</right>
+				<height>100%</height>
+				<include content="WidgetListCommon">
+					<param name="list_id" value="$PARAM[list_id]"/>
+					<param name="list_orientation" value="vertical"/>
+				</include>
+				<itemlayout width="310" height="486">
+					<control type="group">
+						<left>68</left>
+						<top>10</top>
+						<control type="group">
+							<control type="image">
+								<left>15</left>
+								<top>-10</top>
+								<width>290</width>
+								<height>400</height>
+								<texture background="true">$INFO[ListItem.Icon]</texture>
+								<aspectratio>scale</aspectratio>
+								<bordertexture border="21">overlays/shadow.png</bordertexture>
+								<bordersize>20</bordersize>
+							</control>
+						</control>
+					</control>
+				</itemlayout>
+				<focusedlayout width="310" height="486">
+					<control type="group">
+						<depth>DepthContentPopout</depth>
+						<left>68</left>
+						<top>10</top>
+						<animation type="Focus">
+							<effect type="zoom" start="100" end="110" time="200" tween="sine" easing="inout" center="230,130" />
+						</animation>
+						<animation type="Unfocus">
+							<effect type="zoom" start="110" end="100" time="200" tween="sine" easing="inout" center="230,130" />
+						</animation>
+						<control type="group">
+							<control type="image">
+								<left>11</left>
+								<top>-14</top>
+								<width>298</width>
+								<height>408</height>
+								<texture colordiffuse="button_focus">colors/grey.png</texture>
+								<bordertexture border="21">overlays/shadow.png</bordertexture>
+								<bordersize>20</bordersize>
+								<include condition="true">Animation_FocusTextureFade</include>
+							</control>
+							<control type="image">
+								<left>15</left>
+								<top>-10</top>
+								<width>290</width>
+								<height>400</height>
+								<texture background="true">$INFO[ListItem.Icon]</texture>
+								<aspectratio>scale</aspectratio>
+								<bordertexture border="21">overlays/shadow.png</bordertexture>
+								<bordersize>20</bordersize>
+							</control>
+						</control>
+					</control>
+				</focusedlayout>
+				<content>
+					<item id="1">
+						<label>$INFO[Window.Property(LatestGame.1.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.1.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.1.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.1.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.1.Title))</visible>
+					</item>
+					<item id="2">
+						<label>$INFO[Window.Property(LatestGame.2.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.2.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.2.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.2.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.2.Title))</visible>
+					</item>
+					<item id="3">
+						<label>$INFO[Window.Property(LatestGame.3.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.3.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.3.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.3.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.3.Title))</visible>
+					</item>
+					<item id="4">
+						<label>$INFO[Window.Property(LatestGame.4.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.4.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.4.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.4.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.4.Title))</visible>
+					</item>
+					<item id="5">
+						<label>$INFO[Window.Property(LatestGame.5.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.5.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.5.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.5.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.5.Title))</visible>
+					</item>
+					<item id="6">
+						<label>$INFO[Window.Property(LatestGame.6.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.6.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.6.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.6.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.6.Title))</visible>
+					</item>
+					<item id="7">
+						<label>$INFO[Window.Property(LatestGame.7.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.7.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.7.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.7.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.7.Title))</visible>
+					</item>
+					<item id="8">
+						<label>$INFO[Window.Property(LatestGame.8.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.8.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.8.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.8.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.8.Title))</visible>
+					</item>
+					<item id="9">
+						<label>$INFO[Window.Property(LatestGame.9.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.9.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.9.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.9.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.9.Title))</visible>
+					</item>
+					<item id="10">
+						<label>$INFO[Window.Property(LatestGame.10.Title)]</label>
+						<label2>-</label2>
+						<icon>$INFO[Window.Property(LatestGame.10.Icon)]</icon>
+						<thumb>$INFO[Window.Property(LatestGame.10.Thumb)]</thumb>
+						<onclick>RunXBE($INFO[Window.Property(LatestGame.10.Path)])</onclick>
+						<visible>!String.IsEmpty(Window.Property(LatestGame.10.Title))</visible>
+					</item>
+				</content>
+			</control>
+		</definition>
+	</include>
 	<include name="GameInfo">
 		<definition>
 			<control type="group">
