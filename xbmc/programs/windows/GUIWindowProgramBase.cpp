@@ -39,3 +39,9 @@ bool CGUIWindowProgramBase::OnMessage(CGUIMessage& message)
 {
   return CGUIMediaWindow::OnMessage(message);
 }
+
+bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileItemList &items)
+{
+  bool bResult = CGUIMediaWindow::GetDirectory(strDirectory, items);
+  return bResult;
+}

@@ -240,6 +240,9 @@ static const ActionMapping windows[] =
         {"videofiles"               , WINDOW_VIDEO_FILES}, // backward compat
         {"videolibrary"             , WINDOW_VIDEO_NAV},
         {"videoplaylist"            , WINDOW_VIDEO_PLAYLIST},
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+        {"programlibrary"           , WINDOW_PROGRAM_NAV},
+#endif
         {"loginscreen"              , WINDOW_LOGIN_SCREEN},
         {"profiles"                 , WINDOW_SETTINGS_PROFILES},
         {"skinsettings"             , WINDOW_SKIN_SETTINGS},

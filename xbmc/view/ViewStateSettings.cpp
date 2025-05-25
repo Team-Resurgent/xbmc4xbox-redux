@@ -56,6 +56,9 @@ CViewStateSettings::CViewStateSettings()
   AddViewState("pictures", DEFAULT_VIEW_AUTO);
   AddViewState("videofiles", DEFAULT_VIEW_AUTO);
   AddViewState("musicfiles", DEFAULT_VIEW_AUTO);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  AddViewState("programfiles", DEFAULT_VIEW_AUTO);
+#endif
 
   Clear();
 }

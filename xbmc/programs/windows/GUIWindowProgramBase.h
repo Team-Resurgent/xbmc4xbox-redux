@@ -29,4 +29,7 @@ public:
   virtual ~CGUIWindowProgramBase(void);
   virtual bool OnMessage(CGUIMessage& message);
   virtual bool OnAction(const CAction &action);
+
+protected:
+  virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
 };

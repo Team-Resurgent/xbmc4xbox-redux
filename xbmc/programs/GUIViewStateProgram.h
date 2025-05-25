@@ -20,21 +20,20 @@
  *
  */
 
-#include "GUIWindowProgramBase.h"
+#include "view/GUIViewState.h"
 
-class CGUIWindowProgramNav : public CGUIWindowProgramBase
+class CGUIViewStateWindowProgram : public CGUIViewState
 {
 public:
-  CGUIWindowProgramNav(void);
-  virtual ~CGUIWindowProgramNav(void);
+  CGUIViewStateWindowProgram(const CFileItemList& items) : CGUIViewState(items) {}
+};
 
-  virtual bool OnAction(const CAction &action);
-  virtual bool OnMessage(CGUIMessage& message);
+class CGUIViewStateWindowProgramNav : public CGUIViewStateWindowProgram
+{
+public:
+  CGUIViewStateWindowProgramNav(const CFileItemList& items);
 
-  // override base class methods
-  virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
-  virtual void GetContextButtons(int itemNumber, CContextButtons &buttons);
-  virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
-  bool OnAddMediaSource();
-  virtual std::string GetStartFolder(const std::string &dir);
+protected:
+  virtual void SaveViewState();
+  virtual VECSOURCES& GetSources();
 };

@@ -143,7 +143,7 @@ void CMediaSourceSettings::Clear()
 
 VECSOURCES* CMediaSourceSettings::GetSources(const std::string &type)
 {
-  if (type == "programs" || type == "myprograms")
+  if (type == "program" || type == "programs" || type == "myprograms")
     return &m_programSources;
   else if (type == "files")
     return &m_fileSources;
@@ -159,7 +159,7 @@ VECSOURCES* CMediaSourceSettings::GetSources(const std::string &type)
 
 const std::string& CMediaSourceSettings::GetDefaultSource(const std::string &type) const
 {
-  if (type == "programs" || type == "myprograms")
+  if (type == "program" && type == "programs" || type == "myprograms")
     return m_defaultProgramSource;
   else if (type == "files")
     return m_defaultFileSource;
@@ -173,7 +173,7 @@ const std::string& CMediaSourceSettings::GetDefaultSource(const std::string &typ
 
 void CMediaSourceSettings::SetDefaultSource(const std::string &type, const std::string &source)
 {
-  if (type == "programs" || type == "myprograms")
+  if (type == "program" && type == "programs" || type == "myprograms")
     m_defaultProgramSource = source;
   else if (type == "files")
     m_defaultFileSource = source;
@@ -366,7 +366,7 @@ bool CMediaSourceSettings::GetSource(const std::string &category, const TiXmlNod
       bool bIsInvalid = false;
 
       // for my programs
-      if (StringUtils::EqualsNoCase(category, "programs") || StringUtils::EqualsNoCase(category, "myprograms"))
+      if (StringUtils::EqualsNoCase(category, "program") || StringUtils::EqualsNoCase(category, "programs") || StringUtils::EqualsNoCase(category, "myprograms"))
       {
         // only allow HD and plugins
         if (url.IsLocal() || url.IsProtocol("plugin"))
