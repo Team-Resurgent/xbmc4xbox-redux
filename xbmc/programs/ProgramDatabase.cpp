@@ -29,6 +29,8 @@
 #include "guiinfo/GUIInfoLabels.h"
 #include "GUIInfoManager.h"
 #include "settings/AdvancedSettings.h"
+#include "URL.h"
+#include "utils/FileUtils.h"
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
@@ -54,8 +56,66 @@ bool CProgramDatabase::Open()
 
 void CProgramDatabase::CreateTables()
 {
+  CLog::Log(LOGINFO, "create developer table and link");
+  m_pDS->exec("CREATE TABLE developer (developer_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE developer_link (developer_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create publisher table and link");
+  m_pDS->exec("CREATE TABLE publisher (publisher_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE publisher_link (publisher_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create genre table and link");
+  m_pDS->exec("CREATE TABLE genre (genre_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE genre_link (genre_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create descriptor table and link");
+  m_pDS->exec("CREATE TABLE descriptor (descriptor_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE descriptor_link (descriptor_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create generalfeature table and link");
+  m_pDS->exec("CREATE TABLE generalfeature (generalfeature_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE generalfeature_link (generalfeature_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create onlinefeature table and link");
+  m_pDS->exec("CREATE TABLE onlinefeature (onlinefeature_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE onlinefeature_link (onlinefeature_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create platform table and link");
+  m_pDS->exec("CREATE TABLE platform (platform_id integer primary key, name TEXT)");
+  m_pDS->exec("CREATE TABLE platform_link (platform_id integer, media_id integer, media_type TEXT)");
+
+  CLog::Log(LOGINFO, "create game table");
+  std::string columns = "CREATE TABLE game ( idGame integer primary key, idFile integer";
+
+  for (int i = 0; i < PROGRAMDB_MAX_COLUMNS; i++)
+    columns += StringUtils::Format(",c%02d text", i);
+
+  columns += ", released text)";
+  m_pDS->exec(columns);
+
   CLog::Log(LOGINFO, "create path table");
   m_pDS->exec("CREATE TABLE path ( idPath integer primary key, strPath text, strContent text, strScraper text, strHash text, scanRecursive integer, useFolderNames bool, strSettings text, noUpdate bool, exclude bool, dateAdded text, idParentPath integer)");
+
+  CLog::Log(LOGINFO, "create files table");
+  m_pDS->exec("CREATE TABLE files ( idFile integer primary key, idPath integer, strFilename text, titleId integer, playCount integer, lastPlayed text, dateAdded text)");
+
+  CLog::Log(LOGINFO, "create rating table");
+  m_pDS->exec("CREATE TABLE rating (rating_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, rating_type TEXT, rating FLOAT, votes INTEGER)");
+}
+
+void CProgramDatabase::CreateLinkIndex(const char *table)
+{
+  m_pDS->exec(PrepareSQL("CREATE UNIQUE INDEX ix_%s_1 ON %s (name(255))", table, table));
+  m_pDS->exec(PrepareSQL("CREATE UNIQUE INDEX ix_%s_link_1 ON %s_link (%s_id, media_type(20), media_id)", table, table, table));
+  m_pDS->exec(PrepareSQL("CREATE UNIQUE INDEX ix_%s_link_2 ON %s_link (media_id, media_type(20), %s_id)", table, table, table));
+  m_pDS->exec(PrepareSQL("CREATE INDEX ix_%s_link_3 ON %s_link (media_type(20))", table, table));
+}
+
+void CProgramDatabase::CreateForeignLinkIndex(const char *table, const char *foreignkey)
+{
+  m_pDS->exec(PrepareSQL("CREATE UNIQUE INDEX ix_%s_link_1 ON %s_link (%s_id, media_type(20), media_id)", table, table, foreignkey));
+  m_pDS->exec(PrepareSQL("CREATE UNIQUE INDEX ix_%s_link_2 ON %s_link (media_id, media_type(20), %s_id)", table, table, foreignkey));
+  m_pDS->exec(PrepareSQL("CREATE INDEX ix_%s_link_3 ON %s_link (media_type(20))", table, table));
 }
 
 void CProgramDatabase::CreateAnalytics()
@@ -63,6 +123,60 @@ void CProgramDatabase::CreateAnalytics()
   CLog::Log(LOGINFO, "%s - creating indicies", __FUNCTION__);
   m_pDS->exec("CREATE INDEX ix_path ON path ( strPath(255) )");
   m_pDS->exec("CREATE INDEX ix_path2 ON path ( idParentPath )");
+  m_pDS->exec("CREATE INDEX ix_files ON files ( idPath, strFilename(255) )");
+
+  m_pDS->exec("CREATE UNIQUE INDEX ix_game_file_1 ON game (idFile, idGame)");
+  m_pDS->exec("CREATE UNIQUE INDEX ix_game_file_2 ON game (idGame, idFile)");
+
+  m_pDS->exec("CREATE INDEX ixGameBasePath ON game ( c23(12) )");
+
+  m_pDS->exec("CREATE INDEX ix_rating ON rating(media_id, media_type(20))");
+
+  CreateLinkIndex("developer");
+  CreateLinkIndex("publisher");
+  CreateLinkIndex("genre");
+  CreateLinkIndex("descriptor");
+  CreateLinkIndex("generalfeature");
+  CreateLinkIndex("onlinefeature");
+  CreateLinkIndex("platform");
+
+  CLog::Log(LOGINFO, "%s - creating triggers", __FUNCTION__);
+  m_pDS->exec("CREATE TRIGGER delete_game AFTER DELETE ON game FOR EACH ROW BEGIN "
+              "DELETE FROM developer_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM publisher_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM genre_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM descriptor_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM generalfeature_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM onlinefeature_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM platform_link WHERE media_id=old.idGame AND media_type='game'; "
+              "DELETE FROM rating WHERE media_id=old.idGame AND media_type='game'; "
+              "END");
+
+  CreateViews();
+}
+
+void CProgramDatabase::CreateViews()
+{
+  CLog::Log(LOGINFO, "create game_view");
+  std::string gameview = PrepareSQL("CREATE VIEW game_view AS SELECT"
+                                      "  game.*,"
+                                      "  files.strFileName AS strFileName,"
+                                      "  path.strPath AS strPath,"
+                                      "  files.playCount AS playCount,"
+                                      "  files.lastPlayed AS lastPlayed, "
+                                      "  files.dateAdded AS dateAdded, "
+                                      "  rating.rating AS rating, "
+                                      "  rating.votes AS votes, "
+                                      "  rating.rating_type AS rating_type "
+                                      "FROM game"
+                                      "  JOIN files ON"
+                                      "    files.idFile=game.idFile"
+                                      "  JOIN path ON"
+                                      "    path.idPath=files.idPath"
+                                      "  LEFT JOIN rating ON"
+                                      "    rating.rating_id=game.c%02d",
+                                      PROGRAMDB_ID_RATING_ID);
+  m_pDS->exec(gameview);
 }
 
 //********************************************************************************************************************************
@@ -219,6 +333,78 @@ bool CProgramDatabase::GetPathHash(const std::string &path, std::string &hash)
   return false;
 }
 
+//********************************************************************************************************************************
+int CProgramDatabase::AddFile(const std::string& strFileNameAndPath)
+{
+  std::string strSQL = "";
+  try
+  {
+    int idFile;
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+
+    std::string strFileName, strPath;
+    SplitPath(strFileNameAndPath,strPath,strFileName);
+
+    int idPath = AddPath(strPath);
+    if (idPath < 0)
+      return -1;
+
+    std::string strSQL=PrepareSQL("select idFile from files where strFileName='%s' and idPath=%i", strFileName.c_str(),idPath);
+
+    m_pDS->query(strSQL);
+    if (m_pDS->num_rows() > 0)
+    {
+      idFile = m_pDS->fv("idFile").get_asInt() ;
+      m_pDS->close();
+      return idFile;
+    }
+    m_pDS->close();
+
+    strSQL=PrepareSQL("insert into files (idFile, idPath, strFileName) values(NULL, %i, '%s')", idPath, strFileName.c_str());
+    m_pDS->exec(strSQL);
+    idFile = (int)m_pDS->lastinsertid();
+    return idFile;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s unable to addfile (%s)", __FUNCTION__, strSQL.c_str());
+  }
+  return -1;
+}
+
+void CProgramDatabase::UpdateFileDateAdded(int idFile, const std::string& strFileNameAndPath, const CDateTime& dateAdded /* = CDateTime() */)
+{
+  if (idFile < 0 || strFileNameAndPath.empty())
+    return;
+
+  CDateTime finalDateAdded = dateAdded;
+  try
+  {
+    if (NULL == m_pDB.get()) return;
+    if (NULL == m_pDS.get()) return;
+
+    if (!finalDateAdded.IsValid())
+    {
+      // 1 prefering to use the files mtime(if it's valid) and only using the file's ctime if the mtime isn't valid
+      if (g_advancedSettings.m_iProgramLibraryDateAdded == 1)
+        finalDateAdded = CFileUtils::GetModificationDate(strFileNameAndPath, false);
+      //2 using the newer datetime of the file's mtime and ctime
+      else if (g_advancedSettings.m_iProgramLibraryDateAdded == 2)
+        finalDateAdded = CFileUtils::GetModificationDate(strFileNameAndPath, true);
+      //0 using the current datetime if non of the above matches or one returns an invalid datetime
+      if (!finalDateAdded.IsValid())
+        finalDateAdded = CDateTime::GetCurrentDateTime();
+    }
+
+    m_pDS->exec(PrepareSQL("UPDATE files SET dateAdded='%s' WHERE idFile=%d", finalDateAdded.GetAsDBDateTime().c_str(), idFile));
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s, %s) failed", __FUNCTION__, CURL::GetRedacted(strFileNameAndPath).c_str(), finalDateAdded.GetAsDBDateTime().c_str());
+  }
+}
+
 bool CProgramDatabase::SetPathHash(const std::string &path, const std::string &hash)
 {
   try
@@ -240,6 +426,418 @@ bool CProgramDatabase::SetPathHash(const std::string &path, const std::string &h
   }
 
   return false;
+}
+
+//********************************************************************************************************************************
+int CProgramDatabase::GetFileId(const std::string& strFilenameAndPath)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+    std::string strPath, strFileName;
+    SplitPath(strFilenameAndPath,strPath,strFileName);
+
+    int idPath = GetPathId(strPath);
+    if (idPath >= 0)
+    {
+      std::string strSQL;
+      strSQL=PrepareSQL("select idFile from files where strFileName='%s' and idPath=%i", strFileName.c_str(),idPath);
+      m_pDS->query(strSQL);
+      if (m_pDS->num_rows() > 0)
+      {
+        int idFile = m_pDS->fv("files.idFile").get_asInt();
+        m_pDS->close();
+        return idFile;
+      }
+    }
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  return -1;
+}
+
+int CProgramDatabase::GetFileId(const CFileItem &item)
+{
+  if (item.IsProgramDb() && item.HasProgramInfoTag())
+  {
+    if (item.GetProgramInfoTag()->m_iFileId != -1)
+      return item.GetProgramInfoTag()->m_iFileId;
+    else
+      return GetFileId(item.GetProgramInfoTag()->m_strFileNameAndPath);
+  }
+  return GetFileId(item.GetPath());
+}
+
+//********************************************************************************************************************************
+int CProgramDatabase::GetGameId(const std::string& strFilenameAndPath)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+    int idGame = -1;
+
+    // needed for query parameters
+    int idFile = GetFileId(strFilenameAndPath);
+    int idPath=-1;
+    std::string strPath;
+    if (idFile < 0)
+    {
+      std::string strFile;
+      SplitPath(strFilenameAndPath,strPath,strFile);
+
+      // have to join gameinfo table for correct results
+      idPath = GetPathId(strPath);
+      if (idPath < 0 && strPath != strFilenameAndPath)
+        return -1;
+    }
+
+    if (idFile == -1 && strPath != strFilenameAndPath)
+      return -1;
+
+    std::string strSQL;
+    if (idFile == -1)
+      strSQL=PrepareSQL("select idGame from game join files on files.idFile=game.idFile where files.idPath=%i",idPath);
+    else
+      strSQL=PrepareSQL("select idGame from game where idFile=%i", idFile);
+
+    CLog::Log(LOGDEBUG, "%s (%s), query = %s", __FUNCTION__, CURL::GetRedacted(strFilenameAndPath).c_str(), strSQL.c_str());
+    m_pDS->query(strSQL);
+    if (m_pDS->num_rows() > 0)
+      idGame = m_pDS->fv("idGame").get_asInt();
+    m_pDS->close();
+
+    return idGame;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  return -1;
+}
+
+//********************************************************************************************************************************
+int CProgramDatabase::AddGame(const std::string& strFilenameAndPath)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+
+    int idGame = GetGameId(strFilenameAndPath);
+    if (idGame < 0)
+    {
+      int idFile = AddFile(strFilenameAndPath);
+      if (idFile < 0)
+        return -1;
+      UpdateFileDateAdded(idFile, strFilenameAndPath);
+      std::string strSQL=PrepareSQL("insert into game (idGame, idFile) values (NULL, %i)", idFile);
+      m_pDS->exec(strSQL);
+      idGame = (int)m_pDS->lastinsertid();
+    }
+
+    return idGame;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  return -1;
+}
+
+//********************************************************************************************************************************
+int CProgramDatabase::AddToTable(const std::string& table, const std::string& firstField, const std::string& secondField, const std::string& value)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+
+    std::string strSQL = PrepareSQL("select %s from %s where %s like '%s'", firstField.c_str(), table.c_str(), secondField.c_str(), value.substr(0, 255).c_str());
+    m_pDS->query(strSQL);
+    if (m_pDS->num_rows() == 0)
+    {
+      m_pDS->close();
+      // doesnt exists, add it
+      strSQL = PrepareSQL("insert into %s (%s, %s) values(NULL, '%s')", table.c_str(), firstField.c_str(), secondField.c_str(), value.substr(0, 255).c_str());
+      m_pDS->exec(strSQL);
+      int id = (int)m_pDS->lastinsertid();
+      return id;
+    }
+    else
+    {
+      int id = m_pDS->fv(firstField.c_str()).get_asInt();
+      m_pDS->close();
+      return id;
+    }
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, value.c_str() );
+  }
+
+  return -1;
+}
+
+int CProgramDatabase::AddRatings(int mediaId, const char *mediaType, const RatingMap& values, const std::string& defaultRating)
+{
+  int ratingid = -1;
+  try
+  {
+    if (NULL == m_pDB.get()) return -1;
+    if (NULL == m_pDS.get()) return -1;
+
+    for (RatingMap::const_iterator it = values.begin(); it != values.end(); ++it)
+    {
+      const std::pair<const std::string, CRating> &i = *it;
+      int id;
+      std::string strSQL = PrepareSQL("SELECT rating_id FROM rating WHERE media_id=%i AND media_type='%s' AND rating_type = '%s'", mediaId, mediaType, i.first.c_str());
+      m_pDS->query(strSQL);
+      if (m_pDS->num_rows() == 0)
+      {
+        m_pDS->close();
+        // doesnt exists, add it
+        strSQL = PrepareSQL("INSERT INTO rating (media_id, media_type, rating_type, rating, votes) VALUES (%i, '%s', '%s', %f, %i)", mediaId, mediaType, i.first.c_str(), i.second.rating, i.second.votes);
+        m_pDS->exec(strSQL);
+        id = (int)m_pDS->lastinsertid();
+      }
+      else
+      {
+        id = m_pDS->fv(0).get_asInt();
+        m_pDS->close();
+        strSQL = PrepareSQL("UPDATE rating SET rating = %f, votes = %i WHERE rating_id = %i", i.second.rating, i.second.votes, id);
+        m_pDS->exec(strSQL);
+      }
+      if (i.first == defaultRating)
+        ratingid = id;
+    }
+    return ratingid;
+
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%i - %s) failed", __FUNCTION__, mediaId, mediaType);
+  }
+
+  return ratingid;
+}
+
+void CProgramDatabase::AddToLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey)
+{
+  const char *key = foreignKey ? foreignKey : table.c_str();
+  std::string sql = PrepareSQL("SELECT 1 FROM %s_link WHERE %s_id=%i AND media_id=%i AND media_type='%s'", table.c_str(), key, valueId, mediaId, mediaType.c_str());
+
+  if (GetSingleValue(sql).empty())
+  { // doesnt exists, add it
+    sql = PrepareSQL("INSERT INTO %s_link (%s_id,media_id,media_type) VALUES(%i,%i,'%s')", table.c_str(), key, valueId, mediaId, mediaType.c_str());
+    ExecuteQuery(sql);
+  }
+}
+
+void CProgramDatabase::AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values)
+{
+  for (std::vector<std::string>::const_iterator it = values.begin(); it != values.end(); ++it)
+  {
+    const std::string &i = *it;
+    if (!i.empty())
+    {
+      int idValue = AddToTable(field, field + "_id", "name", i);
+      if (idValue > -1)
+        AddToLinkTable(mediaId, mediaType, field, idValue);
+    }
+  }
+}
+
+bool CProgramDatabase::HasGameInfo(const std::string& strFilenameAndPath)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+    int idGame = GetGameId(strFilenameAndPath);
+    return (idGame > 0); // index of zero is also invalid
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  return false;
+}
+
+std::string CProgramDatabase::GetValueString(const CProgramInfoTag &details, int min, int max, const SDbTableOffsets *offsets) const
+{
+  std::vector<std::string> conditions;
+  for (int i = min + 1; i < max; ++i)
+  {
+    switch (offsets[i].type)
+    {
+    case PROGRAMDB_TYPE_STRING:
+      conditions.push_back(PrepareSQL("c%02d='%s'", i, ((std::string*)(((char*)&details)+offsets[i].offset))->c_str()));
+      break;
+    case PROGRAMDB_TYPE_INT:
+      conditions.push_back(PrepareSQL("c%02d='%i'", i, *(int*)(((char*)&details)+offsets[i].offset)));
+      break;
+    case PROGRAMDB_TYPE_COUNT:
+      {
+        int value = *(int*)(((char*)&details)+offsets[i].offset);
+        if (value)
+          conditions.push_back(PrepareSQL("c%02d=%i", i, value));
+        else
+          conditions.push_back(PrepareSQL("c%02d=NULL", i));
+      }
+      break;
+    case PROGRAMDB_TYPE_BOOL:
+      conditions.push_back(PrepareSQL("c%02d='%s'", i, *(bool*)(((char*)&details)+offsets[i].offset)?"true":"false"));
+      break;
+    case PROGRAMDB_TYPE_FLOAT:
+      conditions.push_back(PrepareSQL("c%02d='%f'", i, *(float*)(((char*)&details)+offsets[i].offset)));
+      break;
+    case PROGRAMDB_TYPE_STRINGARRAY:
+      conditions.push_back(PrepareSQL("c%02d='%s'", i, StringUtils::Join(*((std::vector<std::string>*)(((char*)&details)+offsets[i].offset)),
+                                                                          g_advancedSettings.m_programItemSeparator).c_str()));
+      break;
+    case PROGRAMDB_TYPE_DATE:
+      conditions.push_back(PrepareSQL("c%02d='%s'", i, ((CDateTime*)(((char*)&details)+offsets[i].offset))->GetAsDBDate().c_str()));
+      break;
+    case PROGRAMDB_TYPE_DATETIME:
+      conditions.push_back(PrepareSQL("c%02d='%s'", i, ((CDateTime*)(((char*)&details)+offsets[i].offset))->GetAsDBDateTime().c_str()));
+      break;
+    case PROGRAMDB_TYPE_UNUSED: // Skip the unused field to avoid populating unused data
+      continue;
+    }
+  }
+  return StringUtils::Join(conditions, ",");
+}
+
+int CProgramDatabase::SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details,
+    const std::map<std::string, std::string> &artwork, int idGame /* = -1 */)
+{
+  try
+  {
+    BeginTransaction();
+
+    if (idGame < 0)
+      idGame = GetGameId(strFilenameAndPath);
+
+    if (idGame > -1)
+      DeleteGame(idGame, true); // true to keep the table entry
+    else
+    {
+      // only add a new game if we don't already have a valid idGame
+      // (DeleteGame is called with bKeepId == true so the game won't
+      // be removed from the game table)
+      idGame = AddGame(strFilenameAndPath);
+      if (idGame < 0)
+      {
+        RollbackTransaction();
+        return idGame;
+      }
+    }
+
+    // update dateadded if it's set
+    if (details.m_dateAdded.IsValid())
+    {
+      if (details.m_iFileId <= 0)
+        details.m_iFileId = GetFileId(strFilenameAndPath);
+
+      UpdateFileDateAdded(details.m_iFileId, strFilenameAndPath, details.m_dateAdded);
+    }
+
+    AddLinksToItem(idGame, MediaTypeGame, "developer", details.m_developer);
+    AddLinksToItem(idGame, MediaTypeGame, "publisher", details.m_publisher);
+    AddLinksToItem(idGame, MediaTypeGame, "genre", details.m_genre);
+    AddLinksToItem(idGame, MediaTypeGame, "descriptor", details.m_descriptor);
+    AddLinksToItem(idGame, MediaTypeGame, "generalfeature", details.m_generalFeature);
+    AddLinksToItem(idGame, MediaTypeGame, "onlinefeature", details.m_onlineFeature);
+    AddLinksToItem(idGame, MediaTypeGame, "platform", details.m_platform);
+
+    // add ratings
+    details.m_iIdRating = AddRatings(idGame, MediaTypeGame, details.m_ratings, details.GetDefaultRating());
+
+    // TODO: add support for unique IDs
+
+    // TODO: set art for item
+
+    // update our game table (we know it was added already above)
+    // and insert the new row
+    std::string sql = "UPDATE game SET " + GetValueString(details, PROGRAMDB_ID_MIN, PROGRAMDB_ID_MAX, DbGameOffsets);
+    if (details.HasReleaseDate())
+      sql += PrepareSQL(", released = '%s'", details.GetReleaseDate().GetAsDBDate().c_str());
+    else
+      sql += PrepareSQL(", released = '%i'", details.GetYear());
+    sql += PrepareSQL(" where idGame=%i", idGame);
+    m_pDS->exec(sql);
+    CommitTransaction();
+
+    return idGame;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+  }
+  RollbackTransaction();
+  return -1;
+}
+
+//********************************************************************************************************************************
+void CProgramDatabase::DeleteGame(const std::string& strFilenameAndPath, bool bKeepId /* = false */)
+{
+  int idGame = GetGameId(strFilenameAndPath);
+  if (idGame > -1)
+    DeleteGame(idGame, bKeepId);
+}
+
+void CProgramDatabase::DeleteGame(int idGame, bool bKeepId /* = false */)
+{
+  if (idGame < 0)
+    return;
+
+  try
+  {
+    if (NULL == m_pDB.get()) return ;
+    if (NULL == m_pDS.get()) return ;
+
+    BeginTransaction();
+
+    // keep the game table entry
+    // so we can update the data in place
+    // the ancilliary tables are still purged
+    if (!bKeepId)
+    {
+      int idFile = GetDbId(PrepareSQL("SELECT idFile FROM game WHERE idGame=%i", idGame));
+      std::string path = GetSingleValue(PrepareSQL("SELECT strPath FROM path JOIN files ON files.idPath=path.idPath WHERE files.idFile=%i", idFile));
+      if (!path.empty())
+        InvalidatePathHash(path);
+
+      std::string strSQL = PrepareSQL("delete from game where idGame=%i", idGame);
+      m_pDS->exec(strSQL);
+    }
+
+    // Do we need to announce here?
+
+    CommitTransaction();
+
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    RollbackTransaction();
+  }
+}
+
+int CProgramDatabase::GetDbId(const std::string &query)
+{
+  std::string result = GetSingleValue(query);
+  if (!result.empty())
+  {
+    int idDb = strtol(result.c_str(), NULL, 10);
+    if (idDb > 0)
+      return idDb;
+  }
+  return -1;
 }
 
 void CProgramDatabase::RemoveContentForPath(const std::string& strPath, CGUIDialogProgress *progress /* = NULL */)
@@ -521,6 +1119,27 @@ void CProgramDatabase::ConstructPath(std::string& strDest, const std::string& st
     strDest = strFileName;
   else
     strDest = URIUtils::AddFileToFolder(strPath, strFileName);
+}
+
+void CProgramDatabase::SplitPath(const std::string& strFileNameAndPath, std::string& strPath, std::string& strFileName)
+{
+  URIUtils::Split(strFileNameAndPath,strPath, strFileName);
+}
+
+void CProgramDatabase::InvalidatePathHash(const std::string& strPath)
+{
+  SScanSettings settings;
+  bool foundDirectly;
+  ScraperPtr info = GetScraperForPath(strPath,settings,foundDirectly);
+  SetPathHash(strPath,"");
+  if (!info)
+    return;
+  if (info->Content() == CONTENT_GAMES && !foundDirectly && settings.parent_name_root) // if we scan by folder name we need to invalidate parent as well
+  {
+    std::string strParent;
+    URIUtils::GetParentPath(strPath,strParent);
+    SetPathHash(strParent,"");
+  }
 }
 
 bool CProgramDatabase::CommitTransaction()

@@ -387,6 +387,18 @@ public:
    */
   std::string GetBaseMoviePath(bool useFolderNames) const;
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  std::string GetProgramName(bool bUseFolderNames = false) const;
+
+  /*! \brief Find the base program path (i.e. the item the user expects us to use to lookup the program)
+   For folder items, with "use foldernames for lookups" it returns the folder.
+
+   \param useFolderNames whether we're using foldernames for lookups
+   \return the base program folder
+   */
+  std::string GetBaseProgramPath(bool useFolderNames) const;
+#endif
+
   // Gets the user thumb, if it exists
   std::string GetUserMusicThumb(bool alwaysCheckRemote = false, bool fallbackToFolder = false) const;
 

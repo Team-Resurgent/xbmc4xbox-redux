@@ -37,7 +37,10 @@ static std::map<std::string, CMediaTypes::MediaTypeInfo> fillDefaultMediaTypes()
   mediaTypes.insert(std::make_pair(MediaTypeTvShow,           CMediaTypes::MediaTypeInfo(MediaTypeTvShow,          MediaTypeTvShow "s",          true,  36902, 36903, 36902, 36903)));
   mediaTypes.insert(std::make_pair(MediaTypeSeason,           CMediaTypes::MediaTypeInfo(MediaTypeSeason,          MediaTypeSeason "s",          true,  36904, 36905, 20373, 33054)));
   mediaTypes.insert(std::make_pair(MediaTypeEpisode,          CMediaTypes::MediaTypeInfo(MediaTypeEpisode,         MediaTypeEpisode "s",         false, 36906, 36907, 20359, 20360)));
-
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  mediaTypes.insert(std::make_pair(MediaTypeProgram,          CMediaTypes::MediaTypeInfo(MediaTypeProgram,         MediaTypeProgram "s",         true,  38921, 38922, 38923, 38924)));
+  mediaTypes.insert(std::make_pair(MediaTypeGame,             CMediaTypes::MediaTypeInfo(MediaTypeGame,            MediaTypeGame "s",            false, 38925, 38926, 38927, 38928)));
+#endif
   return mediaTypes;
 }
 

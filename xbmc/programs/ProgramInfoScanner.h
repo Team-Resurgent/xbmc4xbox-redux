@@ -52,6 +52,17 @@ namespace PROGRAM
     void Start(const std::string& strDirectory, bool scanAll = false);
     void Stop();
 
+    /*! \brief Add an item to the database.
+     \param pItem item to add to the database.
+     \param content content type of the item.
+     \param programFolder whether the program is represented by a folder (single game per folder). Defaults to false.
+     \param useLocal whether to use local information for artwork etc.
+     \param libraryImport Whether this call belongs to a full library import or not. Defaults to false.
+     \return database id of the added item, or -1 on failure.
+     */
+    long AddProgram(CFileItem *pItem, const CONTENT_TYPE &content, bool programFolder = false, bool useLocal = true, bool libraryImport = false);
+
+
     /*! \brief Retrieve information for a list of items and add them to the database.
      \param items list of items to retrieve info for.
      \param bDirNames whether we should use folder or file names for lookups.
@@ -64,11 +75,21 @@ namespace PROGRAM
      */
     bool RetrieveProgramInfo(CFileItemList& items, bool bDirNames, CONTENT_TYPE content, bool useLocal = true, CScraperUrl *pURL = NULL, CGUIDialogProgress* pDlgProgress = NULL);
 
+    CNfoFile::NFOResult CheckForNFOFile(CFileItem* pItem, bool bGrabAny, ADDON::ScraperPtr& scraper, CScraperUrl& scrUrl);
+
   protected:
     virtual void Process();
     bool DoScan(const std::string& strDirectory);
 
     INFO_RET RetrieveInfoForGame(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
+
+    /*! \brief Update the progress bar with the heading and line and check for cancellation
+     \param progress CGUIDialogProgress bar
+     \param heading string id of heading
+     \param line1   string to set for the first line
+     \return true if the user has cancelled the scanner, false otherwise
+     */
+    bool ProgressCancelled(CGUIDialogProgress* progress, int heading, const std::string &line1);
 
     static int GetPathHash(const CFileItemList &items, std::string &hash);
 
@@ -93,6 +114,8 @@ namespace PROGRAM
      \return true if this directory listing can be fast hashed, false otherwise
      */
     bool CanFastHash(const CFileItemList &items, const std::vector<std::string> &excludes) const;
+
+    std::string GetnfoFile(CFileItem *item, bool bGrabAny=false) const;
 
     bool m_bStop;
     bool m_scanAll;

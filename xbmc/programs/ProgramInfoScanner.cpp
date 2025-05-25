@@ -430,10 +430,155 @@ namespace PROGRAM
 
   CInfoScanner::INFO_RET CProgramInfoScanner::RetrieveInfoForGame(CFileItem *pItem, bool bDirNames, ScraperPtr &info2, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress)
   {
-    // TODO: implement actual scrapping and saving into database
+    if (pItem->m_bIsFolder || !pItem->IsProgram() || pItem->IsNFO())
+      return INFO_NOT_NEEDED;
+
+    if (ProgressCancelled(pDlgProgress, 38941, pItem->GetLabel()))
+      return INFO_CANCELLED;
+
+    if (m_database.HasGameInfo(pItem->GetPath()))
+      return INFO_HAVE_ALREADY;
+
+    if (m_handle)
+      m_handle->SetText(pItem->GetProgramName(bDirNames));
+
+    CNfoFile::NFOResult result=CNfoFile::NO_NFO;
+    CScraperUrl scrUrl;
+    // handle .nfo files
+    if (useLocal)
+      result = CheckForNFOFile(pItem, bDirNames, info2, scrUrl);
+    if (result == CNfoFile::FULL_NFO)
+    {
+      pItem->GetProgramInfoTag()->Reset();
+      m_nfoReader.GetDetails(*pItem->GetProgramInfoTag());
+
+      if (AddProgram(pItem, info2->Content(), bDirNames, true) < 0)
+        return INFO_ERROR;
+      return INFO_ADDED;
+    }
+    // TODO: add support for online scrapers
 
     //! @todo This is not strictly correct as we could fail to download information here or error, or be cancelled
     return INFO_NOT_FOUND;
+  }
+
+  long CProgramInfoScanner::AddProgram(CFileItem *pItem, const CONTENT_TYPE &content, bool programFolder /* = false */, bool useLocal /* = true */, bool libraryImport /* = false */)
+  {
+    // ensure our database is open (this can get called via other classes)
+    if (!m_database.Open())
+      return -1;
+
+    // TODO: implement fetching of program artwork
+
+    // ensure the art map isn't completely empty by specifying an empty thumb
+    std::map<std::string, std::string> art = pItem->GetArt();
+    if (art.empty())
+      art["thumb"] = "";
+
+    CProgramInfoTag &programDetails = *pItem->GetProgramInfoTag();
+    if (programDetails.m_basePath.empty())
+      programDetails.m_basePath = pItem->GetBaseProgramPath(programFolder);
+    programDetails.m_parentPathID = m_database.AddPath(URIUtils::GetParentPath(programDetails.m_basePath));
+
+    programDetails.m_strFileNameAndPath = pItem->GetPath();
+
+    if (pItem->m_bIsFolder)
+      programDetails.m_strPath = pItem->GetPath();
+
+    std::string redactPath(CURL::GetRedacted(CURL::Decode(pItem->GetPath())));
+
+    CLog::Log(LOGDEBUG, "ProgramInfoScanner: Adding new item to %s:%s", TranslateContent(content).c_str(), redactPath.c_str());
+    long lResult = -1;
+
+    if (content == CONTENT_GAMES)
+    {
+      // find local trailer first
+      std::string strTrailer = pItem->FindTrailer();
+      if (!strTrailer.empty())
+        programDetails.m_strTrailer = strTrailer;
+
+      lResult = m_database.SetDetailsForGame(pItem->GetPath(), programDetails, art);
+      programDetails.m_iDbId = lResult;
+      programDetails.m_type = MediaTypeGame;
+    }
+
+    m_database.Close();
+
+    // Do we need to announce here?
+
+    return lResult;
+  }
+
+  std::string CProgramInfoScanner::GetnfoFile(CFileItem *item, bool bGrabAny) const
+  {
+    std::string nfoFile;
+    // Find a matching .nfo file
+    if (!item->m_bIsFolder)
+    {
+      // grab the folder path
+      std::string strPath = URIUtils::GetDirectory(item->GetPath());
+
+      if (bGrabAny)
+      { // looking up by folder name - game.nfo takes priority - but not for stacked items (handled below)
+        nfoFile = URIUtils::AddFileToFolder(strPath, "game.nfo");
+        if (CFile::Exists(nfoFile))
+          return nfoFile;
+
+        nfoFile = URIUtils::ReplaceExtension(item->GetPath(), ".nfo");
+        if (CFile::Exists(nfoFile))
+          return nfoFile;
+
+        // look inside X4G resources folder
+        nfoFile = URIUtils::AddFileToFolder(strPath, "_resources", "default.xml");
+        if (CFile::Exists(nfoFile))
+          return nfoFile;
+      }
+
+      // already an .nfo file?
+      if (URIUtils::HasExtension(item->GetPath(), ".nfo"))
+        nfoFile = item->GetPath();
+      // no, create .nfo file
+      else
+        nfoFile = URIUtils::ReplaceExtension(item->GetPath(), ".nfo");
+
+      // test file existence
+      if (!nfoFile.empty() && !CFile::Exists(nfoFile))
+        nfoFile.clear();
+    }
+    // folders can take any nfo file if there's a unique one
+    if (item->m_bIsFolder || (bGrabAny && nfoFile.empty()))
+    {
+      // see if there is a unique nfo file in this folder, and if so, use that
+      CFileItemList items;
+      CDirectory dir;
+      std::string strPath;
+      if (item->m_bIsFolder)
+        strPath = item->GetPath();
+      else
+        strPath = URIUtils::GetDirectory(item->GetPath());
+
+      if (dir.GetDirectory(strPath, items, ".nfo", DIR_FLAG_DEFAULTS) && items.Size())
+      {
+        int numNFO = -1;
+        for (int i = 0; i < items.Size(); i++)
+        {
+          if (items[i]->IsNFO())
+          {
+            if (numNFO == -1)
+              numNFO = i;
+            else
+            {
+              numNFO = -1;
+              break;
+            }
+          }
+        }
+        if (numNFO > -1)
+          return items[numNFO]->GetPath();
+      }
+    }
+
+    return nfoFile;
   }
 
   bool CProgramInfoScanner::CanFastHash(const CFileItemList &items, const std::vector<std::string> &excludes) const
@@ -470,5 +615,72 @@ namespace PROGRAM
       }
     }
     return "";
+  }
+
+  CNfoFile::NFOResult CProgramInfoScanner::CheckForNFOFile(CFileItem* pItem, bool bGrabAny, ScraperPtr& info, CScraperUrl& scrUrl)
+  {
+    std::string strNfoFile = GetnfoFile(pItem, bGrabAny);
+
+    CNfoFile::NFOResult result=CNfoFile::NO_NFO;
+    if (!strNfoFile.empty() && CFile::Exists(strNfoFile))
+    {
+      result = m_nfoReader.Create(strNfoFile,info);
+
+      std::string type;
+      switch(result)
+      {
+        case CNfoFile::COMBINED_NFO:
+          type = "mixed";
+          break;
+        case CNfoFile::FULL_NFO:
+          type = "full";
+          break;
+        case CNfoFile::URL_NFO:
+          type = "URL";
+          break;
+        case CNfoFile::NO_NFO:
+          type = "";
+          break;
+        case CNfoFile::PARTIAL_NFO:
+          type = "partial";
+          break;
+        default:
+          type = "malformed";
+      }
+      if (result != CNfoFile::NO_NFO)
+        CLog::Log(LOGDEBUG, "ProgramInfoScanner: Found matching %s NFO file: %s", type.c_str(), CURL::GetRedacted(strNfoFile).c_str());
+      if (result == CNfoFile::FULL_NFO)
+        return result;
+
+      if (result != CNfoFile::NO_NFO && result != CNfoFile::ERROR_NFO)
+      {
+        if (result != CNfoFile::PARTIAL_NFO)
+        {
+          scrUrl = m_nfoReader.ScraperUrl();
+          StringUtils::RemoveCRLF(scrUrl.m_url[0].m_url);
+          info = m_nfoReader.GetScraperInfo();
+        }
+
+        if (result != CNfoFile::URL_NFO)
+          m_nfoReader.GetDetails(*pItem->GetProgramInfoTag());
+      }
+    }
+    else
+      CLog::Log(LOGDEBUG, "ProgramInfoScanner: No NFO file found. Using title search for '%s'", CURL::GetRedacted(pItem->GetPath()).c_str());
+
+    return result;
+  }
+
+  bool CProgramInfoScanner::ProgressCancelled(CGUIDialogProgress* progress, int heading, const std::string &line1)
+  {
+    if (progress)
+    {
+      progress->SetHeading(heading);
+      progress->SetLine(0, line1);
+      progress->SetLine(2, "");
+      progress->Progress();
+      return progress->IsCanceled();
+    }
+    return m_bStop;
   }
 }

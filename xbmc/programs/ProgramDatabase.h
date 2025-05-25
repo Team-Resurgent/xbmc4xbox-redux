@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "video/VideoDatabase.h" // SDbTableOffsets, my_offsetof
 #include "addons/Scraper.h"
 #include "dbwrappers/Database.h"
 #include "ProgramInfoTag.h"
@@ -33,6 +34,7 @@ namespace dbiplus
   class field_value;
   typedef std::vector<field_value> sql_record;
 }
+struct SDbTableOffsets;
 
 typedef std::vector<CProgramInfoTag> VECGAMES;
 
@@ -41,10 +43,79 @@ namespace PROGRAM
   struct SScanSettings;
 }
 
+// these defines are based on how many columns we have and which column certain data is going to be in
+// when we do GetDetailsForGame()
+#define PROGRAMDB_MAX_COLUMNS 24
+
+#define PROGRAMDB_TYPE_UNUSED 0
+#define PROGRAMDB_TYPE_STRING 1
+#define PROGRAMDB_TYPE_INT 2
+#define PROGRAMDB_TYPE_FLOAT 3
+#define PROGRAMDB_TYPE_BOOL 4
+#define PROGRAMDB_TYPE_COUNT 5
+#define PROGRAMDB_TYPE_STRINGARRAY 6
+#define PROGRAMDB_TYPE_DATE 7
+#define PROGRAMDB_TYPE_DATETIME 8
+
 typedef enum
 {
   PROGRAMDB_CONTENT_GAMES = 1
 } PROGRAMDB_CONTENT_TYPE;
+
+typedef enum // this enum MUST match the offset struct further down!! and make sure to keep min and max at -1 and sizeof(offsets)
+{
+  PROGRAMDB_ID_MIN = -1,
+  PROGRAMDB_ID_TITLE = 0,
+  PROGRAMDB_ID_PLOT = 1,
+  PROGRAMDB_ID_RATING_ID = 5,
+  PROGRAMDB_ID_EXCLUSIVE = 6,
+  PROGRAMDB_ID_ESRB = 7,
+  PROGRAMDB_ID_THUMBURL = 8,
+  PROGRAMDB_ID_IDENT_ID = 9, // unused for now
+  PROGRAMDB_ID_DEVELOPER = 10,
+  PROGRAMDB_ID_PUBLISHER = 11,
+  PROGRAMDB_ID_GENRE = 12,
+  PROGRAMDB_ID_DESCRIPTOR = 13,
+  PROGRAMDB_ID_GENERALFEATURE = 14,
+  PROGRAMDB_ID_ONLINEFEATURE = 15,
+  PROGRAMDB_ID_PLATFORM = 16,
+  PROGRAMDB_ID_ORIGINALTITLE = 17,
+  PROGRAMDB_ID_THUMBURL_SPOOF = 18,
+  PROGRAMDB_ID_TRAILER = 19,
+  PROGRAMDB_ID_FANART = 20,
+  PROGRAMDB_ID_SYSTEN = 21,
+  PROGRAMDB_ID_BASEPATH = 22,
+  PROGRAMDB_ID_PARENTPATHID = 23,
+  PROGRAMDB_ID_MAX
+} PROGRAMDB_IDS;
+
+const struct SDbTableOffsets DbGameOffsets[] =
+{
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strTitle) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strPlot) },
+  { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
+  { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
+  { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
+  { PROGRAMDB_TYPE_INT, my_offsetof(CProgramInfoTag,m_iIdRating) },
+  { PROGRAMDB_TYPE_BOOL, my_offsetof(CProgramInfoTag,m_bExclusive) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strESRB) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strPictureURL.m_xml) },
+  { PROGRAMDB_TYPE_UNUSED, 0 }, // unused
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_developer) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_publisher) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_genre) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_descriptor) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_generalFeature) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_onlineFeature) },
+  { PROGRAMDB_TYPE_STRINGARRAY, my_offsetof(CProgramInfoTag,m_platform) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strOriginalTitle) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strPictureURL.m_spoof) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strTrailer) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_fanart.m_xml) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_strSystem) },
+  { PROGRAMDB_TYPE_STRING, my_offsetof(CProgramInfoTag,m_basePath) },
+  { PROGRAMDB_TYPE_INT, my_offsetof(CProgramInfoTag,m_parentPathID) }
+};
 
 class CProgramDatabase : public CDatabase
 {
@@ -55,8 +126,16 @@ public:
   virtual bool Open();
   virtual bool CommitTransaction();
 
+  int AddGame(const std::string& strFilenameAndPath);
+
+  bool HasGameInfo(const std::string& strFilenameAndPath);
+
   int GetPathId(const std::string& strPath);
 
+  int SetDetailsForGame(const std::string& strFilenameAndPath, CProgramInfoTag& details, const std::map<std::string, std::string> &artwork, int idGame = -1);
+
+  void DeleteGame(int idMovie, bool bKeepId = false);
+  void DeleteGame(const std::string& strFilenameAndPath, bool bKeepId = false);
   void RemoveContentForPath(const std::string& strPath,CGUIDialogProgress *progress = NULL);
 
   // scraper settings
@@ -89,6 +168,13 @@ public:
   bool HasContent();
   bool HasContent(PROGRAMDB_CONTENT_TYPE type);
 
+  /*! \brief Add a file to the database, if necessary
+   If the file is already in the database, we simply return its id.
+   \param url - full path of the file to add.
+   \return id of the file, -1 if it could not be added.
+   */
+  int AddFile(const std::string& url);
+
   /*! \brief Add a path to the database, if necessary
    If the path is already in the database, we simply return its id.
    \param strPath the path to add
@@ -98,12 +184,62 @@ public:
    */
   int AddPath(const std::string& strPath, const std::string &parentPath = "", const CDateTime& dateAdded = CDateTime());
 
+  /*! \brief Updates the dateAdded field in the files table for the file
+   with the given idFile and the given path based on the files modification date
+   \param idFile id of the file in the files table
+   \param strFileNameAndPath path to the file
+   \param dateAdded datetime when the file was added to the filesystem/database
+   */
+  void UpdateFileDateAdded(int idFile, const std::string& strFileNameAndPathh, const CDateTime& dateAdded = CDateTime());
+
+protected:
+  int GetGameId(const std::string& strFilenameAndPath);
+
+  /*! \brief Get the id of this fileitem
+   Works for both programdb:// items and normal fileitems
+   \param item CFileItem to grab the fileid of
+   \return id of the file, -1 if it is not in the db.
+   */
+  int GetFileId(const CFileItem &item);
+
+  /*! \brief Get the id of a file from path
+   \param url full path to the file
+   \return id of the file, -1 if it is not in the db.
+   */
+  int GetFileId(const std::string& url);
+
+  int AddToTable(const std::string& table, const std::string& firstField, const std::string& secondField, const std::string& value);
+  int AddRatings(int mediaId, const char *mediaType, const RatingMap& values, const std::string& defaultRating);
+
+  // link functions - these two do all the work
+  void AddToLinkTable(int mediaId, const std::string& mediaType, const std::string& table, int valueId, const char *foreignKey = NULL);
+
+  void AddLinksToItem(int mediaId, const std::string& mediaType, const std::string& field, const std::vector<std::string>& values);
+
+  std::string GetValueString(const CProgramInfoTag &details, int min, int max, const SDbTableOffsets *offsets) const;
+
 private:
   virtual void CreateTables();
   virtual void CreateAnalytics();
+  void CreateLinkIndex(const char *table);
+  void CreateForeignLinkIndex(const char *table, const char *foreignkey);
+
+  /*! \brief (Re)Create the generic database views for movies, tvshows,
+     episodes and music videos
+   */
+  virtual void CreateViews();
+
+  /*! \brief Helper to get a database id given a query.
+   Returns an integer, -1 if not found, and greater than 0 if found.
+   \param query the SQL that will retrieve a database id.
+   \return -1 if not found, else a valid database id (i.e. > 0)
+   */
+  int GetDbId(const std::string &query);
 
   virtual int GetSchemaVersion() const;
   const char *GetBaseDBName() const { return "MyPrograms"; };
 
   void ConstructPath(std::string& strDest, const std::string& strPath, const std::string& strFileName);
+  void SplitPath(const std::string& strFileNameAndPath, std::string& strPath, std::string& strFileName);
+  void InvalidatePathHash(const std::string& strPath);
 };

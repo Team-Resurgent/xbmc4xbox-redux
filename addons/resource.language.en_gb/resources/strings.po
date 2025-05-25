@@ -13871,4 +13871,48 @@ msgstr ""
 
 #empty strings from id 38912 to 38915
 
+msgctxt "#38916"
+msgid "Loading game details"
+msgstr ""
+
+msgctxt "#38921"
+msgid "program"
+msgstr ""
+
+msgctxt "#38922"
+msgid "programs"
+msgstr ""
+
+msgctxt "#38923"
+msgid "Program"
+msgstr ""
+
+msgctxt "#38924"
+msgid "Programs"
+msgstr ""
+
+msgctxt "#38925"
+msgid "game"
+msgstr ""
+
+msgctxt "#38926"
+msgid "games"
+msgstr ""
+
+msgctxt "#38927"
+msgid "Game"
+msgstr ""
+
+msgctxt "#38928"
+msgid "Games"
+msgstr ""
+
+#empty string from id 38928 to 38940 - reserved for media types
+
+msgctxt "#38941"
+msgid "Loading game details"
+msgstr ""
+
+#empty string from id 38942 to 38950 - reserved for info scanner labels
+
 #empty strings from id 38791 to 38999

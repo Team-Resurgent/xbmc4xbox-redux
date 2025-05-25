@@ -286,6 +286,8 @@ void CAdvancedSettings::Initialize()
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
   m_bProgramLibraryCleanOnUpdate = false;
   m_bProgramLibraryUseFastHash = false;
+  m_bProgramScannerIgnoreErrors = false;
+  m_iProgramLibraryDateAdded = 1; // prefer mtime over ctime and current time
 #endif  
 
   m_bEdlMergeShortCommBreaks = false;      // Off by default
@@ -553,6 +555,13 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetBoolean(pElement, "cleanonupdate", m_bProgramLibraryCleanOnUpdate);
     XMLUtils::GetBoolean(pElement, "usefasthash", m_bProgramLibraryUseFastHash);
     XMLUtils::GetString(pElement, "itemseparator", m_programItemSeparator);
+    XMLUtils::GetInt(pElement, "dateadded", m_iProgramLibraryDateAdded);
+  }
+
+  pElement = pRootElement->FirstChildElement("programscanner");
+  if (pElement)
+  {
+    XMLUtils::GetBoolean(pElement, "ignoreerrors", m_bProgramScannerIgnoreErrors);
   }
 #endif
 

@@ -24,6 +24,7 @@
 #include "NfoFile.h"
 #include "ServiceBroker.h"
 #include "video/VideoInfoDownloader.h"
+#include "programs/ProgramInfoTag.h" // TODO: replace with program/ProgramInfoDownloader.h when added
 #include "addons/AddonManager.h"
 #include "addons/AddonSystemSettings.h"
 #include "filesystem/File.h"
@@ -91,6 +92,14 @@ CNfoFile::NFOResult CNfoFile::Create(const std::string& strPath,
       }
     }
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  else if (m_type == ADDON_SCRAPER_GAMES)
+  {
+    // check if it's an XML file with the info we need
+    CProgramInfoTag details;
+    bNfo = GetDetails(details);
+  }
+#endif
 
   std::vector<ScraperPtr> vecScrapers;
 

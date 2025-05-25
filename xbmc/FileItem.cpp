@@ -3000,6 +3000,38 @@ std::string CFileItem::GetBaseMoviePath(bool bUseFolderNames) const
   return strMovieName;
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+std::string CFileItem::GetProgramName(bool bUseFolderNames /* = false */) const
+{
+  if (IsLabelPreformated())
+    return GetLabel();
+
+  std::string strProgramName = GetBaseProgramPath(bUseFolderNames);
+
+  URIUtils::RemoveSlashAtEnd(strProgramName);
+
+  return CURL::Decode(URIUtils::GetFileName(strProgramName));
+}
+
+std::string CFileItem::GetBaseProgramPath(bool bUseFolderNames) const
+{
+  std::string strProgramName = m_strPath;
+
+  if (IsMultiPath())
+    strProgramName = CMultiPathDirectory::GetFirstPath(m_strPath);
+
+  if (bUseFolderNames &&
+     (!m_bIsFolder ||
+     (HasProgramInfoTag() && GetProgramInfoTag()->m_iDbId > 0 && !CMediaTypes::IsContainer(GetProgramInfoTag()->m_type))))
+  {
+    std::string name2(strProgramName);
+    URIUtils::GetParentPath(name2,strProgramName);
+  }
+
+  return strProgramName;
+}
+#endif
+
 std::string CFileItem::GetLocalFanart() const
 {
   if (IsVideoDb())

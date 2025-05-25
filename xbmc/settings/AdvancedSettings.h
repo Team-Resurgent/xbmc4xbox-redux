@@ -271,6 +271,9 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
     bool m_bProgramLibraryCleanOnUpdate;
     bool m_bProgramLibraryUseFastHash;
+
+    bool m_bProgramScannerIgnoreErrors;
+    int m_iProgramLibraryDateAdded;
 #endif
 
     std::set<std::string> m_vecTokens;
