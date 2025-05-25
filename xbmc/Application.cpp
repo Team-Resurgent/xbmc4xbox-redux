@@ -36,6 +36,9 @@
 #include "video/Bookmark.h"
 #include "video/VideoLibraryQueue.h"
 #include "music/MusicLibraryQueue.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramLibraryQueue.h"
+#endif
 #include "network/NetworkServices.h"
 #include "utils/LangCodeExpander.h"
 #include "GUIInfoManager.h"
@@ -5775,6 +5778,13 @@ void CApplication::StartVideoScan(const std::string &strDirectory, bool userInit
 {
   CVideoLibraryQueue::GetInstance().ScanLibrary(strDirectory, scanAll, userInitiated);
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+void CApplication::StartProgramScan(const std::string &strDirectory, bool userInitiated /* = true */, bool scanAll)
+{
+  CProgramLibraryQueue::GetInstance().ScanLibrary(strDirectory, scanAll, userInitiated);
+}
+#endif
 
 void CApplication::StartMusicCleanup(bool userInitiated /* = true */)
 {

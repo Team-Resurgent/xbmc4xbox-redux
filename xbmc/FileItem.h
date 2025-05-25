@@ -44,6 +44,9 @@ namespace MUSIC_INFO
 }
 class CVideoInfoTag;
 class CPictureInfoTag;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+class CProgramInfoTag;
+#endif
 
 class CAlbum;
 class CArtist;
@@ -140,6 +143,15 @@ public:
    */
   bool IsVideo() const;
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  /*!
+   \brief Check whether an item is a program item. Note that this returns true for
+    anything with a program info tag, so that may include eg. folders.
+   \return true if item is program, false otherwise.
+   */
+  bool IsProgram() const;
+#endif
+
   bool IsDiscStub() const;
 
   /*!
@@ -195,6 +207,9 @@ public:
   bool IsMultiPath() const;
   bool IsMusicDb() const;
   bool IsVideoDb() const;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  bool IsProgramDb() const;
+#endif
   bool IsEPG() const;
   bool IsPVRChannel() const;
   bool IsPVRRecording() const;
@@ -252,6 +267,20 @@ public:
   {
     return m_videoInfoTag;
   }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  inline bool HasProgramInfoTag() const
+  {
+    return m_programInfoTag != NULL;
+  }
+
+  CProgramInfoTag* GetProgramInfoTag();
+
+  inline const CProgramInfoTag* GetProgramInfoTag() const
+  {
+    return m_programInfoTag;
+  }
+#endif
 
   inline bool HasEPGInfoTag() const
   {
@@ -493,6 +522,9 @@ private:
   MUSIC_INFO::CMusicInfoTag* m_musicInfoTag;
   CVideoInfoTag* m_videoInfoTag;
   CPictureInfoTag* m_pictureInfoTag;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  CProgramInfoTag* m_programInfoTag;
+#endif
   boost::shared_ptr<const ADDON::IAddon> m_addonInfo;
   bool m_bIsAlbum;
 

@@ -280,6 +280,11 @@ void CAdvancedSettings::Initialize()
   m_bVideoScannerIgnoreErrors = false;
   m_iVideoLibraryDateAdded = 1; // prefer mtime over ctime and current time
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_bProgramLibraryCleanOnUpdate = false;
+  m_bProgramLibraryUseFastHash = false;
+#endif  
+
   m_bEdlMergeShortCommBreaks = false;      // Off by default
   m_iEdlMaxCommBreakLength = 8 * 30 + 10;  // Just over 8 * 30 second commercial break.
   m_iEdlMinCommBreakLength = 3 * 30;       // 3 * 30 second commercial breaks.
@@ -309,6 +314,9 @@ void CAdvancedSettings::Initialize()
   m_pictureExtensions = ".png|.jpg|.jpeg|.bmp|.gif|.ico|.tif|.tiff|.tga|.pcx|.cbz|.zip|.cbr|.rar|.m3u|.dng|.nef|.cr2|.crw|.orf|.arw|.erf|.3fr|.dcr|.x3f|.mef|.raf|.mrw|.pef|.sr2|.rss";
   m_musicExtensions = ".nsv|.m4a|.flac|.aac|.strm|.pls|.rm|.rma|.mpa|.wav|.wma|.ogg|.mp3|.mp2|.m3u|.mod|.amf|.669|.dmf|.dsm|.far|.gdm|.imf|.it|.m15|.med|.okt|.s3m|.stm|.sfx|.ult|.uni|.xm|.sid|.ac3|.dts|.cue|.aif|.aiff|.wpl|.ape|.mac|.mpc|.mp+|.mpp|.shn|.zip|.rar|.wv|.nsf|.spc|.gym|.adplug|.adx|.dsp|.adp|.ymf|.ast|.afc|.hps|.xsp|.xwav|.waa|.wvs|.wam|.gcm|.idsp|.mpdsp|.mss|.spt|.rsd|.mid|.kar|.sap|.cmc|.cmr|.dmc|.mpt|.mpd|.rmt|.tmc|.tm8|.tm2|.oga|.url|.pxml|.rss";
   m_videoExtensions = ".m4v|.3g2|.3gp|.nsv|.tp|.ts|.ty|.strm|.pls|.rm|.rmvb|.m3u|.m3u8|.ifo|.mov|.qt|.divx|.xvid|.bivx|.vob|.nrg|.img|.iso|.pva|.wmv|.asf|.asx|.ogm|.m2v|.avi|.bin|.dat|.mpg|.mpeg|.mp4|.mkv|.avc|.vp3|.svq3|.nuv|.viv|.dv|.fli|.flv|.rar|.001|.wpl|.zip|.vdr|.dvr-ms|.xsp|.mts|.m2t|.m2ts|.evo|.ogv|.sdp|.avs|.rec|.url|.pxml|.vc1|.h264|.rcv|.rss|.mpls|.webm|.xmv|.bik|.sfd";
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programExtensions = ".xbe|.cci|.cso";
+#endif
   m_discStubExtensions = ".disc";
   m_subtitlesExtensions = ".utf|.utf8|.utf-8|.sub|.srt|.smi|.rt|.txt|.ssa|.text|.ssa|.aqt|.jss|.ass|.idx|.ifo|.rar|.zip";
   // internal music extensions
@@ -527,6 +535,23 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
     XMLUtils::GetInt(pElement, "dateadded", m_iVideoLibraryDateAdded);
   }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  pElement = pRootElement->FirstChildElement("program");
+  if (pElement)
+  {
+    TiXmlElement* pProgramExcludes = pElement->FirstChildElement("excludefromscan");
+    if (pProgramExcludes)
+      GetCustomRegexps(pProgramExcludes, m_gamesExcludeFromScanRegExps);
+  }
+
+  pElement = pRootElement->FirstChildElement("programlibrary");
+  if (pElement)
+  {
+    XMLUtils::GetBoolean(pElement, "cleanonupdate", m_bProgramLibraryCleanOnUpdate);
+    XMLUtils::GetBoolean(pElement, "usefasthash", m_bProgramLibraryUseFastHash);
+  }
+#endif
+
   pElement = pRootElement->FirstChildElement("videoscanner");
   if (pElement)
   {
@@ -662,6 +687,13 @@ void CAdvancedSettings::ParseSettingsFile(const CStdString &file)
   pExts = pRootElement->FirstChildElement("videoextensions");
   if (pExts)
     GetCustomExtensions(pExts, m_videoExtensions);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  // program extensions
+  pExts = pRootElement->FirstChildElement("programextensions");
+  if (pExts)
+    GetCustomExtensions(pExts, m_programExtensions);
+#endif
 
   m_vecTokens.clear();
   CLangInfo::LoadTokens(pRootElement->FirstChild("sorttokens"),m_vecTokens);
@@ -853,6 +885,9 @@ void CAdvancedSettings::Clear()
 {
   m_videoCleanStringRegExps.clear();
   m_moviesExcludeFromScanRegExps.clear();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_gamesExcludeFromScanRegExps.clear();
+#endif  
   m_tvshowExcludeFromScanRegExps.clear();
   m_videoExcludeFromListingRegExps.clear();
   m_videoStackRegExps.clear();
@@ -864,6 +899,9 @@ void CAdvancedSettings::Clear()
   m_pictureExtensions.clear();
   m_musicExtensions.clear();
   m_videoExtensions.clear();
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programExtensions.clear();
+#endif
   m_discStubExtensions.clear();
   m_subtitlesExtensions.clear();
 

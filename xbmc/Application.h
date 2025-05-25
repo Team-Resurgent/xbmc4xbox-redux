@@ -232,6 +232,10 @@ public:
    */
   void StartVideoScan(const std::string &path, bool userInitiated = true, bool scanAll = false);
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  void StartProgramScan(const std::string &strDirectory, bool userInitiated = true, bool scanAll = false);
+#endif
+
   /*!
   \brief Starts a music library cleanup.
   \param userInitiated Whether the action was initiated by the user (either via GUI or any other method) or not.  It is meant to hide or show dialogs.

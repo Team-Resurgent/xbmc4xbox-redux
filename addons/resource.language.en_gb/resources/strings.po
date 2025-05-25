@@ -13865,4 +13865,10 @@ msgctxt "#38903"
 msgid "Game is not installed"
 msgstr ""
 
+msgctxt "#38911"
+msgid "Scanning games using %s"
+msgstr ""
+
+#empty strings from id 38912 to 38915
+
 #empty strings from id 38791 to 38999

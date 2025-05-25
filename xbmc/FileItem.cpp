@@ -44,6 +44,9 @@
 #include "threads/SingleLock.h"
 #include "music/tags/MusicInfoTag.h"
 #include "pictures/PictureInfoTag.h"
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+#include "programs/ProgramInfoTag.h"
+#endif
 #include "music/Artist.h"
 #include "music/Album.h"
 #include "URL.h"
@@ -136,6 +139,9 @@ CFileItem::CFileItem(const CGenre& genre)
 CFileItem::CFileItem(const CFileItem& item)
 : m_musicInfoTag(NULL),
   m_videoInfoTag(NULL),
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programInfoTag(NULL),
+#endif
   m_pictureInfoTag(NULL)
 {
   *this = item;
@@ -221,10 +227,16 @@ CFileItem::~CFileItem(void)
 {
   delete m_musicInfoTag;
   delete m_videoInfoTag;
+ #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  delete m_programInfoTag;
+ #endif
   delete m_pictureInfoTag;
 
   m_musicInfoTag = NULL;
   m_videoInfoTag = NULL;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programInfoTag = NULL;
+#endif
   m_pictureInfoTag = NULL;
 }
 
@@ -269,6 +281,21 @@ const CFileItem& CFileItem::operator=(const CFileItem& item)
     m_videoInfoTag = NULL;
   }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (item.m_programInfoTag)
+  {
+    if (m_programInfoTag)
+      *m_programInfoTag = *item.m_programInfoTag;
+    else
+      m_programInfoTag = new CProgramInfoTag(*item.m_programInfoTag);
+  }
+  else
+  {
+    delete m_programInfoTag;
+    m_programInfoTag = NULL;
+  }
+#endif
+
   if (item.m_pictureInfoTag)
   {
     if (m_pictureInfoTag)
@@ -308,6 +335,9 @@ void CFileItem::Initialize()
 {
   m_musicInfoTag = NULL;
   m_videoInfoTag = NULL;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  m_programInfoTag = NULL;
+#endif
   m_pictureInfoTag = NULL;
   m_bLabelPreformated = false;
   m_bIsAlbum = false;
@@ -348,6 +378,10 @@ void CFileItem::Reset()
   m_musicInfoTag=NULL;
   delete m_videoInfoTag;
   m_videoInfoTag=NULL;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  delete m_programInfoTag;
+  m_programInfoTag=NULL;
+#endif
   delete m_pictureInfoTag;
   m_pictureInfoTag=NULL;
   m_extrainfo.clear();
@@ -401,6 +435,15 @@ void CFileItem::Archive(CArchive& ar)
     }
     else
       ar << 0;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    if (m_programInfoTag)
+    {
+      ar << 1;
+      ar << *m_programInfoTag;
+    }
+    else
+      ar << 0;
+#endif
     if (m_pictureInfoTag)
     {
       ar << 1;
@@ -471,6 +514,11 @@ void CFileItem::Serialize(CVariant& value) const
 
   if (m_videoInfoTag)
     (*m_videoInfoTag).Serialize(value["videoInfoTag"]);
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (m_programInfoTag)
+    (*m_programInfoTag).Serialize(value["programInfoTag"]);
+#endif
 
   if (m_pictureInfoTag)
     (*m_pictureInfoTag).Serialize(value["pictureInfoTag"]);
@@ -604,6 +652,11 @@ bool CFileItem::IsVideo() const
   if (HasPictureInfoTag())
     return false;
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (HasProgramInfoTag())
+    return false;
+#endif
+
   // ... all other PVR items are not.
   if (IsPVR())
     return false;
@@ -623,6 +676,25 @@ bool CFileItem::IsVideo() const
 
   return URIUtils::HasExtension(m_strPath, g_advancedSettings.m_videoExtensions);
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CFileItem::IsProgram() const
+{
+  if (HasProgramInfoTag())
+    return true;
+
+  if (HasVideoInfoTag())
+    return false;
+
+  if (HasMusicInfoTag())
+    return false;
+
+  if (HasPictureInfoTag())
+    return false;
+
+  return URIUtils::HasExtension(m_strPath, g_advancedSettings.m_programExtensions);
+}
+#endif
 
 bool CFileItem::IsEPG() const
 {
@@ -685,6 +757,11 @@ bool CFileItem::IsAudio() const
   if (HasPictureInfoTag())
     return false;
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (HasProgramInfoTag())
+    return false;
+#endif
+
   if (IsCDDA())
     return true;
 
@@ -713,6 +790,11 @@ bool CFileItem::IsPicture() const
 
   if (HasVideoInfoTag())
     return false;
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (HasProgramInfoTag())
+    return false;
+#endif
 
   return CUtil::IsPicture(m_strPath);
 }
@@ -1007,6 +1089,13 @@ bool CFileItem::IsVideoDb() const
   return URIUtils::IsVideoDb(m_strPath);
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool CFileItem::IsProgramDb() const
+{
+  return URIUtils::IsProgramDb(m_strPath);
+}
+#endif
+
 bool CFileItem::IsVirtualDirectoryRoot() const
 {
   return (m_bIsFolder && m_strPath.empty());
@@ -1262,6 +1351,14 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
       return ((m_videoInfoTag->m_iDbId == item->m_videoInfoTag->m_iDbId) &&
         (m_videoInfoTag->m_type == item->m_videoInfoTag->m_type));
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (HasProgramInfoTag() && item->HasProgramInfoTag())
+  {
+    if (m_programInfoTag->m_iDbId != -1 && item->m_programInfoTag->m_iDbId != -1)
+      return ((m_programInfoTag->m_iDbId == item->m_programInfoTag->m_iDbId) &&
+        (m_programInfoTag->m_type == item->m_programInfoTag->m_type));
+  }
+#endif
   if (IsMusicDb() && HasMusicInfoTag())
   {
     CFileItem dbItem(m_musicInfoTag->GetURL(), false);
@@ -1276,6 +1373,15 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
       dbItem.SetProperty("item_start", GetProperty("item_start"));
     return dbItem.IsSamePath(item);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (IsProgramDb() && HasProgramInfoTag())
+  {
+    CFileItem dbItem(m_programInfoTag->m_strFileNameAndPath, false);
+    if (HasProperty("item_start"))
+      dbItem.SetProperty("item_start", GetProperty("item_start"));
+    return dbItem.IsSamePath(item);
+  }
+#endif
   if (item->IsMusicDb() && item->HasMusicInfoTag())
   {
     CFileItem dbItem(item->m_musicInfoTag->GetURL(), false);
@@ -1290,6 +1396,15 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
       dbItem.SetProperty("item_start", item->GetProperty("item_start"));
     return IsSamePath(&dbItem);
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (item->IsProgramDb() && item->HasProgramInfoTag())
+  {
+    CFileItem dbItem(item->m_programInfoTag->m_strFileNameAndPath, false);
+    if (item->HasProperty("item_start"))
+      dbItem.SetProperty("item_start", item->GetProperty("item_start"));
+    return IsSamePath(&dbItem);
+  }
+#endif
   if (HasProperty("original_listitem_url"))
     return (GetProperty("original_listitem_url") == item->GetPath());
   return false;
@@ -1320,6 +1435,13 @@ void CFileItem::UpdateInfo(const CFileItem &item, bool replaceLabels /*=true*/)
     *GetPictureInfoTag() = *item.GetPictureInfoTag();
     SetInvalid();
   }
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  if (item.HasProgramInfoTag())
+  {
+    *GetProgramInfoTag() = *item.GetProgramInfoTag();
+    SetInvalid();
+  }
+#endif
   if (replaceLabels && !item.GetLabel().empty())
     SetLabel(item.GetLabel());
   if (replaceLabels && !item.GetLabel2().empty())
@@ -3196,6 +3318,16 @@ CVideoInfoTag* CFileItem::GetVideoInfoTag()
 
   return m_videoInfoTag;
 }
+
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+CProgramInfoTag* CFileItem::GetProgramInfoTag()
+{
+  if (!m_programInfoTag)
+    m_programInfoTag = new CProgramInfoTag;
+
+  return m_programInfoTag;
+}
+#endif
 
 CPictureInfoTag* CFileItem::GetPictureInfoTag()
 {

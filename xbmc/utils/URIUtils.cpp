@@ -996,6 +996,13 @@ bool URIUtils::IsVideoDb(const CStdString& strFile)
   return IsProtocol(strFile, "videodb");
 }
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+bool URIUtils::IsProgramDb(const std::string& strFile)
+{
+  return IsProtocol(strFile, "programdb");
+}
+#endif
+
 bool URIUtils::IsBluray(const CStdString& strFile)
 {
   return IsProtocol(strFile, "bluray");

@@ -30,6 +30,21 @@ class CProgramInfoTag : public IArchivable, public ISerializable, public ISortab
 public:
   CProgramInfoTag() { Reset(); };
   void Reset();
+  virtual void Archive(CArchive& ar);
+  virtual void Serialize(CVariant& value) const;
+  virtual void ToSortable(SortItem& sortable, Field field) const;
+
+  const std::string& GetPath() const
+  {
+    if (m_strFileNameAndPath.empty())
+      return m_strPath;
+    return m_strFileNameAndPath;
+  };
+
+  std::string m_strPath;
+  std::string m_strFileNameAndPath;
+  int m_iIdRating;
+  MediaType m_type;
 };
 
 typedef std::vector<CProgramInfoTag> VECPROGRAMS;

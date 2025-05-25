@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "system.h" // HAS_ADVANCED_PROGRAMS_LIBRARY
 #include "StdString.h"
 
 class CURL;
@@ -167,6 +168,9 @@ public:
   static bool IsMemCard(const CStdString& strFile);
   static bool IsURL(const CStdString& strFile);
   static bool IsVideoDb(const CStdString& strFile);
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+  static bool IsProgramDb(const std::string& strFile);
+#endif
   static bool IsVTP(const CStdString& strFile);
   static bool IsAPK(const CStdString& strFile);
   static bool IsZIP(const CStdString& strFile);

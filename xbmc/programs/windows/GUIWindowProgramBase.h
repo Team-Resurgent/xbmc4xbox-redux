@@ -39,9 +39,14 @@ public:
   static void OnAssignContent(const std::string &path);
 
 protected:
+  void OnScan(const std::string& strPath, bool scanAll = false);
   virtual bool GetDirectory(const std::string &strDirectory, CFileItemList &items);
 
   virtual bool OnContextButton(int itemNumber, CONTEXT_BUTTON button);
 
+  int GetScraperForItem(CFileItem *item, ADDON::ScraperPtr &info, PROGRAM::SScanSettings& settings);
+
   static bool OnUnAssignContent(const std::string &path, int header, int text);
+
+  CProgramDatabase m_database;
 };

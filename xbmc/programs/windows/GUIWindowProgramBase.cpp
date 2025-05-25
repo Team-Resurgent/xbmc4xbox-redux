@@ -23,6 +23,7 @@
 #include "programs/ProgramInfoScanner.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
+#include "Application.h"
 #include "guilib/GUIWindowManager.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
 #include "utils/FileUtils.h"
@@ -46,6 +47,18 @@ bool CGUIWindowProgramBase::OnAction(const CAction &action)
 
 bool CGUIWindowProgramBase::OnMessage(CGUIMessage& message)
 {
+  switch ( message.GetMessage() )
+  {
+  case GUI_MSG_WINDOW_DEINIT:
+    m_database.Close();
+    break;
+
+  case GUI_MSG_WINDOW_INIT:
+    {
+      m_database.Open();
+    }
+    break;
+  }
   return CGUIMediaWindow::OnMessage(message);
 }
 
@@ -58,7 +71,34 @@ bool CGUIWindowProgramBase::OnContextButton(int itemNumber, CONTEXT_BUTTON butto
   {
   case CONTEXT_BUTTON_SET_CONTENT:
     {
-      OnAssignContent(static_cast<const std::string&>(item->GetPath()));
+      OnAssignContent(item->HasProgramInfoTag() && !item->GetProgramInfoTag()->m_strPath.empty() ? item->GetProgramInfoTag()->m_strPath : static_cast<const std::string&>(item->GetPath()));
+      return true;
+    }
+
+  case CONTEXT_BUTTON_SCAN:
+    {
+      if (!item)
+        return false;
+      ADDON::ScraperPtr info;
+      SScanSettings settings;
+      GetScraperForItem(item.get(), info, settings);
+      std::string strPath = item->GetPath();
+      if (item->IsProgramDb() && (!item->m_bIsFolder || item->GetProgramInfoTag()->m_strPath.empty()))
+        return false;
+
+      if (item->IsProgramDb())
+        strPath = item->GetProgramInfoTag()->m_strPath;
+
+      if (!info || info->Content() == CONTENT_NONE)
+        return false;
+
+      if (item->m_bIsFolder)
+      {
+        OnScan(strPath, true);
+      }
+      else
+        // TODO: implement on item info
+
       return true;
     }
   default:
@@ -71,6 +111,27 @@ bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileI
 {
   bool bResult = CGUIMediaWindow::GetDirectory(strDirectory, items);
   return bResult;
+}
+
+int CGUIWindowProgramBase::GetScraperForItem(CFileItem *item, ADDON::ScraperPtr &info, SScanSettings& settings)
+{
+  if (!item)
+    return 0;
+
+  if (m_vecItems->IsPlugin())
+  {
+    info.reset();
+    return 0;
+  }
+
+  bool foundDirectly = false;
+  info = m_database.GetScraperForPath(item->HasProgramInfoTag() && !item->GetProgramInfoTag()->m_strPath.empty() ? std::string(item->GetProgramInfoTag()->m_strPath) : item->GetPath(), settings, foundDirectly);
+  return foundDirectly ? 1 : 0;
+}
+
+void CGUIWindowProgramBase::OnScan(const std::string& strPath, bool scanAll)
+{
+    g_application.StartProgramScan(strPath, true, scanAll);
 }
 
 bool CGUIWindowProgramBase::OnUnAssignContent(const std::string &path, int header, int text)
@@ -128,6 +189,6 @@ void CGUIWindowProgramBase::OnAssignContent(const std::string &path)
 
   if (bScan)
   {
-    // TODO: implement scanning and data scraping
+    g_application.StartProgramScan(path, true, true);
   }
 }

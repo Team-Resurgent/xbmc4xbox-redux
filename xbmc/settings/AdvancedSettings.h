@@ -193,6 +193,9 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::vector<std::string> m_videoCleanStringRegExps;
     std::vector<std::string> m_videoExcludeFromListingRegExps;
     std::vector<std::string> m_moviesExcludeFromScanRegExps;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    std::vector<std::string> m_gamesExcludeFromScanRegExps;
+#endif
     std::vector<std::string> m_tvshowExcludeFromScanRegExps;
     std::vector<std::string> m_audioExcludeFromListingRegExps;
     std::vector<std::string> m_audioExcludeFromScanRegExps;
@@ -262,6 +265,11 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     bool m_bVideoScannerIgnoreErrors;
     int m_iVideoLibraryDateAdded;
 
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    bool m_bProgramLibraryCleanOnUpdate;
+    bool m_bProgramLibraryUseFastHash;
+#endif
+
     std::set<std::string> m_vecTokens;
 
     // EDL Commercial Break
@@ -317,6 +325,9 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::string m_pictureExtensions;
     std::string m_musicExtensions;
     std::string m_videoExtensions;
+#ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
+    std::string m_programExtensions;
+#endif
     CStdString m_discStubExtensions;
     CStdString m_subtitlesExtensions;
 

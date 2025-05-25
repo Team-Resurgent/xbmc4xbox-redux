@@ -23,6 +23,7 @@
 #include "ServiceBroker.h"
 #include "addons/AddonManager.h"
 #include "dbwrappers/dataset.h"
+#include "dialogs/GUIDialogExtendedProgressBar.h"
 #include "dialogs/GUIDialogProgress.h"
 #include "filesystem/MultiPathDirectory.h"
 #include "guiinfo/GUIInfoLabels.h"
@@ -90,6 +91,38 @@ int CProgramDatabase::GetPathId(const std::string& strPath)
     CLog::Log(LOGERROR, "%s unable to getpath (%s)", __FUNCTION__, strSQL.c_str());
   }
   return -1;
+}
+
+bool CProgramDatabase::GetPaths(std::set<std::string> &paths)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    paths.clear();
+
+    // grab all paths with game content set
+    if (!m_pDS->query("select strPath,noUpdate from path"
+                      " where (strContent = 'games')"
+                      " and strPath NOT like 'multipath://%%'"
+                      " order by strPath"))
+      return false;
+
+    while (!m_pDS->eof())
+    {
+      if (!m_pDS->fv("noUpdate").get_asBool())
+        paths.insert(m_pDS->fv("strPath").get_asString());
+      m_pDS->next();
+    }
+    m_pDS->close();
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+  }
+  return false;
 }
 
 bool CProgramDatabase::GetSubPaths(const std::string &basepath, std::vector<std::pair<int, std::string> >& subpaths)
@@ -162,6 +195,51 @@ int CProgramDatabase::AddPath(const std::string& strPath, const std::string &par
     CLog::Log(LOGERROR, "%s unable to addpath (%s)", __FUNCTION__, strSQL.c_str());
   }
   return -1;
+}
+
+bool CProgramDatabase::GetPathHash(const std::string &path, std::string &hash)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    std::string strSQL=PrepareSQL("select strHash from path where strPath='%s'", path.c_str());
+    m_pDS->query(strSQL);
+    if (m_pDS->num_rows() == 0)
+      return false;
+    hash = m_pDS->fv("strHash").get_asString();
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, path.c_str());
+  }
+
+  return false;
+}
+
+bool CProgramDatabase::SetPathHash(const std::string &path, const std::string &hash)
+{
+  try
+  {
+    if (NULL == m_pDB.get()) return false;
+    if (NULL == m_pDS.get()) return false;
+
+    int idPath = AddPath(path);
+    if (idPath < 0) return false;
+
+    std::string strSQL=PrepareSQL("update path set strHash='%s' where idPath=%ld", hash.c_str(), idPath);
+    m_pDS->exec(strSQL);
+
+    return true;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "%s (%s, %s) failed", __FUNCTION__, path.c_str(), hash.c_str());
+  }
+
+  return false;
 }
 
 void CProgramDatabase::RemoveContentForPath(const std::string& strPath, CGUIDialogProgress *progress /* = NULL */)
@@ -310,7 +388,6 @@ ScraperPtr CProgramDatabase::GetScraperForPath(const std::string& strPath, SScan
 
 ScraperPtr CProgramDatabase::GetScraperForPath(const std::string& strPath, SScanSettings& settings, bool& foundDirectly)
 {
-  // TODO: implement this method
   foundDirectly = false;
   try
   {

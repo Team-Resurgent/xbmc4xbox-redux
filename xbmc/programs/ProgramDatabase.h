@@ -26,6 +26,7 @@
 #include "ProgramInfoTag.h"
 
 class CGUIDialogProgress;
+class CGUIDialogProgressBarHandle;
 
 namespace dbiplus
 {
@@ -72,6 +73,11 @@ public:
            scraper or no scraper is found.
    */
   ADDON::ScraperPtr GetScraperForPath(const std::string& strPath, PROGRAM::SScanSettings& settings, bool& foundDirectly);
+
+  // scanning hashes and paths scanned
+  bool SetPathHash(const std::string &path, const std::string &hash);
+  bool GetPathHash(const std::string &path, std::string &hash);
+  bool GetPaths(std::set<std::string> &paths);
 
   /*! \brief retrieve subpaths of a given path.  Assumes a heirarchical folder structure
    \param basepath the root path to retrieve subpaths for

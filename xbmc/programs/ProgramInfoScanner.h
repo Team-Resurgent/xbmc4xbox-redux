@@ -20,6 +20,12 @@
  */
 
 #include "InfoScanner.h"
+#include "NfoFile.h"
+#include "ProgramDatabase.h"
+#include "addons/Scraper.h"
+
+class CFileItem;
+class CFileItemList;
 
 namespace PROGRAM
 {
@@ -33,4 +39,66 @@ namespace PROGRAM
     bool exclude;           /* exclude this path from scraping */
     // TODO: extend and implement preferable format for Xbox games (XBE, XISO, CSO, CCI)
   } SScanSettings;
+  class CProgramInfoScanner : public CInfoScanner
+  {
+  public:
+    CProgramInfoScanner();
+    virtual ~CProgramInfoScanner();
+
+    /*! \brief Scan a folder using the background scanner
+     \param strDirectory path to scan
+     \param scanAll whether to scan everything not already scanned (regardless of whether the user normally doesn't want a folder scanned.) Defaults to false.
+     */
+    void Start(const std::string& strDirectory, bool scanAll = false);
+    void Stop();
+
+    /*! \brief Retrieve information for a list of items and add them to the database.
+     \param items list of items to retrieve info for.
+     \param bDirNames whether we should use folder or file names for lookups.
+     \param content type of content to retrieve.
+     \param useLocal should local data (.nfo and art) be used. Defaults to true.
+     \param pURL an optional URL to use to retrieve online info.  Defaults to NULL.
+     \param fetchEpisodes whether we are fetching episodes with shows. Defaults to true.
+     \param pDlgProgress progress dialog to update and check for cancellation during processing.  Defaults to NULL.
+     \return true if we successfully found information for some items, false otherwise
+     */
+    bool RetrieveProgramInfo(CFileItemList& items, bool bDirNames, CONTENT_TYPE content, bool useLocal = true, CScraperUrl *pURL = NULL, CGUIDialogProgress* pDlgProgress = NULL);
+
+  protected:
+    virtual void Process();
+    bool DoScan(const std::string& strDirectory);
+
+    INFO_RET RetrieveInfoForGame(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
+
+    static int GetPathHash(const CFileItemList &items, std::string &hash);
+
+    /*! \brief Retrieve a "fast" hash of the given directory (if available)
+     Performs a stat() on the directory, and uses modified time to create a "fast"
+     hash of the folder. If no modified time is available, the create time is used,
+     and if neither are available, an empty hash is returned.
+     In case exclude from scan expressions are present, the string array will be appended
+     to the md5 hash to ensure we're doing a re-scan whenever the user modifies those.
+     \param directory folder to hash
+     \param excludes string array of exclude expressions
+     \return the md5 hash of the folder"
+     */
+    std::string GetFastHash(const std::string &directory, const std::vector<std::string> &excludes) const;
+
+    /*! \brief Decide whether a folder listing could use the "fast" hash
+     Fast hashing can be done whenever the folder contains no scannable subfolders, as the
+     fast hash technique uses modified time to determine when folder content changes, which
+     is generally not propogated up the directory tree.
+     \param items the directory listing
+     \param excludes string array of exclude expressions
+     \return true if this directory listing can be fast hashed, false otherwise
+     */
+    bool CanFastHash(const CFileItemList &items, const std::vector<std::string> &excludes) const;
+
+    bool m_bStop;
+    bool m_scanAll;
+    std::string m_strStartDir;
+    CProgramDatabase m_database;
+    std::set<int> m_pathsToClean;
+    CNfoFile m_nfoReader;
+  };
 }

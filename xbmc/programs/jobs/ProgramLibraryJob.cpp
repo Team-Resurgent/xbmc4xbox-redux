@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
+ *      Copyright (C) 2014 Team XBMC
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -18,24 +18,20 @@
  *
  */
 
-#include "ProgramInfoTag.h"
+#include "ProgramLibraryJob.h"
+#include "programs/ProgramDatabase.h"
 
-void CProgramInfoTag::Reset()
+CProgramLibraryJob::CProgramLibraryJob()
+{ }
+
+CProgramLibraryJob::~CProgramLibraryJob()
+{ }
+
+bool CProgramLibraryJob::DoWork()
 {
+  CProgramDatabase db;
+  if (!db.Open())
+    return false;
 
-}
-
-void CProgramInfoTag::Archive(CArchive& ar)
-{
-
-}
-
-void CProgramInfoTag::Serialize(CVariant& value) const
-{
-
-}
-
-void CProgramInfoTag::ToSortable(SortItem& sortable, Field field) const
-{
-
+  return Work(db);
 }
