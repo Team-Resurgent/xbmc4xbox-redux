@@ -28,12 +28,16 @@
 #include "dialogs/GUIDialogProgress.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "Application.h"
+#include "filesystem/File.h"
+#include "filesystem/Directory.h"
 #include "guilib/GUIWindowManager.h"
 #include "dialogs/GUIDialogOK.h"
 #include "dialogs/GUIDialogSelect.h"
 #include "profiles/ProfilesManager.h"
 #include "settings/dialogs/GUIDialogContentSettings.h"
+#include "settings/AdvancedSettings.h"
 #include "utils/FileUtils.h"
+#include "utils/URIUtils.h"
 
 using namespace PROGRAM;
 using namespace ADDON;
@@ -255,9 +259,110 @@ bool CGUIWindowProgramBase::Update(const std::string &strDirectory, bool updateF
   return true;
 }
 
+/* Look for executable inside folder and return if exists */
+std::string GetExecutable(const std::string& strFolder)
+{
+  // default.xbe have priority
+  std::string strExecutable = URIUtils::AddFileToFolder(strFolder, "default.xbe");
+  if (XFILE::CFile::Exists(strExecutable))
+    return strExecutable;
+
+  std::string strFilename = strFolder;
+  URIUtils::RemoveSlashAtEnd(strFilename);
+  int iPos = strFilename.rfind('\\');
+  if (iPos == std::string::npos)
+    return "";
+  strFilename = strFilename.substr(iPos);
+
+  // look for first executable with supported extension
+  std::vector<std::string> vecProgramExtensions = StringUtils::Split(g_advancedSettings.m_programExtensions, "|");
+  for (unsigned int i = 0; i < vecProgramExtensions.size(); ++i)
+  {
+    strExecutable = URIUtils::AddFileToFolder(strFolder, strFilename + vecProgramExtensions.at(i));
+    if (XFILE::CFile::Exists(strExecutable))
+      return strExecutable;
+  }
+
+  return "";
+}
+
 bool CGUIWindowProgramBase::GetDirectory(const std::string &strDirectory, CFileItemList &items)
 {
   bool bResult = CGUIMediaWindow::GetDirectory(strDirectory, items);
+  if (URIUtils::IsDOSPath(strDirectory))
+  { // listing programs by sources (ex. F:\Games\)
+    for (int i = 0; i < items.Size(); ++i)
+    {
+      CFileItemPtr item = items[i];
+      // flatten any folder
+      if (item->m_bIsFolder && !item->IsParentFolder())
+      {
+        std::string strExecutable = GetExecutable(item->GetPath());
+        if (!strExecutable.empty())
+        {
+          item->SetPath(strExecutable);
+          item->m_bIsFolder = false;
+        }
+      }
+
+      if (!item->m_bIsFolder)
+      {
+        // remove unsupported executables
+        if (!URIUtils::HasExtension(item->GetPath(), g_advancedSettings.m_programExtensions))
+        {
+          items.Remove(i--);
+          continue;
+        }
+
+        // add program executable to database
+        m_database.AddFile(item->GetPath());
+
+        // load XBMC4Gamers artwork
+        CFileItemList artwork;
+        std::string strPath = URIUtils::AddFileToFolder(URIUtils::GetParentPath(item->GetPath()), "_resources\\artwork\\");
+        if(XFILE::CDirectory::Exists(strPath) && XFILE::CDirectory::GetDirectory(strPath, artwork, g_advancedSettings.m_pictureExtensions, XFILE::DIR_FLAG_DEFAULTS))
+        {
+          for (int i = 0; i < artwork.Size(); i++)
+          {
+            std::string strProperty(artwork[i]->GetLabel());
+            URIUtils::RemoveExtension(strProperty);
+            item->SetArt(strProperty, artwork[i]->GetPath());
+          }
+        }
+
+        CProgramInfoTag tag;
+        // look for local information
+        strPath = URIUtils::ReplaceExtension(item->GetPath(), ".nfo");
+        if (XFILE::CFile::Exists(strPath))
+        {
+          CXBMCTinyXML doc;
+          if (doc.LoadFile(strPath) && doc.RootElement())
+          {
+            const TiXmlElement* metadata = doc.RootElement();
+            tag.Load(metadata);
+          }
+        }
+
+        // look for local trailer
+        std::string strTrailer = item->FindTrailer();
+        if (!strTrailer.empty())
+          tag.SetTrailer(strTrailer);
+
+        // set some default values
+        if (tag.m_strTitle.empty())
+        {
+          std::string strTitle;
+          if (item->IsXBE())
+            CUtil::GetXBEDescription(item->GetPath(), strTitle);
+          tag.SetTitle(strTitle);
+        }
+        tag.m_strFileNameAndPath = item->GetPath();
+
+        // set program information
+        item->SetFromProgramInfoTag(tag);
+      }
+    }
+  }
   return bResult;
 }
 

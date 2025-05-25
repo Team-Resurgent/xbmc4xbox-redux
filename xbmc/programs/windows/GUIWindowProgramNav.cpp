@@ -99,6 +99,8 @@ bool CGUIWindowProgramNav::GetDirectory(const std::string &strDirectory, CFileIt
       else
         items.SetContent("");
     }
+    else if (URIUtils::IsDOSPath(strDirectory))
+      items.SetContent("programs");
 
     CProgramDbUrl programUrl;
     if (programUrl.FromString(items.GetPath()) && items.GetContent() == "tags" &&

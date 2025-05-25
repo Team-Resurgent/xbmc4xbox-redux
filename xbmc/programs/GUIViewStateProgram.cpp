@@ -122,10 +122,8 @@ CGUIViewStateWindowProgramNav::CGUIViewStateWindowProgramNav(const CFileItemList
   }
   else
   {
-    AddSortMethod(SortByLabel, sortAttributes, 551, LABEL_MASKS("%L", "%I", "%L", ""));  // Label, Size | Label, empty
-    AddSortMethod(SortBySize, 553, LABEL_MASKS("%L", "%I", "%L", "%I"));  // Label, Size | Label, Size
+    AddSortMethod(SortByLabel, sortAttributes, 551, LABEL_MASKS("%L", "", "%L", ""));  // Label, empty | Label, empty
     AddSortMethod(SortByDate, 552, LABEL_MASKS("%L", "%J", "%L", "%J"));  // Label, Date | Label, Date
-    AddSortMethod(SortByFile, 561, LABEL_MASKS("%L", "%I", "%L", ""));  // Label, Size | Label, empty
 
     const CViewState *viewState = CViewStateSettings::Get().Get("programfiles");
     SetSortMethod(viewState->m_sortDescription);

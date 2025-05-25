@@ -143,7 +143,8 @@ void CGUIDialogProgramInfo::OnInitWindow()
 {
   m_bRefresh = false;
 
-  CONTROL_ENABLE_ON_CONDITION(CONTROL_BTN_REFRESH, CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser);
+  CONTROL_ENABLE_ON_CONDITION(CONTROL_BTN_REFRESH, m_programItem->GetProgramInfoTag()->m_iDbId > 0 &&
+                                                  (CProfilesManager::Get().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser));
 
   Update();
 
