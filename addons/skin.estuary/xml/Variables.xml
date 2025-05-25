@@ -323,6 +323,11 @@
 		<value condition="Container.Content(episodes)">$LOCALIZE[20343]</value>
 		<value>$LOCALIZE[3]</value>
 	</variable>
+	<variable name="BreadcrumbsProgramVar">
+		<value condition="Container.Content(games) | String.StartsWith(container.folderpath,library://program/games/) | String.StartsWith(container.folderpath,programdb://games)">$LOCALIZE[38928]</value>
+		<value condition="Container.Content(apps) | String.StartsWith(container.folderpath,library://program/apps/) | String.StartsWith(container.folderpath,programdb://apps)">$LOCALIZE[38932]</value>
+		<value>$LOCALIZE[0]</value>
+	</variable>
 	<variable name="RepeatButtonColordiffuseVar">
 		<value condition="Control.HasFocus(704)">button_focus</value>
 		<value>FFFFFFFF</value>
