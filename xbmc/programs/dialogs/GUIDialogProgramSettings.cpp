@@ -32,6 +32,10 @@
 #include "utils/log.h"
 #include "utils/XMLUtils.h"
 #include "Util.h"
+#include "xbox/xbeheader.h"
+
+#define SETTING_EXECUTABLE            "programexecutable"
+#define SETTING_FORCEREGION           "programforceregion"
 
 using namespace std;
 
@@ -56,6 +60,16 @@ bool CGUIDialogProgramSettings::OnMessage(CGUIMessage& message)
       break;
     }
 
+    case GUI_MSG_CLICKED:
+    {
+      if (message.GetSenderId() == CONTROL_SETTINGS_CUSTOM_BUTTON)
+      {
+        SaveProgramSettings();
+        return true;
+      }
+      break;
+    }
+
     default:
       break;
   }
@@ -63,10 +77,141 @@ bool CGUIDialogProgramSettings::OnMessage(CGUIMessage& message)
   return CGUIDialogSettingsManualBase::OnMessage(message);
 }
 
+void CGUIDialogProgramSettings::LoadSettings(const std::string& strExecutable, SProgramSettings& programSettings)
+{
+  CProgramDatabase database;
+  if (database.Open())
+  {
+    bool isXBE = URIUtils::HasExtension(strExecutable, ".xbe");
+
+    std::string strSettings;
+    if (database.GetProgramSettings(strExecutable, strSettings) && !strSettings.empty())
+    {
+      CXBMCTinyXML xmlSettings;
+      if (xmlSettings.Parse(strSettings) &&
+          xmlSettings.RootElement() &&
+          xmlSettings.RootElement()->ValueStr() == "settings")
+      {
+        TiXmlElement *element = xmlSettings.RootElement();
+        XMLUtils::GetString(element, SETTING_EXECUTABLE, programSettings.strExecutable);
+        if (isXBE)
+        {
+          XMLUtils::GetInt(element, SETTING_FORCEREGION, programSettings.iForceRegion);
+        }
+      }
+    }
+  }
+  // set default values
+  if (programSettings.strExecutable.empty())
+    programSettings.strExecutable = URIUtils::GetFileName(strExecutable);
+}
+
+int CGUIDialogProgramSettings::GetXBERegion(const std::string& strExecutable, bool forceAllRegions /* = false */)
+{
+  CXBE xbe;
+  int iRegion = xbe.ExtractGameRegion(strExecutable);
+  if (iRegion < 1 || iRegion > 7)
+    iRegion = 0;
+  return CXBE::FilterRegion(iRegion, forceAllRegions);
+}
+
 void CGUIDialogProgramSettings::Reset()
 {
   m_iTitleId = 0;
   m_strExecutable.clear();
+  m_settings.Reset();
+}
+
+void CGUIDialogProgramSettings::LoadProgramSettings()
+{
+  CProgramDatabase database;
+  if (database.Open())
+  {
+    // Load general settings
+    LoadSettings(m_strExecutable, m_settings);
+
+    database.Close();
+  }
+}
+
+void CGUIDialogProgramSettings::SaveSettings(const std::string& strExecutable, const SProgramSettings& settings)
+{
+  CProgramDatabase database;
+  if (database.Open())
+  {
+    bool isXBE = URIUtils::HasExtension(strExecutable, ".xbe");
+
+    // save general settings
+    TiXmlDocument xmlSettings;
+    TiXmlElement xmlRootElement("settings");
+    TiXmlNode *pRoot = xmlSettings.InsertEndChild(xmlRootElement);
+    if (pRoot)
+    {
+      XMLUtils::SetString(pRoot, SETTING_EXECUTABLE, settings.strExecutable);
+      if (isXBE)
+      {
+        XMLUtils::SetInt(pRoot, SETTING_FORCEREGION, settings.iForceRegion);
+      }
+
+      TiXmlPrinter printer;
+      printer.SetIndent("");
+      xmlSettings.Accept(&printer);
+      database.SetProgramSettings(strExecutable, printer.CStr());
+    }
+  }
+}
+
+void CGUIDialogProgramSettings::SaveProgramSettings()
+{
+  CProgramDatabase database;
+  if (database.Open())
+  {
+    // save general settings
+    SaveSettings(m_strExecutable, m_settings);
+  }
+}
+
+void CGUIDialogProgramSettings::IntegerOptionsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
+{
+  if (setting == NULL || data == NULL)
+    return;
+
+  CGUIDialogProgramSettings *programSettings = static_cast<CGUIDialogProgramSettings*>(data);
+
+  if (setting->GetId() == SETTING_FORCEREGION)
+  {
+    int iRegion = GetXBERegion(programSettings->m_strExecutable, true);
+    list.push_back(make_pair(g_localizeStrings.Get(16316), 0));
+    list.push_back(make_pair(iRegion == VIDEO_NTSCM ? "NTSC-M (default)" : "NTSC-M", VIDEO_NTSCM));
+    list.push_back(make_pair(iRegion == VIDEO_NTSCJ ? "NTSC-J (default)" : "NTSC-J", VIDEO_NTSCJ));
+    list.push_back(make_pair(iRegion == VIDEO_PAL50 ? "PAL (default)" : "PAL", VIDEO_PAL50));
+    list.push_back(make_pair(iRegion == VIDEO_PAL60 ? "PAL60 (default)" : "PAL60", VIDEO_PAL60));
+  }
+}
+
+void CGUIDialogProgramSettings::StringOptionsFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+{
+  if (setting == NULL || data == NULL)
+    return;
+
+  CGUIDialogProgramSettings *programSettings = static_cast<CGUIDialogProgramSettings*>(data);
+
+  if (setting->GetId() == SETTING_EXECUTABLE)
+  {
+    CFileItemList items;
+    XFILE::CDirectory::GetDirectory(URIUtils::GetParentPath(programSettings->m_strExecutable), items, URIUtils::GetExtension(programSettings->m_strExecutable), XFILE::DIR_FLAG_DEFAULTS);
+    if (items.Size())
+    {
+      for (int i = 0; i < items.Size(); ++i)
+      {
+        if (!items[i]->m_bIsFolder)
+        {
+          std::string strLabel = URIUtils::GetFileName(items[i]->GetPath());
+          list.push_back(std::pair<std::string, std::string>(strLabel, strLabel));
+        }
+      }
+    }
+  }
 }
 
 void CGUIDialogProgramSettings::OnSettingChanged(const CSetting *setting)
@@ -76,7 +221,15 @@ void CGUIDialogProgramSettings::OnSettingChanged(const CSetting *setting)
 
   CGUIDialogSettingsManualBase::OnSettingChanged(setting);
 
-  // TODO: update changed setting
+  const std::string &settingId = setting->GetId();
+  if (settingId == SETTING_EXECUTABLE)
+  {
+    m_settings.strExecutable = ((CSettingString*)setting)->GetValue();
+  }
+  else if (settingId == SETTING_FORCEREGION)
+  {
+    m_settings.iForceRegion = ((CSettingInt*)setting)->GetValue();
+  }
 }
 
 void CGUIDialogProgramSettings::SetupView()
@@ -95,8 +248,6 @@ void CGUIDialogProgramSettings::OnSettingAction(const CSetting *setting)
     return;
 
   CGUIDialogSettingsManualBase::OnSettingChanged(setting);
-
-  // TODO: handle setting action
 }
 
 void CGUIDialogProgramSettings::Save()
@@ -105,7 +256,7 @@ void CGUIDialogProgramSettings::Save()
       !g_passwordManager.CheckSettingLevelLock(::SettingLevelExpert))
     return;
 
-  // TODO: save changed settings
+  SaveProgramSettings();
 }
 
 void CGUIDialogProgramSettings::InitializeSettings()
@@ -126,7 +277,17 @@ void CGUIDialogProgramSettings::InitializeSettings()
     return;
   }
 
-  // TODO: initialize settings
+  bool isXBE = URIUtils::HasExtension(m_strExecutable, ".xbe");
+  if (!m_iTitleId)
+    m_iTitleId = isXBE ? CUtil::GetXbeID(m_strExecutable) : 0;
+
+  LoadProgramSettings();
+
+  AddSpinner(group, SETTING_EXECUTABLE, 655, 0, m_settings.strExecutable, StringOptionsFiller, true);
+  if (isXBE)
+  { // Xbox (XBE) executable
+    AddList(group, SETTING_FORCEREGION, 20026, 0, m_settings.iForceRegion, IntegerOptionsFiller, 20026);
+  }
 }
 
 void CGUIDialogProgramSettings::ShowForTitle(const CFileItemPtr pItem)

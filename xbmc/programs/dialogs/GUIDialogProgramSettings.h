@@ -24,6 +24,14 @@
 
 class CSetting;
 
+typedef struct SProgramSettings
+{
+  SProgramSettings() { Reset(); }
+  std::string strExecutable;  /* which executable to launch */
+  int iForceRegion; /* force game region */
+  void Reset() { strExecutable.clear(); iForceRegion = 0; }
+} SProgramSettings;
+
 class CGUIDialogProgramSettings : public CGUIDialogSettingsManualBase
 {
 public:
@@ -31,9 +39,30 @@ public:
   virtual ~CGUIDialogProgramSettings();
   virtual bool OnMessage(CGUIMessage &message);
 
+  /*! \brief retrieve settings of a given executable
+   \param strExecutable the absolute path to program executable
+   \param programSettings the structure in which settings will be loaded
+   */
+  static void LoadSettings(const std::string& strExecutable, SProgramSettings& programSettings);
+
+  /*! \brief save settings of a given executable
+   \param strExecutable the absolute path to program executable
+   \param settings settings which needs saving
+   */
+  static void SaveSettings(const std::string& strExecutable, const SProgramSettings& settings);
+
+  /*! \brief retrieve region of a given executable
+   \param strExecutable the absolute path to program executable
+   \param forceAllRegions force all regions
+   */
+  static int GetXBERegion(const std::string& strExecutable, bool forceAllRegions = false);
+
   static void ShowForTitle(const CFileItemPtr pItem);
 
 protected:
+  static void IntegerOptionsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+  static void StringOptionsFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+
   // implementations of ISettingCallback
   virtual void OnSettingChanged(const CSetting *setting);
   virtual void OnSettingAction(const CSetting *setting);
@@ -53,7 +82,11 @@ protected:
 private:
   void Reset();
 
+  void LoadProgramSettings();
+  void SaveProgramSettings();
+
   unsigned int m_iTitleId;
   std::string m_strExecutable;
+  SProgramSettings m_settings;
 };
 
