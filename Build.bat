@@ -184,7 +184,7 @@ GOTO:EOF
 
 :MAKE_BUILD
 
-  RMDIR %~1 /S /Q
+  IF EXIST %~1 RMDIR %~1 /S /Q
   MKDIR %~1
   
   ECHO Copying files to %~1 ...

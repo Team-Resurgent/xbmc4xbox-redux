@@ -1,0 +1,52 @@
+name: Build Nightly
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on:
+      - self-hosted
+
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          submodules: recursive
+
+      - name: Download prerequisites
+        shell: pwsh
+        run: |
+          $destination = "tools\BuildDependencies.zip"
+          Invoke-WebRequest -Uri "https://www.dropbox.com/scl/fi/5ymtc9cqnjjpx7gw8i6zz/BuildDependencies.zip?rlkey=o2rygnv6lrv18zm01v8q5azq3&st=k51dwl2y&dl=1" -OutFile $destination -UseBasicParsing
+          Expand-Archive -Path $destination -DestinationPath "tools" -Force
+
+      - name: Generate svn_rev.h
+        shell: powershell
+        run: |
+          $template = Get-Content ".\xbmc\xbox\svn_rev.tmpl"
+          $rev = git rev-parse --short origin/master
+          $date = Get-Date -Format "yyyy-MM-dd HH:mm"
+          $output = $template -replace '\$WCREV\$', nightly-$rev -replace '\$WCDATE\$', $date
+          $output | Set-Content ".\xbmc\xbox\svn_rev.h"
+
+      - name: Generate XBMC Python bindings
+        run: |
+          cd tools\codegenerator\
+          .\GenerateWIN.bat
+
+      - name: Build XBMC
+        run: .\Build.bat noprompt build1
+
+      - name: Create Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly build
+          files: XBMC4XBOX.zip
+          body: "Automated nightly build."
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
