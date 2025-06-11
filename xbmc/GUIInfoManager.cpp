@@ -63,6 +63,7 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include "cores/DataCacheCore.h"
 #include "guiinfo/GUIInfoLabels.h"
 #include "messaging/ApplicationMessenger.h"
 
@@ -6280,42 +6281,32 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
   case VIDEOPLAYER_VIDEO_CODEC:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      SPlayerVideoStreamInfo info;
-      g_application.m_pPlayer->GetVideoStreamInfo(-1, info);
-      strLabel = info.videoCodecName;
+      strLabel = m_videoInfo.videoCodecName;
     }
     break;
   case VIDEOPLAYER_VIDEO_RESOLUTION:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      SPlayerVideoStreamInfo info;
-      g_application.m_pPlayer->GetVideoStreamInfo(-1, info);
-      return CStreamDetails::VideoDimsToResolutionDescription(info.width, info.height);
+      return CStreamDetails::VideoDimsToResolutionDescription(m_videoInfo.width, m_videoInfo.height);
     }
     break;
   case VIDEOPLAYER_AUDIO_CODEC:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      SPlayerAudioStreamInfo info;
-      g_application.m_pPlayer->GetAudioStreamInfo(g_application.m_pPlayer->GetAudioStream(), info);
-      strLabel = info.audioCodecName;
+      strLabel = m_audioInfo.audioCodecName;
     }
     break;
   case VIDEOPLAYER_VIDEO_ASPECT:
     if (g_application.m_pPlayer->IsPlaying())
     {
-      SPlayerVideoStreamInfo info;
-      g_application.m_pPlayer->GetVideoStreamInfo(-1, info);
-      strLabel = CStreamDetails::VideoAspectToAspectDescription(info.videoAspectRatio);
+      strLabel = CStreamDetails::VideoAspectToAspectDescription(m_videoInfo.videoAspectRatio);
     }
     break;
   case VIDEOPLAYER_AUDIO_CHANNELS:
     if(g_application.m_pPlayer->IsPlaying())
     {
-      SPlayerAudioStreamInfo info;
-      g_application.m_pPlayer->GetAudioStreamInfo(g_application.m_pPlayer->GetAudioStream(), info);
-      if (info.channels > 0)
-        strLabel = StringUtils::Format("%i", info.channels);
+      if (m_audioInfo.channels > 0)
+        strLabel = StringUtils::Format("%i", m_audioInfo.channels);
     }
     break;
   case VIDEOPLAYER_AUDIO_LANG:
@@ -9020,9 +9011,6 @@ std::string CGUIInfoManager::GetMusicLabel(int item)
 {
   if (!g_application.m_pPlayer->IsPlaying() || !m_currentFile->HasMusicInfoTag()) return "";
 
-  SPlayerAudioStreamInfo info;
-  g_application.m_pPlayer->GetAudioStreamInfo(g_application.m_pPlayer->GetAudioStream(), info);
-
   switch (item)
   {
   case MUSICPLAYER_PLAYLISTLEN:
@@ -9042,21 +9030,21 @@ std::string CGUIInfoManager::GetMusicLabel(int item)
       float fTimeSpan = (float)(CTimeUtils::GetFrameTime() - m_lastMusicBitrateTime);
       if (fTimeSpan >= 500.0f)
       {
-        m_MusicBitrate = info.bitrate;
+        m_MusicBitrate = m_audioInfo.bitrate;
         m_lastMusicBitrateTime = CTimeUtils::GetFrameTime();
       }
       std::string strBitrate = "";
-      if (info.bitrate > 0)
-        strBitrate = StringUtils::Format("%i", MathUtils::round_int((double)m_MusicBitrate / 1000.0));
+      if (m_audioInfo.bitrate > 0)
+        strBitrate = StringUtils::Format("%i", MathUtils::round_int((double)m_audioInfo.bitrate / 1000.0));
       return strBitrate;
     }
     break;
   case MUSICPLAYER_CHANNELS:
     {
       std::string strChannels = "";
-      if (info.channels > 0)
+      if (m_audioInfo.channels > 0)
       {
-        strChannels = StringUtils::Format("%i", info.channels);
+        strChannels = StringUtils::Format("%i", m_audioInfo.channels);
       }
       return strChannels;
     }
@@ -9064,22 +9052,22 @@ std::string CGUIInfoManager::GetMusicLabel(int item)
   case MUSICPLAYER_BITSPERSAMPLE:
     {
       std::string strBitsPerSample = "";
-      if (info.bitspersample > 0)
-        strBitsPerSample = StringUtils::Format("%i", info.bitspersample);
+      if (m_audioInfo.bitspersample > 0)
+        strBitsPerSample = StringUtils::Format("%i", m_audioInfo.bitspersample);
       return strBitsPerSample;
     }
     break;
   case MUSICPLAYER_SAMPLERATE:
     {
       std::string strSampleRate = "";
-      if (info.samplerate > 0)
-        strSampleRate = StringUtils::Format("%.5g", ((double)info.samplerate / 1000.0));
+      if (m_audioInfo.samplerate > 0)
+        strSampleRate = StringUtils::Format("%.5g", ((double)m_audioInfo.samplerate / 1000.0));
       return strSampleRate;
     }
     break;
   case MUSICPLAYER_CODEC:
     {
-      return StringUtils::Format("%s", info.audioCodecName.c_str());
+      return StringUtils::Format("%s", m_audioInfo.audioCodecName.c_str());
     }
     break;
   }
@@ -9957,7 +9945,6 @@ void CGUIInfoManager::UpdateAVInfo()
 {
   if(g_application.m_pPlayer->IsPlaying())
   {
-#ifndef _XBOX
     if (CServiceBroker::GetDataCacheCore().HasAVInfoChanges())
     {
       SPlayerVideoStreamInfo video;
@@ -9969,9 +9956,10 @@ void CGUIInfoManager::UpdateAVInfo()
       m_videoInfo = video;
       m_audioInfo = audio;
 
+#ifndef _XBOX
       m_isPvrChannelPreview = g_PVRManager.IsChannelPreview();
-    }
 #endif
+    }
   }
 }
 

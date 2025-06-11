@@ -524,6 +524,12 @@ void CApplicationPlayer::GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo
 
 void CApplicationPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
 {
+  if (index == CURRENT_STREAM)
+    index = GetAudioStream();
+
+  if (index < 0 || index > GetAudioStreamCount() - 1 )
+    return;
+
   boost::shared_ptr<IPlayer> player = GetInternal();
   if (player)
   {
