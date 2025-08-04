@@ -277,6 +277,12 @@
 				RelativePath=".\curl_addrinfo.c">
 			</File>
 			<File
+				RelativePath=".\curl_des.c">
+			</File>
+			<File
+				RelativePath=".\curl_endian.c">
+			</File>
+			<File
 				RelativePath=".\curl_fnmatch.c">
 			</File>
 			<File
@@ -382,6 +388,9 @@
 				RelativePath=".\http_negotiate.c">
 			</File>
 			<File
+				RelativePath=".\http_ntlm.c">
+			</File>
+			<File
 				RelativePath=".\http_proxy.c">
 			</File>
 			<File
@@ -457,6 +466,9 @@
 				RelativePath=".\progress.c">
 			</File>
 			<File
+				RelativePath=".\rand.c">
+			</File>
+			<File
 				RelativePath=".\rtsp.c">
 			</File>
 			<File
@@ -473,6 +485,9 @@
 			</File>
 			<File
 				RelativePath=".\slist.c">
+			</File>
+			<File
+				RelativePath=".\smb.c">
 			</File>
 			<File
 				RelativePath=".\smtp.c">
@@ -496,6 +511,9 @@
 				RelativePath=".\ssh.c">
 			</File>
 			<File
+				RelativePath=".\strcase.c">
+			</File>
+			<File
 				RelativePath=".\strdup.c">
 			</File>
 			<File
@@ -506,6 +524,9 @@
 			</File>
 			<File
 				RelativePath=".\strtoofft.c">
+			</File>
+			<File
+				RelativePath=".\system_win32.c">
 			</File>
 			<File
 				RelativePath=".\timeval.c">
@@ -586,6 +607,37 @@
 					RelativePath=".\vtls\vtls.h">
 				</File>
 			</Filter>
+			<Filter
+				Name="vauth"
+				Filter="">
+				<File
+					RelativePath=".\vauth\cleartext.c">
+				</File>
+				<File
+					RelativePath=".\vauth\cram.c">
+				</File>
+				<File
+					RelativePath=".\vauth\digest.c">
+				</File>
+				<File
+					RelativePath=".\vauth\digest.h">
+				</File>
+				<File
+					RelativePath=".\vauth\ntlm.c">
+				</File>
+				<File
+					RelativePath=".\vauth\ntlm.h">
+				</File>
+				<File
+					RelativePath=".\vauth\oauth2.c">
+				</File>
+				<File
+					RelativePath=".\vauth\vauth.c">
+				</File>
+				<File
+					RelativePath=".\vauth\vauth.h">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -619,6 +671,12 @@
 			</File>
 			<File
 				RelativePath=".\curl_base64.h">
+			</File>
+			<File
+				RelativePath=".\curl_des.h">
+			</File>
+			<File
+				RelativePath=".\curl_endian.h">
 			</File>
 			<File
 				RelativePath=".\curl_fnmatch.h">
@@ -738,6 +796,9 @@
 				RelativePath=".\http_negotiate.h">
 			</File>
 			<File
+				RelativePath=".\http_ntlm.h">
+			</File>
+			<File
 				RelativePath=".\http_proxy.h">
 			</File>
 			<File
@@ -789,6 +850,9 @@
 				RelativePath=".\progress.h">
 			</File>
 			<File
+				RelativePath=".\rand.h">
+			</File>
+			<File
 				RelativePath=".\rtsp.h">
 			</File>
 			<File
@@ -813,6 +877,9 @@
 				RelativePath=".\slist.h">
 			</File>
 			<File
+				RelativePath=".\smb.h">
+			</File>
+			<File
 				RelativePath=".\smtp.h">
 			</File>
 			<File
@@ -831,6 +898,9 @@
 				RelativePath=".\ssh.h">
 			</File>
 			<File
+				RelativePath=".\strcase.h">
+			</File>
+			<File
 				RelativePath=".\strdup.h">
 			</File>
 			<File
@@ -841,6 +911,9 @@
 			</File>
 			<File
 				RelativePath=".\strtoofft.h">
+			</File>
+			<File
+				RelativePath=".\system_win32.h">
 			</File>
 			<File
 				RelativePath=".\timeval.h">
