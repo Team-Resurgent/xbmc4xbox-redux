@@ -262,9 +262,6 @@
 				RelativePath=".\base64.c">
 			</File>
 			<File
-				RelativePath=".\bundles.c">
-			</File>
-			<File
 				RelativePath=".\conncache.c">
 			</File>
 			<File
@@ -295,13 +292,7 @@
 				RelativePath=".\curl_multibyte.c">
 			</File>
 			<File
-				RelativePath=".\curl_ntlm.c">
-			</File>
-			<File
 				RelativePath=".\curl_ntlm_core.c">
-			</File>
-			<File
-				RelativePath=".\curl_ntlm_msgs.c">
 			</File>
 			<File
 				RelativePath=".\curl_ntlm_wb.c">
@@ -311,9 +302,6 @@
 			</File>
 			<File
 				RelativePath=".\curl_sasl.c">
-			</File>
-			<File
-				RelativePath=".\curl_sasl_sspi.c">
 			</File>
 			<File
 				RelativePath=".\curl_sspi.c">
@@ -394,9 +382,6 @@
 				RelativePath=".\http_negotiate.c">
 			</File>
 			<File
-				RelativePath=".\http_negotiate_sspi.c">
-			</File>
-			<File
 				RelativePath=".\http_proxy.c">
 			</File>
 			<File
@@ -472,9 +457,6 @@
 				RelativePath=".\progress.c">
 			</File>
 			<File
-				RelativePath=".\rawstr.c">
-			</File>
-			<File
 				RelativePath=".\rtsp.c">
 			</File>
 			<File
@@ -517,9 +499,6 @@
 				RelativePath=".\strdup.c">
 			</File>
 			<File
-				RelativePath=".\strequal.c">
-			</File>
-			<File
 				RelativePath=".\strerror.c">
 			</File>
 			<File
@@ -557,18 +536,6 @@
 				</File>
 				<File
 					RelativePath=".\vtls\axtls.h">
-				</File>
-				<File
-					RelativePath=".\vtls\curl_darwinssl.c">
-				</File>
-				<File
-					RelativePath=".\vtls\curl_darwinssl.h">
-				</File>
-				<File
-					RelativePath=".\vtls\curl_schannel.c">
-				</File>
-				<File
-					RelativePath=".\vtls\curl_schannel.h">
 				</File>
 				<File
 					RelativePath=".\vtls\cyassl.c">
@@ -613,12 +580,6 @@
 					RelativePath=".\vtls\polarssl_threadlock.h">
 				</File>
 				<File
-					RelativePath=".\vtls\qssl.c">
-				</File>
-				<File
-					RelativePath=".\vtls\qssl.h">
-				</File>
-				<File
 					RelativePath=".\vtls\vtls.c">
 				</File>
 				<File
@@ -637,9 +598,6 @@
 			</File>
 			<File
 				RelativePath=".\asyn.h">
-			</File>
-			<File
-				RelativePath=".\bundles.h">
 			</File>
 			<File
 				RelativePath=".\config-win32.h">
@@ -693,13 +651,7 @@
 				RelativePath=".\curl_multibyte.h">
 			</File>
 			<File
-				RelativePath=".\curl_ntlm.h">
-			</File>
-			<File
 				RelativePath=".\curl_ntlm_core.h">
-			</File>
-			<File
-				RelativePath=".\curl_ntlm_msgs.h">
 			</File>
 			<File
 				RelativePath=".\curl_ntlm_wb.h">
@@ -837,9 +789,6 @@
 				RelativePath=".\progress.h">
 			</File>
 			<File
-				RelativePath=".\rawstr.h">
-			</File>
-			<File
 				RelativePath=".\rtsp.h">
 			</File>
 			<File
@@ -883,9 +832,6 @@
 			</File>
 			<File
 				RelativePath=".\strdup.h">
-			</File>
-			<File
-				RelativePath=".\strequal.h">
 			</File>
 			<File
 				RelativePath=".\strerror.h">
