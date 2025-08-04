@@ -30,6 +30,24 @@
 /*                          HEADER FILES                            */
 /* ---------------------------------------------------------------- */
 
+/* for polarssl */
+#define USE_POLARSSL
+
+#define HAVE_ZLIB_H
+#define HAVE_LIBZ
+
+#define CURL_DISABLE_LDAP
+#define CURL_DISABLE_TELNET
+#define CURL_DISABLE_DICT
+#define CURL_DISABLE_TFTP
+#define CURL_DISABLE_RTMP
+#define CURL_DISABLE_IMAP
+#define CURL_DISABLE_POP3
+#define CURL_DISABLE_RTSP
+#define CURL_DISABLE_GOPHER
+
+#define USE_SYNC_DNS
+
 /* Define if you have the <arpa/inet.h> header file. */
 /* #define HAVE_ARPA_INET_H 1 */
 
@@ -198,10 +216,10 @@
 /* #define HAVE_GETPASS 1 */
 
 /* Define if you have the getservbyname function. */
-#define HAVE_GETSERVBYNAME 1
+#undef HAVE_GETSERVBYNAME
 
 /* Define if you have the getprotobyname function. */
-#define HAVE_GETPROTOBYNAME
+#undef HAVE_GETPROTOBYNAME
 
 /* Define if you have the gettimeofday function. */
 /* #define HAVE_GETTIMEOFDAY 1 */
@@ -226,7 +244,7 @@
 
 /* Define if you have the `CRYPTO_cleanup_all_ex_data' function.
    This is present in OpenSSL versions after 0.9.6b */
-#define HAVE_CRYPTO_CLEANUP_ALL_EX_DATA 1
+#undef HAVE_CRYPTO_CLEANUP_ALL_EX_DATA
 
 /* Define if you have the select function. */
 #define HAVE_SELECT 1
