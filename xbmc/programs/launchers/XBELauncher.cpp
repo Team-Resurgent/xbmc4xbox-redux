@@ -21,26 +21,33 @@
 #include "XBELauncher.h"
 #include "programs/dialogs/GUIDialogProgramSettings.h"
 #include "programs/ProgramDatabase.h"
+#include "FileItem.h"
 #include "utils/URIUtils.h"
+#include "utils/Trainer.h"
+#include "utils/log.h"
+#include "Util.h"
 
 using namespace LAUNCHERS;
 
 CXBELauncher::CXBELauncher(std::string strExecutable)
 {
   m_strExecutable = strExecutable;
+  m_trainer = nullptr;
   m_database = new CProgramDatabase();
   m_settings = new SProgramSettings();
 }
 
 CXBELauncher::~CXBELauncher(void)
 {
+  if (m_trainer)
+    delete m_trainer;
   delete m_database;
   delete m_settings;
 }
 
 bool CXBELauncher::LoadSettings()
 {
-  return false;
+    return false;
 }
 
 bool CXBELauncher::IsSupported()
@@ -48,11 +55,48 @@ bool CXBELauncher::IsSupported()
   return URIUtils::HasExtension(m_strExecutable, ".xbe");
 }
 
+CTrainer* CXBELauncher::LoadTrainer(unsigned int iTitleID)
+{
+  CProgramDatabase database;
+  if (!database.Open())
+    return nullptr;
+
+  CFileItemList items;
+  if (database.GetTrainers(items, iTitleID))
+  {
+    for (int i = 0; i < items.Size(); ++i)
+    {
+      if (items[i]->GetProperty("isactive").asBoolean())
+      {
+        CTrainer* trainer = new CTrainer(items[i]->GetProgramInfoTag()->m_iDbId);
+        if (trainer->Load(items[i]->GetPath()) &&
+            database.GetTrainerOptions(trainer->GetTrainerId(), iTitleID, trainer->GetOptions(), trainer->GetNumberOfOptions()))
+          return trainer;
+        else
+        {
+          delete trainer;
+          return nullptr;
+        }
+      }
+    }
+  }
+
+  return nullptr;
+}
+
 bool CXBELauncher::Launch()
 {
   if (!IsSupported())
     return false;
 
-  // TODO: implement launching of this executable (support for trainers, flicke filter etc.)
+  // install trainer if available
+  m_trainer = LoadTrainer(CUtil::GetXbeID(m_strExecutable));
+  if (m_trainer && !CTrainer::InstallTrainer(*m_trainer))
+  {
+    CLog::Log(LOGERROR, "%s - Trainer could not be installed: %s", __FUNCTION__, m_trainer->GetPath());
+    return false;
+  }
+
+  // TODO: implement launching of this executable (region switching, flicke filter etc.)
   return false;
 }

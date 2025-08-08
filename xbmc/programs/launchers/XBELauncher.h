@@ -23,6 +23,7 @@
 
 #include <string>
 
+class CTrainer;
 class CProgramDatabase;
 struct SProgramSettings;
 
@@ -34,6 +35,8 @@ namespace LAUNCHERS
     CXBELauncher(std::string strExecutable);
     virtual ~CXBELauncher(void);
 
+    static CTrainer* LoadTrainer(unsigned int iTitleID);
+
   protected:
     virtual bool LoadSettings();
 
@@ -43,6 +46,7 @@ namespace LAUNCHERS
 
     std::string m_strExecutable;
 
+    CTrainer* m_trainer;
     CProgramDatabase* m_database;
     SProgramSettings* m_settings;
   };
