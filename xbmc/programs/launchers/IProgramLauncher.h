@@ -27,9 +27,11 @@ public:
   /*!
   \brief Launches the specified program.
 
+  \param bLoadSettings specify if launcher should load custom settings
+  \param bAllowRegionSwitching specify if launcher is allowed to force region
   \return Returns true if the program was successfully launched, false otherwise.
   */
-  virtual bool Launch() = 0;
+  virtual bool Launch(bool bLoadSettings, bool bAllowRegionSwitching) = 0;
 
 protected:
   /*!

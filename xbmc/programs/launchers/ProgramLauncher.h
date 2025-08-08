@@ -37,7 +37,7 @@ public:
   CProgramLauncher(void);
   virtual ~CProgramLauncher(void);
 
-  static bool LaunchProgram(const std::string& strExecutable);
-  static bool LaunchProgram(const CURL& url);
+  static bool LaunchProgram(const std::string& strExecutable, bool bLookForSettings = true, bool bAllowRegionSwitching = true);
+  static bool LaunchProgram(const CURL& url, bool bLookForSettings = true, bool bAllowRegionSwitching = true);
 };
 }

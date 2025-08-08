@@ -105,6 +105,7 @@
 #include "utils/CharsetConverter.h"
 #include "utils/log.h"
 #include "video/VideoInfoTag.h"
+#include "programs/launchers/ProgramLauncher.h"
 
 #include "defs_from_settings.h"
 
@@ -1479,7 +1480,7 @@ void CUtil::PlayDVD(const CStdString& strProtocol, bool restart)
 {
   if (CSettings::GetInstance().GetBool("dvds.useexternaldvdplayer") && !CSettings::GetInstance().GetString("dvds.externaldvdplayer").empty())
   {
-    RunXBE(CSettings::GetInstance().GetString("dvds.externaldvdplayer").c_str());
+    LAUNCHERS::CProgramLauncher::LaunchProgram(CSettings::GetInstance().GetString("dvds.externaldvdplayer"), false, false);
   }
   else
   {

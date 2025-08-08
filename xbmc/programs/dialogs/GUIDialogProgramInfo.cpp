@@ -26,6 +26,7 @@
 #include "guilib/GUIImage.h"
 #include "utils/URIUtils.h"
 #include "programs/windows/GUIWindowProgramNav.h"
+#include "programs/launchers/ProgramLauncher.h"
 #include "messaging/ApplicationMessenger.h"
 #include "guilib/GUIKeyboardFactory.h"
 #include "guilib/GUIWindowManager.h"
@@ -47,6 +48,7 @@ using namespace KODI::MESSAGING;
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
 #define CONTROL_BTN_REFRESH          6
+#define CONTROL_BTN_PLAY             8
 #define CONTROL_BTN_PLAY_TRAILER    11
 #define CONTROL_BTN_GET_PATCHES     12
 
@@ -85,6 +87,10 @@ bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
         Close();
         return true;
       }
+      if (iControl == CONTROL_BTN_PLAY)
+      {
+        return LAUNCHERS::CProgramLauncher::LaunchProgram(m_programItem->GetProgramInfoTag()->m_strFileNameAndPath);
+      }
       if (iControl == CONTROL_BTN_PLAY_TRAILER)
       {
         PlayTrailer();
@@ -120,8 +126,7 @@ bool CGUIDialogProgramInfo::OnMessage(CGUIMessage& message)
               return true;
 
             CFileItemPtr item = pDlgSelect->GetSelectedFileItem();
-            // TODO: launch this XBE using IProgramLauncher
-            return true;
+            return LAUNCHERS::CProgramLauncher::LaunchProgram(item->GetPath());
           }
         }
         else

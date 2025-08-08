@@ -38,6 +38,7 @@
 #include "music/MusicLibraryQueue.h"
 #ifdef HAS_ADVANCED_PROGRAMS_LIBRARY
 #include "programs/ProgramLibraryQueue.h"
+#include "programs/launchers/ProgramLauncher.h"
 #endif
 #include "network/NetworkServices.h"
 #include "utils/LangCodeExpander.h"
@@ -930,7 +931,7 @@ HRESULT CApplication::Create(HWND hWnd)
       char szXBEFileName[1024];
 
       CIoSupport::GetXbePath(szXBEFileName);
-      CUtil::RunXBE(szXBEFileName);
+      LAUNCHERS::CProgramLauncher::LaunchProgram(szXBEFileName, false, false);
     }
     m_pd3dDevice->Release();
   }
@@ -2685,7 +2686,7 @@ void CApplication::OnApplicationMessage(ThreadMessage* pMsg)
     char szXBEFileName[1024];
 
     CIoSupport::GetXbePath(szXBEFileName);
-    CUtil::RunXBE(szXBEFileName);
+    LAUNCHERS::CProgramLauncher::LaunchProgram(szXBEFileName, false, false);
   }
 #endif
     break;
@@ -5160,18 +5161,7 @@ bool CApplication::ExecuteXBMCAction(std::string actionStr, const CGUIListItemPt
     }
     else if (item.IsXBE())
     { // an XBE
-      int iRegion;
-      if (CSettings::GetInstance().GetBool("myprograms.gameautoregion"))
-      {
-        CXBE xbe;
-        iRegion = xbe.ExtractGameRegion(item.GetPath());
-        if (iRegion < 1 || iRegion > 7)
-          iRegion = 0;
-        iRegion = xbe.FilterRegion(iRegion);
-      }
-      else
-        iRegion = 0;
-      CUtil::RunXBE(item.GetPath().c_str(),NULL,F_VIDEO(iRegion));
+      LAUNCHERS::CProgramLauncher::LaunchProgram(item.GetPath());
     }
     else if (item.IsAudio() || item.IsVideo())
     { // an audio or video file

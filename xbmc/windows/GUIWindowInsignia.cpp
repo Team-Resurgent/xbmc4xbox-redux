@@ -34,6 +34,7 @@
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
 #include "programs/ProgramDatabase2.h"
+#include "programs/launchers/ProgramLauncher.h"
 
 CGUIWindowInsignia::CGUIWindowInsignia(void)
     : CGUIWindow(WINDOW_INSIGNIA, "Insignia.xml"),
@@ -85,7 +86,7 @@ bool CGUIWindowInsignia::OnAction(const CAction &action)
     if (gamePath.empty())
       CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "Insignia", g_localizeStrings.Get(38903));
     else
-      CBuiltins::GetInstance().Execute(StringUtils::Format("RunXBE(%s)", gamePath.c_str()));
+      LAUNCHERS::CProgramLauncher::LaunchProgram(gamePath);
 
     return true;
   }

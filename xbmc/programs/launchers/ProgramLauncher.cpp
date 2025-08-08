@@ -32,13 +32,13 @@ CProgramLauncher::CProgramLauncher()
 CProgramLauncher::~CProgramLauncher()
 {}
 
-bool CProgramLauncher::LaunchProgram(const std::string& strExecutable)
+bool CProgramLauncher::LaunchProgram(const std::string& strExecutable, bool bLookForSettings /* = true */, bool bAllowRegionSwitching /* = true */)
 {
   const CURL url(strExecutable);
   return LaunchProgram(url);
 }
 
-bool CProgramLauncher::LaunchProgram(const CURL& url)
+bool CProgramLauncher::LaunchProgram(const CURL& url, bool bLookForSettings /* = true */, bool bAllowRegionSwitching /* = true */)
 {
   try
   {
@@ -47,7 +47,7 @@ bool CProgramLauncher::LaunchProgram(const CURL& url)
     if (!pProgramLauncher.get())
       return false;
 
-    if (pProgramLauncher->Launch())
+    if (pProgramLauncher->Launch(bLookForSettings, bAllowRegionSwitching))
       return true;
   }
   catch(...)
