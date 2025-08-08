@@ -23,6 +23,7 @@
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
 
 class CSetting;
+class CTrainer;
 
 typedef struct SProgramSettings
 {
@@ -81,10 +82,16 @@ protected:
 
 private:
   void Reset();
+  void ResetTrainer(bool bClearTrainers = false);
 
   void LoadProgramSettings();
   void SaveProgramSettings();
 
+  std::vector<CTrainer*> m_trainers;
+  std::vector<std::string> m_trainerOptions;
+  std::vector<std::string> m_selectedTrainerOptions;
+
+  CTrainer* m_trainer;
   unsigned int m_iTitleId;
   std::string m_strExecutable;
   SProgramSettings m_settings;

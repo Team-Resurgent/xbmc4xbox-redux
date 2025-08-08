@@ -117,7 +117,7 @@ void CAutorun::ExecuteXBE(const CStdString &xbeFile)
     {
       if (items[i]->GetProperty("isactive").asBoolean())
       {
-        CTrainer* trainer = new CTrainer(items[i]->GetProperty("idtrainer").asInteger32());
+        CTrainer* trainer = new CTrainer(items[i]->GetProgramInfoTag()->m_iDbId);
         if (trainer->Load(items[i]->GetPath()))
         {
           database.GetTrainerOptions(trainer->GetTrainerId(), dwTitleId, trainer->GetOptions(), trainer->GetNumberOfOptions());

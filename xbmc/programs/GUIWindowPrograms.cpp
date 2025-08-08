@@ -23,7 +23,7 @@
 #include "Shortcut.h"
 #include "filesystem/HDDirectory.h"
 #include "GUIPassword.h"
-#include "dialogs/GUIDialogTrainerSettings.h"
+#include "programs/dialogs/GUIDialogProgramSettings.h"
 #include "dialogs/GUIDialogMediaSource.h"
 #include "xbox/xbeheader.h"
 #include "utils/Trainer.h"
@@ -231,7 +231,7 @@ bool CGUIWindowPrograms::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
 
   case CONTEXT_BUTTON_TRAINER_OPTIONS:
     {
-      CGUIDialogTrainerSettings::ShowForTitle(item);
+      CGUIDialogProgramSettings::ShowForTitle(item);
       return true;
     }
 
@@ -369,7 +369,7 @@ bool CGUIWindowPrograms::OnPlayMedia(int iItem, const std::string &player)
     {
       if (items[i]->GetProperty("isactive").asBoolean())
       {
-        CTrainer* trainer = new CTrainer(items[i]->GetProperty("idtrainer").asInteger32());
+        CTrainer* trainer = new CTrainer(items[i]->GetProgramInfoTag()->m_iDbId);
         if (trainer->Load(items[i]->GetPath()))
         {
           m_database.GetTrainerOptions(trainer->GetTrainerId(), dwTitleId, trainer->GetOptions(), trainer->GetNumberOfOptions());

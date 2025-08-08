@@ -29,6 +29,7 @@
 
 class CGUIDialogProgress;
 class CGUIDialogProgressBarHandle;
+class CTrainer;
 
 namespace dbiplus
 {
@@ -267,6 +268,14 @@ public:
   void RemoveTagFromItem(int idItem, int idTag, const std::string &type);
 
   virtual bool GetFilter(CDbUrl &programUrl, Filter &filter, SortDescription &sorting);
+
+  // Trainers
+  bool AddTrainer(int idTitle, CTrainer &trainer);
+  bool RemoveTrainer(int idTrainer);
+  bool SetTrainer(int idTitle, CTrainer *trainer);
+  bool GetTrainers(CFileItemList& items, unsigned int idTitle = 0);
+  bool GetTrainerOptions(int idTrainer, unsigned int iTitleId, unsigned char* data, int numOptions);
+  bool HasTrainer(const std::string& strTrainerPath);
 
   // Program settings
   bool SetProgramSettings(const std::string& strFileNameAndPath, const std::string& strSettings);

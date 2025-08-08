@@ -29,6 +29,7 @@
 #include "settings/lib/Setting.h"
 #include "settings/windows/GUIControlSettings.h"
 #include "utils/URIUtils.h"
+#include "utils/Trainer.h"
 #include "utils/log.h"
 #include "utils/XMLUtils.h"
 #include "Util.h"
@@ -36,13 +37,19 @@
 
 #define SETTING_EXECUTABLE            "programexecutable"
 #define SETTING_FORCEREGION           "programforceregion"
+#define SETTING_TRAINER_LIST          "trainerlist"
+#define SETTING_TRAINER_HACKS         "trainerchoosehacks"
 
 using namespace std;
 
 CGUIDialogProgramSettings::CGUIDialogProgramSettings(void)
     : CGUIDialogSettingsManualBase(WINDOW_DIALOG_PROGRAM_SETTINGS, "DialogSettings.xml"),
+      m_trainer(nullptr),
       m_iTitleId(0)
 {
+  m_trainers.clear();
+  m_trainerOptions.clear();
+  m_selectedTrainerOptions.clear();
   m_strExecutable.clear();
 }
 
@@ -117,9 +124,23 @@ int CGUIDialogProgramSettings::GetXBERegion(const std::string& strExecutable, bo
 
 void CGUIDialogProgramSettings::Reset()
 {
+  ResetTrainer(true);
   m_iTitleId = 0;
   m_strExecutable.clear();
   m_settings.Reset();
+}
+
+void CGUIDialogProgramSettings::ResetTrainer(bool bClearTrainers /* = false */)
+{
+  if (bClearTrainers)
+  {
+    for (unsigned int i = 0; i < m_trainers.size(); ++i)
+      delete m_trainers[i];
+    m_trainers.clear();
+  }
+  m_trainer = nullptr;
+  m_trainerOptions.clear();
+  m_selectedTrainerOptions.clear();
 }
 
 void CGUIDialogProgramSettings::LoadProgramSettings()
@@ -130,6 +151,34 @@ void CGUIDialogProgramSettings::LoadProgramSettings()
     // Load general settings
     LoadSettings(m_strExecutable, m_settings);
 
+    // Load trainer settings
+    if (URIUtils::HasExtension(m_strExecutable, ".xbe"))
+    {
+      CFileItemList items;
+      database.GetTrainers(items, m_iTitleId);
+      for (int i = 0; i < items.Size(); i++)
+      {
+        CFileItemPtr item = items[i];
+        CTrainer *trainer = new CTrainer(item->GetProgramInfoTag()->m_iDbId);
+        if (trainer->Load(item->GetPath()))
+        {
+          database.GetTrainerOptions(trainer->GetTrainerId(), m_iTitleId, trainer->GetOptions(), trainer->GetNumberOfOptions());
+          m_trainers.push_back(trainer);
+          if (item->GetProperty("isactive").asBoolean())
+          {
+            m_trainer = trainer;
+            trainer->GetOptionLabels(m_trainerOptions);
+            for (unsigned int i = 0; i < m_trainerOptions.size(); i++)
+            {
+              if (m_trainer->GetOptions()[i] == 1)
+                m_selectedTrainerOptions.push_back(m_trainerOptions[i]);
+            }
+          }
+        }
+        else
+          delete trainer;
+      }
+    }
     database.Close();
   }
 }
@@ -168,6 +217,10 @@ void CGUIDialogProgramSettings::SaveProgramSettings()
   {
     // save general settings
     SaveSettings(m_strExecutable, m_settings);
+
+    // save trainer settings
+    if (URIUtils::HasExtension(m_strExecutable, ".xbe"))
+      database.SetTrainer(m_iTitleId, m_trainer);
   }
 }
 
@@ -186,6 +239,12 @@ void CGUIDialogProgramSettings::IntegerOptionsFiller(const CSetting *setting, st
     list.push_back(make_pair(iRegion == VIDEO_NTSCJ ? "NTSC-J (default)" : "NTSC-J", VIDEO_NTSCJ));
     list.push_back(make_pair(iRegion == VIDEO_PAL50 ? "PAL (default)" : "PAL", VIDEO_PAL50));
     list.push_back(make_pair(iRegion == VIDEO_PAL60 ? "PAL60 (default)" : "PAL60", VIDEO_PAL60));
+  }
+  else if (setting->GetId() == SETTING_TRAINER_LIST)
+  {
+    list.push_back(make_pair(g_localizeStrings.Get(231), 0));
+    for (std::vector<CTrainer*>::const_iterator it = programSettings->m_trainers.begin(); it != programSettings->m_trainers.end(); ++it)
+      list.push_back(make_pair((*it)->GetName(), (*it)->GetTrainerId()));
   }
 }
 
@@ -230,6 +289,25 @@ void CGUIDialogProgramSettings::OnSettingChanged(const CSetting *setting)
   {
     m_settings.iForceRegion = ((CSettingInt*)setting)->GetValue();
   }
+  else if (settingId == SETTING_TRAINER_LIST)
+  {
+    ResetTrainer();
+
+    const int idTrainer = ((CSettingInt*)setting)->GetValue();
+    if (idTrainer == 0)
+      return;
+
+    for (std::vector<CTrainer*>::iterator it = m_trainers.begin(); it != m_trainers.end(); ++it)
+    {
+      CTrainer *trainer = *it;
+      if (trainer->GetTrainerId() == idTrainer)
+      {
+        m_trainer = trainer;
+        m_trainer->GetOptionLabels(m_trainerOptions);
+        break;
+      }
+    }
+  }
 }
 
 void CGUIDialogProgramSettings::SetupView()
@@ -248,6 +326,40 @@ void CGUIDialogProgramSettings::OnSettingAction(const CSetting *setting)
     return;
 
   CGUIDialogSettingsManualBase::OnSettingChanged(setting);
+
+  const std::string &settingId = setting->GetId();
+  if (settingId == SETTING_TRAINER_HACKS)
+  {
+    CGUIDialogSelect *dialog = static_cast<CGUIDialogSelect *>(g_windowManager.GetWindow(WINDOW_DIALOG_SELECT));
+    if (dialog)
+    {
+      dialog->Reset();
+      dialog->SetMultiSelection(true);
+      dialog->SetHeading(38711);
+      for (std::vector<std::string>::const_iterator it = m_trainerOptions.begin(); it != m_trainerOptions.end(); ++it)
+        dialog->Add((*it));
+      dialog->SetSelected(m_selectedTrainerOptions);
+      dialog->Open();
+
+      if (!dialog->IsConfirmed())
+        return
+
+      // reset to initial state
+      m_selectedTrainerOptions.clear();
+      unsigned char* data = m_trainer->GetOptions();
+      for (int i = 0; i < m_trainer->GetNumberOfOptions(); i++)
+        data[i] = 0;
+
+      // enable selected hacks
+      std::vector<int> selectedItems = dialog->GetSelectedItems();
+      for (unsigned int i = 0; i < selectedItems.size(); i++)
+      {
+        const int index = selectedItems[i];
+        data[index] = 1;
+        m_selectedTrainerOptions.push_back(m_trainerOptions[index]);
+      }
+    }
+  }
 }
 
 void CGUIDialogProgramSettings::Save()
@@ -287,6 +399,16 @@ void CGUIDialogProgramSettings::InitializeSettings()
   if (isXBE)
   { // Xbox (XBE) executable
     AddList(group, SETTING_FORCEREGION, 20026, 0, m_settings.iForceRegion, IntegerOptionsFiller, 20026);
+    AddList(group, SETTING_TRAINER_LIST, 38710, 0, m_trainer ? m_trainer->GetTrainerId() : 0, IntegerOptionsFiller, 38710);
+    CSettingAction *btnHacks = AddButton(group, SETTING_TRAINER_HACKS, 38711, 0);
+
+    CSettingDependency dependencyHacks(SettingDependencyTypeEnable, m_settingsManager);
+    dependencyHacks.And()->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SETTING_TRAINER_LIST, "0", SettingDependencyOperatorEquals, true, m_settingsManager)));
+
+    SettingDependencies deps;
+    deps.push_back(dependencyHacks);
+    btnHacks->SetDependencies(deps);
+    deps.clear();
   }
 }
 

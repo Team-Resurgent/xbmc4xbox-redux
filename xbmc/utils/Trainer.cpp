@@ -26,7 +26,7 @@
 #include "filesystem/Directory.h"
 #include "filesystem/RarManager.h"
 #include "dialogs/GUIDialogProgress.h"
-#include "programs/ProgramDatabase2.h"
+#include "programs/ProgramDatabase.h"
 #include "guilib/LocalizeStrings.h"
 #include "guilib/GUIWindowManager.h"
 #include "settings/Settings.h"
@@ -698,7 +698,7 @@ bool CTrainer::ScanTrainers()
   if (!progress)
     return false;
 
-  LEGACY_PROGRAMS::CProgramDatabase database;
+  CProgramDatabase database;
   if (!database.Open())
     return false;
 
@@ -732,7 +732,7 @@ bool CTrainer::ScanTrainers()
     progress->Progress();
 
     if (!CFile::Exists(item->GetPath()) || item->GetPath().find(strTrainersPath) == std::string::npos)
-      database.RemoveTrainer(item->GetProperty("idtrainer").asInteger32());
+      database.RemoveTrainer(item->GetProgramInfoTag()->m_iDbId);
 
     if (progress->IsCanceled())
     {

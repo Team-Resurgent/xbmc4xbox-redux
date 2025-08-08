@@ -308,7 +308,6 @@ static const ActionMapping windows[] =
         {"videoosd"                 , WINDOW_DIALOG_VIDEO_OSD},
         {"videomenu"                , WINDOW_VIDEO_MENU},
         {"videotimeseek"            , WINDOW_VIDEO_TIME_SEEK},
-        {"trainersettings"          , WINDOW_DIALOG_TRAINER_SETTINGS},
         {"gamesaves"                , WINDOW_GAMESAVES},
         {"startwindow"              , WINDOW_START},
         {"startup"                  , WINDOW_STARTUP_ANIM},
