@@ -1903,9 +1903,14 @@ bool CApplication::LoadCustomWindows()
 
           pWindow->SetCustom(true);
 
+#ifdef _XBOX
+          if (g_advancedSettings.m_guiKeepInMemory)
+          {
           // Determining whether our custom dialog is modeless (visible condition is present)
           // will be done on load. Therefore we need to initialize the custom dialog on gui init.
           pWindow->SetLoadType(hasVisibleCondition ? CGUIWindow::LOAD_ON_GUI_INIT : CGUIWindow::KEEP_IN_MEMORY);
+          }
+#endif
 
           g_windowManager.AddCustomWindow(pWindow);
         }
