@@ -16,8 +16,6 @@ def get_params(argv):
         return result
 
     result.update(parse_qsl(argv[1].lstrip(u'?')))
-    if u'url' in result:
-        result.update(parse_qsl(result['url'].lstrip(u'?')))
     return result
 
 def _get_values(items):
