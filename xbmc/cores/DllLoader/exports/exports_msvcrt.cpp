@@ -165,6 +165,7 @@ extern "C" void* dll_telli64();
 extern "C" void* dll_tell();
 extern "C" void* dll_setmode();
 extern "C" void* dll_beginthreadex();
+extern "C" void* dll_endthreadex();
 extern "C" void* dll_fileno();
 extern "C" void* dll_getcwd();
 extern "C" void* _isatty();
@@ -413,6 +414,7 @@ Export export_msvcrt[] =
   { "_tell",                      -1, dll_tell,                      NULL },
   { "_setmode",                   -1, dll_setmode,                   NULL },
   { "_beginthreadex",             -1, dll_beginthreadex,             NULL },
+  { "_endthreadex",               -1, dll_endthreadex,               NULL },
   { "_fdopen",                    -1, dll_fdopen,                    NULL },
   { "_fileno",                    -1, dll_fileno,                    NULL },
   { "_getcwd",                    -1, dll_getcwd,                    NULL },
@@ -527,6 +529,7 @@ Export export_pncrt[] =
   { "_initterm",                  -1, dll_initterm,                  NULL },
   { "_adjust_fdiv",               -1, &_adjust_fdiv,                 NULL },
   { "_beginthreadex",             -1, dll_beginthreadex,             NULL },
+  { "_endthreadex",               -1, dll_endthreadex,               NULL },
   { "_iob",                       -1, &_iob,                         NULL },
   { "fprintf",                    -1, dll_fprintf,                   NULL },
   { "floor",                      -1, floor,                         NULL },
