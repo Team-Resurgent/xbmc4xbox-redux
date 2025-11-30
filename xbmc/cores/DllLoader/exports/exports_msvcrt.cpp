@@ -96,6 +96,7 @@ extern "C" void* tanh();
 extern "C" void* time();
 extern "C" void* toupper();
 extern "C" void* _memccpy();
+extern "C" void* _msize();
 extern "C" void* dll_fstat();
 extern "C" void* dll_mkdir();
 extern "C" void* dll_pclose();
@@ -352,6 +353,7 @@ Export export_msvcrt[] =
   { "_fstat",                     -1, dll_fstat,                     NULL },
   { "_memccpy",                   -1, _memccpy,                      NULL },
   { "_mkdir",                     -1, dll_mkdir,                     NULL },
+  { "_msize",                     -1, _msize,                        NULL },
   { "_pclose",                    -1, dll_pclose,                    NULL },
   { "_popen",                     -1, dll_popen,                     NULL },
   { "_sleep",                     -1, dll_sleep,                     NULL },
