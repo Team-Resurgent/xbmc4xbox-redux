@@ -222,6 +222,7 @@ extern "C" void* _CIcos();
 extern "C" void* _CIsin();
 extern "C" void* _CIlog();
 extern "C" void* _CIexp();
+extern "C" void* _CIatan2();
 extern "C" void* dllfree71();
 extern "C" void* isalpha();
 extern "C" void* _setjmp3();
@@ -450,6 +451,7 @@ Export export_msvcrt[] =
   { "_CIcos",                     -1, _CIcos,                        NULL },
   { "_CIlog",                     -1, _CIlog,                        NULL },
   { "_CIsin",                     -1, _CIsin,                        NULL },
+  { "_CIatan2",                   -1, _CIatan2,                      NULL },
   { "??_V@YAXPAX@Z",              -1, dllfree,                       track_free},
   { "isalpha",                    -1, isalpha,                       NULL },
   { "_CxxThrowException",         -1, _CxxThrowException,            NULL },
