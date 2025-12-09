@@ -222,7 +222,7 @@ bool CGUIWindowPrograms::GetDirectory(const std::string &strDirectory, CFileItem
     items.Add(pItem);
 
     CFileItemPtr pItem2(new CFileItem("gamesaves://", true));
-    pItem2->SetIconImage("DefaultGames.png");
+    pItem2->SetIconImage("DefaultGameAddons.png");
     pItem2->SetLabel(g_localizeStrings.Get(38779));
     pItem2->SetLabelPreformated(true);
     pItem2->SetProperty("overview", g_localizeStrings.Get(38779));
