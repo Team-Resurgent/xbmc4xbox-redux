@@ -203,6 +203,7 @@ GOTO:EOF
   ECHO Splash_2008.png>>exclude.txt
   ECHO Splash_2014.png>>exclude.txt
   ECHO exclude.txt>>exclude.txt
+  ECHO version.txt>>exclude.txt
   ECHO addons\skin >>exclude.txt
 
   mkdir %~1\home

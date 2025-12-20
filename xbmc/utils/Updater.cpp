@@ -27,34 +27,31 @@ CUpdaterJob::CUpdaterJob(bool notify /* = false */, bool install /* = false */)
 
 bool CUpdaterJob::DoWork()
 {
+  std::vector<std::string> split = StringUtils::Split(VERSION_STRING, "-");
+  std::string strVersion = split[0];
+  std::string strRevision = split[1];
+  std::string strUpdateChannel = split[2] == "py2" ? "nightly" : "nightly-python3";
+
   if (!g_infoManager.EvaluateBool("Skin.HasSetting(updateavailable)"))
   {
-    std::string revision(VERSION_STRING);
-    size_t iPos = revision.find("-");
-    revision = revision.substr(iPos + 1);
-
-    if (revision.empty() || StringUtils::StartsWithNoCase(revision, "dev"))
+    if (strRevision.empty() || StringUtils::StartsWithNoCase(strRevision, "dev"))
       return true;
 
     CLog::Log(LOGINFO, "Checking for new updates...");
 
-    std::string strURL = "https://github.com/antonic901/xbmc4xbox-redux/releases/download/nightly/version.txt";
-    if (StringUtils::EndsWithNoCase(VERSION_STRING, "py3"))
-      strURL = "https://github.com/antonic901/xbmc4xbox-redux/releases/download/nightly-python3/version.txt";
-
+    std::string strURL = StringUtils::Format("https://github.com/antonic901/xbmc4xbox-redux/releases/download/%s/version.txt", strUpdateChannel.c_str());
     XFILE::CCurlFile httpUtil;
-    std::string bodyResponse;
-    if (!httpUtil.Get(strURL, bodyResponse))
+    std::string strLastRevision;
+    if (!httpUtil.Get(strURL, strLastRevision))
     {
       CLog::Log(LOGWARNING, "Failed to fetch version file");
       return false;
     }
+    StringUtils::Replace(strLastRevision, "\r", "");
+    StringUtils::Replace(strLastRevision, "\n", "");
+    StringUtils::Trim(strLastRevision);
 
-    std::string lastRevision;
-    std::istringstream iss(bodyResponse);
-    std::getline(iss, lastRevision);
-
-    bool updateAvailable = !lastRevision.empty() && lastRevision != revision;
+    bool updateAvailable = !strLastRevision.empty() && strLastRevision != strRevision;
     if (updateAvailable)
       KODI::MESSAGING::CApplicationMessenger::Get().PostMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "Skin.SetBool(updateavailable)");
 
@@ -66,7 +63,7 @@ bool CUpdaterJob::DoWork()
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "XBMC", g_localizeStrings.Get(24068));
 
   if (m_install)
-    DoInstall();
+    DoInstall(strVersion, strRevision, strUpdateChannel);
 
   return true;
 }
@@ -79,19 +76,14 @@ bool CUpdaterJob::operator==(const CJob* job) const
   return true;
 }
 
-void CUpdaterJob::DoInstall()
+void CUpdaterJob::DoInstall(const std::string& strCurrentVersion, const std::string& strCurrentRevision, const std::string& strUpdateChannel)
 {
   if (CGUIDialogYesNo::ShowAndGetInput(24068, 38790))
   {
     CUSTOM_LAUNCH_DATA data;
     memset(&data, 0, sizeof(CUSTOM_LAUNCH_DATA));
 
-    std::vector<std::string> split = StringUtils::Split(VERSION_STRING, "-");
-    std::string strVersion = split[0];
-    std::string strRevision = split[1];
-    std::string strUpdateChannel = split[2] == "py2" ? "nightly" : "nightly-python3";
-
-    strcpy(data.reserved, StringUtils::Format("version=%s&revision=%s&channel=%s", strVersion.c_str(), strRevision.c_str(), strUpdateChannel.c_str()).c_str());
+    strcpy(data.reserved, StringUtils::Format("version=%s&revision=%s&channel=%s", strCurrentVersion.c_str(), strCurrentRevision.c_str(), strUpdateChannel.c_str()).c_str());
     data.executionType = 0;
 
     KODI::MESSAGING::CApplicationMessenger::Get().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "Skin.ToggleSetting(updateavailable)");
