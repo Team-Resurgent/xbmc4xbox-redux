@@ -85,6 +85,7 @@
 #include "settings/SkinSettings.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/SeekHandler.h"
+#include "utils/Updater.h"
 
 #include "input/KeyboardLayoutManager.h"
 
@@ -1311,6 +1312,9 @@ HRESULT CApplication::Initialize()
   }
 
   m_slowTimer.StartZero();
+  m_updaterTimer.StartZero();
+  if (CSettings::GetInstance().GetInt("updater.autoupdate") == AUTO_UPDATER_NOTIFY)
+    CJobManager::GetInstance().AddJob(new CUpdaterJob(true), NULL);
 
 #ifdef __APPLE__
   g_xbmcHelper.CaptureAllInput();
@@ -5227,6 +5231,15 @@ void CApplication::Process()
     ProcessSlow();
   }
 
+  if (m_updaterTimer.GetElapsedSeconds() > 1800)
+  {
+    if (CSettings::GetInstance().GetInt("updater.autoupdate") == AUTO_UPDATER_NOTIFY && 
+        !g_infoManager.EvaluateBool("Skin.HasSetting(updateavailable)"))
+    {
+      CJobManager::GetInstance().AddJob(new CUpdaterJob(true), NULL);
+    }
+    m_updaterTimer.Reset();
+  }
 }
 
 // We get called every 500ms
@@ -6168,6 +6181,8 @@ void CApplication::OnSettingAction(const CSetting *setting)
     g_windowManager.ActivateWindow(WINDOW_PICTURES);
   else if (settingId == "myprograms.trainerscan")
     CTrainer::ScanTrainers();
+  else if (settingId == "updater.check")
+    CJobManager::GetInstance().AddJob(new CUpdaterJob(false, true), NULL, CJob::PRIORITY_HIGH);
 }
 
 bool CApplication::OnSettingUpdate(CSetting* &setting, const char *oldSettingId, const TiXmlNode *oldSettingNode)
