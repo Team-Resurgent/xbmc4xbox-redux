@@ -20,7 +20,8 @@
  *
  */
 
-#include "GUIDialog.h"
+#include "dialogs/GUIDialogSelect.h"
+#include "guilib/GUIDialog.h"
 
 namespace ADDON
 {
@@ -28,20 +29,18 @@ namespace ADDON
 }
 class CFileItemList;
 
-class CGUIDialogVisualisationPresetList :
-      public CGUIDialog
+class CGUIDialogVisualisationPresetList : public CGUIDialogSelect
 {
 public:
-  CGUIDialogVisualisationPresetList(void);
-  virtual ~CGUIDialogVisualisationPresetList(void);
+  CGUIDialogVisualisationPresetList();
   virtual bool OnMessage(CGUIMessage &message);
-  virtual void FrameMove();
 
 protected:
   virtual void OnInitWindow();
+  virtual void OnDeinitWindow(int nextWindowID);
+  virtual void OnSelect(int idx);
+
+private:
   void SetVisualisation(ADDON::CVisualisation *addon);
-  void Update();
-  ADDON::CVisualisation* m_viz; //TODO get rid
-  CFileItemList* m_vecPresets;
-  unsigned m_currentPreset;
+  ADDON::CVisualisation* m_viz;
 };
