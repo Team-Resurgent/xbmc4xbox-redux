@@ -348,7 +348,7 @@ void CGUIDialogLibExportSettings::SetFocus(const std::string &settingid)
 int CGUIDialogLibExportSettings::GetExportItemsFromSetting(const CSetting *setting)
 {
   const CSettingList *settingList = static_cast<const CSettingList*>(setting);
-  if (settingList->GetElementType() != SettingTypeList)
+  if (settingList->GetElementType() != SettingTypeInteger)
   {
     CLog::Log(LOGERROR, "CGUIDialogLibExportSettings::%s - wrong items element type", __FUNCTION__);
     return 0;
