@@ -869,19 +869,19 @@ void CUtil::CreateShortcut(CFileItem* pItem)
   }
 }
 
-void CUtil::GetFatXQualifiedPath(CStdString& strFileNameAndPath)
+std::string CUtil::GetFatXQualifiedPath(const std::string& strPath)
 {
+  std::string strFileNameAndPath(strPath);
   // This routine gets rid of any "\\"'s at the start of the path.
   // Should this be the case?
-  vector<CStdString> tokens;
-  CStdString strBasePath, strFileName;
+  std::string strBasePath, strFileName;
 
   // We need to check whether we must use forward (ie. special://)
   // or backslashes (ie. Q:\)
-  CStdString sep;
-  if (strFileNameAndPath.c_str()[1] == ':' || strFileNameAndPath.Find('\\')>=0)
+  std::string sep;
+  if (strFileNameAndPath.c_str()[1] == ':' || strFileNameAndPath.find('\\')>=0)
   {
-    strFileNameAndPath.Replace('/', '\\');
+    StringUtils::Replace(strFileNameAndPath, '/', '\\');
     sep="\\";
   }
   else
@@ -890,7 +890,7 @@ void CUtil::GetFatXQualifiedPath(CStdString& strFileNameAndPath)
     sep="/";
   }
 
-  if(strFileNameAndPath.Right(1) == sep)
+  if(strFileNameAndPath.substr(std::max(0, (int)strFileNameAndPath.size() - 1)) == sep)
   {
     strBasePath = strFileNameAndPath;
     strFileName = "";
@@ -902,14 +902,14 @@ void CUtil::GetFatXQualifiedPath(CStdString& strFileNameAndPath)
     strFileName = URIUtils::GetFileName(strFileNameAndPath);
   }
 
-  StringUtils::SplitString(strBasePath,sep,tokens);
+  std::vector<std::string> tokens = StringUtils::Split(strBasePath, sep);
   if (tokens.empty())
-    return; // nothing to do here (invalid path)
+    return strPath; // nothing to do here (invalid path)
 
   strFileNameAndPath = tokens.front();
-  for (vector<CStdString>::iterator token=tokens.begin()+1;token != tokens.end();++token)
+  for (std::vector<std::string>::iterator token=tokens.begin()+1;token != tokens.end();++token)
   {
-    CStdString strToken = token->Left(42);
+    std::string strToken = token->substr(0, 42);
     if (token->size() > 42)
     {
       // remove any spaces as a result of truncation (only):
@@ -920,17 +920,17 @@ void CUtil::GetFatXQualifiedPath(CStdString& strFileNameAndPath)
     strFileNameAndPath += sep+strToken;
   }
 
-  if (!strFileName.IsEmpty())
+  if (!strFileName.empty())
   {
     CUtil::RemoveIllegalChars(strFileName);
 
-    if (strFileName.Left(1) == sep)
+    if (strFileName.substr(0, 1) == sep)
       strFileName.erase(0,1);
 
     if (CUtil::ShortenFileName(strFileName))
     {
-      CStdString strExtension = URIUtils::GetExtension(strFileName);
-      CStdString strNoExt(URIUtils::ReplaceExtension(strFileName, ""));
+      std::string strExtension = URIUtils::GetExtension(strFileName);
+      std::string strNoExt(URIUtils::ReplaceExtension(strFileName, ""));
       // remove any spaces as a result of truncation (only):
       while (strNoExt[strNoExt.size()-1] == ' ')
         strNoExt.erase(strNoExt.size()-1);
@@ -940,38 +940,40 @@ void CUtil::GetFatXQualifiedPath(CStdString& strFileNameAndPath)
     else
       strFileNameAndPath += strFileName;
   }
+
+  return strFileNameAndPath;
 }
 
-bool CUtil::ShortenFileName(CStdString& strFileNameAndPath)
+bool CUtil::ShortenFileName(std::string& strFileNameAndPath)
 {
-  CStdString strFile = URIUtils::GetFileName(strFileNameAndPath);
+  std::string strFile = URIUtils::GetFileName(strFileNameAndPath);
   if (strFile.size() > 42)
   {
-    CStdString strExtension = URIUtils::GetExtension(strFileNameAndPath);
-    CStdString strPath = strFileNameAndPath.Left( strFileNameAndPath.size() - strFile.size() );
+    std::string strExtension = URIUtils::GetExtension(strFileNameAndPath);
+    std::string strPath = strFileNameAndPath.substr(0, strFileNameAndPath.size() - strFile.size());
 
     CRegExp reg;
-    CStdString strSearch=strFile; strSearch.ToLower();
+    std::string strSearch=strFile; StringUtils::ToLower(strSearch);
     reg.RegComp("([_\\-\\. ](cd|part)[0-9]*)[_\\-\\. ]");          // this is to ensure that cd1, cd2 or partXXX. do not
     int matchPos = reg.RegFind(strSearch.c_str());                 // get cut from filenames when they are shortened.
 
-    CStdString strPartNumber = reg.GetReplaceString("\\1");
+    std::string strPartNumber = reg.GetReplaceString("\\1");
 
     int partPos = 42 - strPartNumber.size() - strExtension.size();
 
     if (matchPos > partPos )
     {
-       strFile = strFile.Left(partPos);
+       strFile = strFile.substr(0, partPos);
        strFile += strPartNumber;
     }
     else
     {
-       strFile = strFile.Left(42 - strExtension.size());
+       strFile = strFile.substr(0, 42 - strExtension.size());
     }
     strFile += strExtension;
 
-    CStdString strNewFile = strPath;
-    if (!URIUtils::HasSlashAtEnd(strNewFile) && !strNewFile.IsEmpty())
+    std::string strNewFile = strPath;
+    if (!URIUtils::HasSlashAtEnd(strNewFile) && !strNewFile.empty())
       strNewFile += "\\";
 
     strNewFile += strFile;
@@ -1052,7 +1054,7 @@ void CUtil::DeleteGUISettings()
   // CFile::Delete(CProfilesManager::Get().GetSettingsFile());
 }
 
-void CUtil::RemoveIllegalChars( CStdString& strText)
+void CUtil::RemoveIllegalChars(std::string& strText)
 {
   char szRemoveIllegal [1024];
   strcpy(szRemoveIllegal , strText.c_str());

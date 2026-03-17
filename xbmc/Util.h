@@ -101,8 +101,8 @@ public:
   static bool GetDirectoryName(const CStdString& strFileName, CStdString& strDescription);
   static void CreateShortcuts(CFileItemList &items);
   static void CreateShortcut(CFileItem* pItem);
-  static void GetFatXQualifiedPath(CStdString& strFileNameAndPath);
-  static bool ShortenFileName(CStdString& strFileNameAndPath);
+  static std::string GetFatXQualifiedPath(const std::string& strPath);
+  static bool ShortenFileName(std::string& strFileNameAndPath);
   static bool IsWritable(const CStdString& strFile);
   static bool IsPicture(const CStdString& strFile);
   static void GetDVDDriveIcon( const std::string& strPath, std::string& strIcon );
@@ -110,7 +110,7 @@ public:
   static void ClearTempFonts();
   static void DeleteGUISettings();
 
-  static void RemoveIllegalChars( CStdString& strText);
+  static void RemoveIllegalChars(std::string& strText);
   static void CacheSubtitles(const CStdString& strMovie, CStdString& strExtensionCached, XFILE::IFileCallback *pCallback = NULL);
   static bool CacheRarSubtitles(const CStdString& strRarPath, const CStdString& strCompare);
   static void ClearSubtitles();

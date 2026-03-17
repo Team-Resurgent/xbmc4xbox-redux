@@ -77,7 +77,7 @@ __int64 CFatXFileSystem::GetPosition()
 bool CFatXFileSystem::Delete(const CStdString &file)
 {
   CURL url(GetLocal(file));
-  CFileHD hdFile;
+  CHDFile hdFile;
   return hdFile.Delete(url);
 }
 
@@ -85,7 +85,7 @@ bool CFatXFileSystem::Rename(const CStdString &oldFile, const CStdString &newFil
 {
   CURL urlOld(GetLocal(oldFile));
   CURL urlNew(GetLocal(newFile));
-  CFileHD hdFile;
+  CHDFile hdFile;
   return hdFile.Rename(urlOld, urlNew);
 }
 

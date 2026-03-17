@@ -38,7 +38,7 @@
 #define CacheLocalFile CWin32File
 #elif defined(_XBOX)
 #include "filesystem/HDFile.h"
-#define CacheLocalFile CFileHD
+#define CacheLocalFile CHDFile
 #endif // TARGET_WINDOWS
 
 #include <cassert>

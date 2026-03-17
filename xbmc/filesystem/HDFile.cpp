@@ -1,160 +1,159 @@
-
-#include "system.h"
-#include "utils/log.h"
 /*
- * XBMC Media Center
- * Copyright (c) 2002 Frodo
- * Portions Copyright (c) by the authors of ffmpeg and xvid
+ *  Copyright (C) 2014-2018 Team Kodi
+ *  This file is part of Kodi - https://kodi.tv
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
+ *  SPDX-License-Identifier: GPL-2.0-or-later
+ *  See LICENSES/README.md for more information.
+ */
+
 #include "HDFile.h"
+
+#include "utils/log.h"
+#include "utils/StringUtils.h"
 #include "Util.h"
 #include "URL.h"
-#include "settings/Settings.h"
-#include "utils/CharsetConverter.h"
-#include "threads/CriticalSection.h"
 
 #include <sys/stat.h>
+#include <xtl.h>
+
+#ifndef INVALID_FILE_ATTRIBUTES
+#define INVALID_FILE_ATTRIBUTES ((DWORD) -1)
+#endif
 
 using namespace XFILE;
 
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
-//*********************************************************************************************
-CFileHD::CFileHD()
+CHDFile::CHDFile()
     : m_hFile(INVALID_HANDLE_VALUE)
-{}
-
-//*********************************************************************************************
-CFileHD::~CFileHD()
 {
-  if (m_hFile != INVALID_HANDLE_VALUE) Close();
 }
-//*********************************************************************************************
-CStdString CFileHD::GetLocal(const CURL &url)
+
+CHDFile::~CHDFile()
 {
-  CStdString path( url.GetFileName() );
+  Close();
+}
+
+std::string CHDFile::GetLocal(const CURL &url)
+{
+  std::string path( url.GetFileName() );
 
   if(url.IsProtocol("file"))
   {
     // file://drive[:]/path
     // file:///drive:/path
-    CStdString host( url.GetHostName() );
+    std::string host( url.GetHostName() );
 
-    if(host.size() > 0)
-    {
-      if(host.Right(1) == ":")
+    if (!host.empty()) {
+      if (host.size() > 0 && host.substr(host.size() - 1) == ":")
         path = host + "/" + path;
       else
         path = host + ":/" + path;
     }
   }
 
-  path.Replace('/', '\\');
-  g_charsetConverter.utf8ToStringCharset(path);
+  StringUtils::Replace(path, '/', '\\');
   return path;
 }
 
-//*********************************************************************************************
-bool CFileHD::Open(const CURL& url)
+bool CHDFile::Open(const CURL& url)
 {
-  CStdString strFile = GetLocal(url);
+  std::string strFile = GetLocal(url);
 
-  m_hFile.attach(CreateFile(strFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL));
-  if (!m_hFile.isValid()) return false;
+  m_hFile = CreateFile(strFile.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+  if (m_hFile == INVALID_HANDLE_VALUE)
+    return false;
 
   m_i64FilePos = 0;
   m_i64FileLen = 0;
 
   LARGE_INTEGER i64Size;
-  GetFileSizeEx((HANDLE)m_hFile, &i64Size);
+  GetFileSizeEx(m_hFile, &i64Size);
   m_i64FileLength = i64Size.QuadPart;
 
   return true;
 }
 
-bool CFileHD::Exists(const CURL& url)
+bool CHDFile::Exists(const CURL& url)
 {
-  CStdString strFile = GetLocal(url);
-
-  struct __stat64 buffer;
-  return (_stat64(strFile.c_str(), &buffer)==0);
+  std::string strFile = GetLocal(url);
+  const DWORD attrs = GetFileAttributesA(strFile.c_str());
+  return attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY) == 0;
 }
 
 
-int CFileHD::Stat(const CURL& url, struct __stat64* buffer)
+int CHDFile::Stat(const CURL& url, struct __stat64* buffer)
 {
-  CStdString strFile = GetLocal(url);
+  std::string strFile = GetLocal(url);
 
-  return _stat64(strFile.c_str(), buffer);
+  HANDLE hSearch;
+  WIN32_FIND_DATAA findData;
+  hSearch = FindFirstFile(strFile.c_str(), &findData);
+  if (hSearch == INVALID_HANDLE_VALUE)
+    return -1;
+  CloseHandle(hSearch);
+
+  buffer->st_dev = 0;
+  buffer->st_ino = 0;
+  buffer->st_mode = (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? S_IFDIR : S_IFREG;
+  buffer->st_nlink = 1;
+  buffer->st_uid = 0;
+  buffer->st_gid = 0;
+  buffer->st_rdev = 0;
+
+  buffer->st_size = static_cast<_off_t>(
+      (static_cast<__int64>(findData.nFileSizeHigh) << 32) | findData.nFileSizeLow);
+
+  buffer->st_atime = static_cast<__time64_t>(findData.ftLastAccessTime.dwLowDateTime);
+  buffer->st_mtime = static_cast<__time64_t>(findData.ftLastWriteTime.dwLowDateTime);
+  buffer->st_ctime = static_cast<__time64_t>(findData.ftCreationTime.dwLowDateTime);
+
+  return 0;
 }
 
-bool CFileHD::SetHidden(const CURL &url, bool hidden)
+bool CHDFile::SetHidden(const CURL &url, bool hidden)
 {
-#if defined(_WIN32) && !defined(_XBOX)
-  CStdStringW path;
-  g_charsetConverter.utf8ToW(GetLocal(url), path, false);
+  std::string path = GetLocal(url);
+
   DWORD attributes = hidden ? FILE_ATTRIBUTE_HIDDEN : FILE_ATTRIBUTE_NORMAL;
-  if (SetFileAttributesW(path.c_str(), attributes))
+  if (SetFileAttributesA(path.c_str(), attributes))
     return true;
-#endif
+
   return false;
 }
 
-//*********************************************************************************************
-bool CFileHD::OpenForWrite(const CURL& url, bool bOverWrite)
+bool CHDFile::OpenForWrite(const CURL& url, bool bOverWrite)
 {
   // make sure it's a legal FATX filename (we are writing to the harddisk)
-  CStdString strPath = GetLocal(url);
+  std::string strPath = GetLocal(url);
 
-  if (CSettings::GetInstance().GetBool("services.ftpautofatx")) // allow overriding
-  {
-    CStdString strPathOriginal = strPath;
-    CUtil::GetFatXQualifiedPath(strPath);
-    if (strPathOriginal != strPath)
-      CLog::Log(LOGINFO,"CFileHD::OpenForWrite: WARNING: Truncated filename %s %s", strPathOriginal.c_str(), strPath.c_str());
-  }
-  
-  m_hFile.attach(CreateFile(strPath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, bOverWrite ? CREATE_ALWAYS : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-  if (!m_hFile.isValid()) 
+  std::string strPathOriginal = strPath;
+  strPath = CUtil::GetFatXQualifiedPath(strPath);
+  if (strPathOriginal != strPath)
+    CLog::Log(LOGINFO, "CHDFile::OpenForWrite - Truncated filename: %s -> %s", strPathOriginal.c_str(), strPath.c_str());
+
+  m_hFile = CreateFile(strPath.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, bOverWrite ? CREATE_ALWAYS : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  if (m_hFile == INVALID_HANDLE_VALUE)
     return false;
 
   m_i64FilePos = 0;
   LARGE_INTEGER i64Size;
-  GetFileSizeEx((HANDLE)m_hFile, &i64Size);
+  GetFileSizeEx(m_hFile, &i64Size);
   m_i64FileLength = i64Size.QuadPart;
   Seek(0, SEEK_SET);
 
   return true;
 }
 
-//*********************************************************************************************
-ssize_t CFileHD::Read(void *lpBuf, size_t uiBufSize)
+ssize_t CHDFile::Read(void *lpBuf, size_t uiBufSize)
 {
   assert(lpBuf != NULL);
-  if (!m_hFile.isValid()) 
+  if (m_hFile == INVALID_HANDLE_VALUE)
     return -1;
 
   if (uiBufSize > SSIZE_MAX)
     uiBufSize = SSIZE_MAX;
-  
+
   DWORD nBytesRead;
-  if ( ReadFile((HANDLE)m_hFile, lpBuf, (DWORD)uiBufSize, &nBytesRead, NULL) )
+  if ( ReadFile(m_hFile, lpBuf, (DWORD)uiBufSize, &nBytesRead, NULL) )
   {
     m_i64FilePos += nBytesRead;
     return nBytesRead;
@@ -162,27 +161,27 @@ ssize_t CFileHD::Read(void *lpBuf, size_t uiBufSize)
   return -1;
 }
 
-//*********************************************************************************************
-ssize_t CFileHD::Write(const void* lpBuf, size_t uiBufSize)
+ssize_t CHDFile::Write(const void* lpBuf, size_t uiBufSize)
 {
-  if (!m_hFile.isValid())
+  if (m_hFile == INVALID_HANDLE_VALUE)
     return 0;
 
   DWORD nBytesWriten;
-  if ( WriteFile((HANDLE)m_hFile, (void*) lpBuf, (DWORD)uiBufSize, &nBytesWriten, NULL) )
+  if ( WriteFile(m_hFile, (void*) lpBuf, (DWORD)uiBufSize, &nBytesWriten, NULL) )
     return nBytesWriten;
 
   return 0;
 }
 
-//*********************************************************************************************
-void CFileHD::Close()
+void CHDFile::Close()
 {
-  m_hFile.reset();
+  if (m_hFile != INVALID_HANDLE_VALUE)
+    CloseHandle(m_hFile);
+
+  m_hFile = INVALID_HANDLE_VALUE;
 }
 
-//*********************************************************************************************
-int64_t CFileHD::Seek(int64_t iFilePosition, int iWhence)
+int64_t CHDFile::Seek(int64_t iFilePosition, int iWhence)
 {
   LARGE_INTEGER lPos, lNewPos;
   lPos.QuadPart = iFilePosition;
@@ -191,15 +190,15 @@ int64_t CFileHD::Seek(int64_t iFilePosition, int iWhence)
   switch (iWhence)
   {
   case SEEK_SET:
-    bSuccess = SetFilePointerEx((HANDLE)m_hFile, lPos, &lNewPos, FILE_BEGIN);
+    bSuccess = SetFilePointerEx(m_hFile, lPos, &lNewPos, FILE_BEGIN);
     break;
 
   case SEEK_CUR:
-    bSuccess = SetFilePointerEx((HANDLE)m_hFile, lPos, &lNewPos, FILE_CURRENT);
+    bSuccess = SetFilePointerEx(m_hFile, lPos, &lNewPos, FILE_CURRENT);
     break;
 
   case SEEK_END:
-    bSuccess = SetFilePointerEx((HANDLE)m_hFile, lPos, &lNewPos, FILE_END);
+    bSuccess = SetFilePointerEx(m_hFile, lPos, &lNewPos, FILE_END);
     break;
 
   default:
@@ -214,8 +213,7 @@ int64_t CFileHD::Seek(int64_t iFilePosition, int iWhence)
     return -1;
 }
 
-//*********************************************************************************************
-int64_t CFileHD::GetLength()
+int64_t CHDFile::GetLength()
 {
   if(m_i64FileLen <= m_i64FilePos || m_i64FileLen == 0)
   {
@@ -223,45 +221,32 @@ int64_t CFileHD::GetLength()
     if(GetFileSizeEx((HANDLE)m_hFile, &i64Size))
       m_i64FileLen = i64Size.QuadPart;
     else
-      CLog::Log(LOGERROR, "CFileHD::GetLength - GetFileSizeEx failed with error %d", GetLastError());
+      CLog::Log(LOGERROR, "CHDFile::GetLength - GetFileSizeEx failed with error %d", GetLastError());
   }
   return m_i64FileLen;
 }
 
-//*********************************************************************************************
-int64_t CFileHD::GetPosition()
+int64_t CHDFile::GetPosition()
 {
   return m_i64FilePos;
 }
 
-bool CFileHD::Delete(const CURL& url)
+bool CHDFile::Delete(const CURL& url)
 {
-  CStdString strFile=GetLocal(url);
+  std::string strFile = GetLocal(url);
 
   return ::DeleteFile(strFile.c_str()) ? true : false;
 }
 
-bool CFileHD::Rename(const CURL& url, const CURL& urlnew)
+bool CHDFile::Rename(const CURL& url, const CURL& urlnew)
 {
-  CStdString strFile=GetLocal(url);
-  CStdString strNewFile=GetLocal(urlnew);
+  std::string strFile = GetLocal(url);
+  std::string  strNewFile = GetLocal(urlnew);
 
   return ::MoveFile(strFile.c_str(), strNewFile.c_str()) ? true : false;
 }
 
-void CFileHD::Flush()
+void CHDFile::Flush()
 {
-  ::FlushFileBuffers(m_hFile);
-}
-
-int CFileHD::IoControl(EIoControl request, void* param)
-{
-#ifdef _LINUX
-  if(request == IOCTRL_NATIVE && param)
-  {
-    SNativeIoControl* s = (SNativeIoControl*)param;
-    return ioctl((*m_hFile).fd, s->request, s->param);
-  }
-#endif
-  return -1;
+  FlushFileBuffers(m_hFile);
 }

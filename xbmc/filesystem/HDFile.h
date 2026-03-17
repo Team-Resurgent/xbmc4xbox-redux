@@ -1,69 +1,51 @@
 /*
- * XBMC Media Center
- * Copyright (c) 2002 Frodo
- * Portions Copyright (c) by the authors of ffmpeg and xvid
+ *  Copyright (C) 2014-2018 Team Kodi
+ *  This file is part of Kodi - https://kodi.tv
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-*/
+ *  SPDX-License-Identifier: GPL-2.0-or-later
+ *  See LICENSES/README.md for more information.
+ */
 
-// HDFile.h: interface for the CFileHD class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#if !defined(AFX_FILEHD_H__DD2B0A9E_4971_4A29_B525_78CEFCDAF4A1__INCLUDED_)
-#define AFX_FILEHD_H__DD2B0A9E_4971_4A29_B525_78CEFCDAF4A1__INCLUDED_
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
-#include "IFile.h"
-#include "AutoPtrHandle.h"
+#include "filesystem/IFile.h"
+
+#include <string>
+
+typedef void* HANDLE; // forward declaration
 
 namespace XFILE
 {
-class CFileHD : public IFile
+class CHDFile : public IFile
 {
-public:
-  CFileHD();
-  virtual ~CFileHD();
-  virtual int64_t GetPosition();
-  virtual int64_t GetLength();
-  virtual bool Open(const CURL& url);
-  virtual bool Exists(const CURL& url);
-  virtual int Stat(const CURL& url, struct __stat64* buffer);
-  virtual ssize_t Read(void* lpBuf, size_t uiBufSize);
-  virtual ssize_t Write(const void* lpBuf, size_t uiBufSize);
-  virtual int64_t Seek(int64_t iFilePosition, int iWhence = SEEK_SET);
-  virtual void Close();
-  virtual void Flush();
+  public:
+    CHDFile();
+    virtual ~CHDFile();
 
-  virtual bool OpenForWrite(const CURL& url, bool bOverWrite = false);
+    virtual bool Open(const CURL& url);
+    virtual bool OpenForWrite(const CURL& url, bool bOverWrite = false);
+    virtual void Close();
 
-  virtual bool Delete(const CURL& url);
-  virtual bool Rename(const CURL& url, const CURL& urlnew);
-  virtual bool SetHidden(const CURL& url, bool hidden);
+    virtual ssize_t Read(void* lpBuf, size_t uiBufSize);
+    virtual ssize_t Write(const void* lpBuf, size_t uiBufSize);
+    virtual int64_t Seek(int64_t iFilePosition, int iWhence = SEEK_SET);
+    virtual int64_t GetPosition();
+    virtual int64_t GetLength();
+    virtual void Flush();
 
-  virtual int IoControl(EIoControl request, void* param);
-protected:
-  CStdString GetLocal(const CURL &url); /* crate a properly format path from an url */
-  AUTOPTR::CAutoPtrHandle m_hFile;
-  int64_t m_i64FileLength;
-  int64_t m_i64FilePos;
-  int64_t m_i64FileLen;
-};
+    virtual bool Delete(const CURL& url);
+    virtual bool Rename(const CURL& url, const CURL& urlnew);
+    virtual bool SetHidden(const CURL& url, bool hidden);
+    virtual bool Exists(const CURL& url);
+    virtual int Stat(const CURL& url, struct __stat64* buffer);
+
+  protected:
+    std::string GetLocal(const CURL &url); /* crate a properly format path from an url */
+    HANDLE  m_hFile;
+
+    int64_t m_i64FileLength;
+    int64_t m_i64FilePos;
+    int64_t m_i64FileLen;
+  };
 
 }
-#endif // !defined(AFX_FILEHD_H__DD2B0A9E_4971_4A29_B525_78CEFCDAF4A1__INCLUDED_)
