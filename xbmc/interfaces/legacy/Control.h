@@ -1432,6 +1432,7 @@ namespace XBMCAddon
       // setItemHeight() method
 #ifdef DOXYGEN_SHOULD_USE_THIS
       ///
+      /// \ingroup python_xbmcgui_control_list
       /// @brief \python_func{ setItemHeight(itemHeight) }
       ///-----------------------------------------------------------------------
       ///  Sets the height of items.
